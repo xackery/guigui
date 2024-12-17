@@ -360,21 +360,35 @@ func (s *ScrollOverlay) barBounds(bounds image.Rectangle, scale float64) (image.
 	offsetX, offsetY := s.Offset()
 	barWidth, barHeight := s.barSize(bounds, scale)
 
+	padding := 4 * scale
+
 	var horizontalBarBounds, verticalBarBounds image.Rectangle
 	if s.contentWidth > bounds.Dx() {
 		rate := -offsetX / float64(s.contentWidth-bounds.Dx())
 		x0 := float64(bounds.Min.X) + rate*(float64(bounds.Dx())-barWidth)
 		x1 := x0 + float64(barWidth)
-		y0 := float64(bounds.Max.Y) - min(s.barWidth(scale), float64(bounds.Dy())*0.2)
-		y1 := float64(bounds.Max.Y)
+		var y0, y1 float64
+		if s.barWidth(scale) > float64(bounds.Dy())*0.3 {
+			y0 = float64(bounds.Max.Y) - float64(bounds.Dy())*0.3
+			y1 = float64(bounds.Max.Y)
+		} else {
+			y0 = float64(bounds.Max.Y) - padding - s.barWidth(scale)
+			y1 = float64(bounds.Max.Y) - padding
+		}
 		horizontalBarBounds = image.Rect(int(x0), int(y0), int(x1), int(y1))
 	}
 	if s.contentHeight > bounds.Dy() {
 		rate := -offsetY / float64(s.contentHeight-bounds.Dy())
 		y0 := float64(bounds.Min.Y) + rate*(float64(bounds.Dy())-barHeight)
 		y1 := y0 + float64(barHeight)
-		x0 := float64(bounds.Max.X) - min(s.barWidth(scale), float64(bounds.Dx())*0.2)
-		x1 := float64(bounds.Max.X)
+		var x0, x1 float64
+		if s.barWidth(scale) > float64(bounds.Dx())*0.3 {
+			x0 = float64(bounds.Max.X) - float64(bounds.Dx())*0.3
+			x1 = float64(bounds.Max.X)
+		} else {
+			x0 = float64(bounds.Max.X) - padding - s.barWidth(scale)
+			x1 = float64(bounds.Max.X) - padding
+		}
 		verticalBarBounds = image.Rect(int(x0), int(y0), int(x1), int(y1))
 	}
 	return horizontalBarBounds, verticalBarBounds

@@ -319,6 +319,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 			processed = false
 		}
 	}
+	// TODO: processed is unexpectedly true when scrolling. Investigate this an fix this.
 	if processed {
 		widget.RequestRedraw()
 		t.adjustScrollOffset(context, widget)

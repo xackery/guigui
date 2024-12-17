@@ -4,6 +4,7 @@ go 1.23.0
 
 require (
 	github.com/atotto/clipboard v0.1.4
+	github.com/google/uuid v1.6.0
 	github.com/hajimehoshi/ebiten/v2 v2.8.5
 	github.com/hajimehoshi/oklab v0.0.0-20231202174141-83d68450b640
 	golang.org/x/text v0.20.0

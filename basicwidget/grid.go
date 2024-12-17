@@ -113,3 +113,13 @@ func (l *LinearGrid) AppendChildWidgets(context *guigui.Context, widget *guigui.
 		}
 	}
 }
+
+func (l *LinearGrid) MinimumSize(context *guigui.Context) int {
+	var sum float64
+	for _, item := range l.Items {
+		if item.SizeUnit == SizeUnitUnit {
+			sum += item.Size
+		}
+	}
+	return int(sum * float64(UnitSize(context)))
+}

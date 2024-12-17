@@ -15,8 +15,9 @@ type Widget struct {
 	app_ *app
 
 	behavior      WidgetBehavior
+	popup         bool
 	bounds        image.Rectangle
-	visibleBounds image.Rectangle // TODO: Do we need this?
+	visibleBounds image.Rectangle
 
 	parent   *Widget
 	children []*Widget
@@ -37,6 +38,13 @@ type Widget struct {
 func NewWidget(behavior WidgetBehavior) *Widget {
 	return &Widget{
 		behavior: behavior,
+	}
+}
+
+func NewPopupWidget(behavior WidgetBehavior) *Widget {
+	return &Widget{
+		behavior: behavior,
+		popup:    true,
 	}
 }
 
@@ -233,6 +241,18 @@ func (w *Widget) SetOpacity(opacity float64) {
 
 func (w *Widget) RequestRedraw() {
 	w.requestRedraw(w.visibleBounds)
+	for _, child := range w.children {
+		child.requestRedrawIfPopup()
+	}
+}
+
+func (w *Widget) requestRedrawIfPopup() {
+	if w.popup {
+		w.requestRedraw(w.visibleBounds)
+	}
+	for _, child := range w.children {
+		child.requestRedrawIfPopup()
+	}
 }
 
 func (w *Widget) requestRedraw(region image.Rectangle) {
