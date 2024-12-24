@@ -80,10 +80,7 @@ func (t *Text) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	if t.cursorWidget == nil {
 		t.cursorWidget = guigui.NewPopupWidget(&t.cursor)
 	}
-	b := widget.Bounds()
-	b.Min.X -= textCursorWidth(context) * 2
-	b.Max.X += textCursorWidth(context) * 2
-	appender.AppendChildWidget(t.cursorWidget, b)
+	appender.AppendChildWidget(t.cursorWidget, t.cursorBounds(context, widget))
 
 	if t.scrollOverlayWidget == nil {
 		t.scrollOverlayWidget = guigui.NewWidget(&ScrollOverlay{})
@@ -248,7 +245,7 @@ func (t *Text) textBounds(context *guigui.Context, widget *guigui.Widget) image.
 	case HorizontalAlignEnd:
 		b.Max.X += int(offsetX)
 		w, _ := text.Measure(t.field.Text(), t.face(context), t.lineHeight(context))
-		b.Max.X += max(int(w)-b.Dx()-textCursorWidth(context)/2, 0)
+		b.Max.X += max(int(w)-b.Dx(), 0)
 	}
 
 	txt := t.textToDraw()
@@ -749,6 +746,15 @@ func (t *Text) cursorPosition(context *guigui.Context, widget *guigui.Widget) (x
 	return textPosition(textBounds, text, e, face, t.lineHeight(context), t.hAlign, t.vAlign)
 }
 
+func (t *Text) cursorBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
+	x, top, bottom, ok := t.cursorPosition(context, widget)
+	if !ok {
+		return image.Rectangle{}
+	}
+	w := int(2 * context.Scale())
+	return image.Rect(int(x)-w/2, int(top), int(x)+w/2, int(bottom))
+}
+
 type textCursor struct {
 	guigui.DefaultWidgetBehavior
 
@@ -797,18 +803,8 @@ func (t *textCursor) shouldRenderCursor(context *guigui.Context, textWidget *gui
 
 func (t *textCursor) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
 	textWidget := widget.Parent()
-	text := textWidget.Behavior().(*Text)
 	if !t.shouldRenderCursor(context, textWidget) {
 		return
 	}
-	x, top, bottom, ok := text.cursorPosition(context, textWidget)
-	if !ok {
-		return
-	}
-	width := textCursorWidth(context)
-	vector.StrokeLine(dst, float32(x), float32(top), float32(x), float32(bottom), float32(width), Color(context.ColorMode(), ColorTypeAccent, 0.4), false)
-}
-
-func textCursorWidth(context *guigui.Context) int {
-	return int(2 * context.Scale())
+	dst.Fill(Color(context.ColorMode(), ColorTypeAccent, 0.4))
 }
