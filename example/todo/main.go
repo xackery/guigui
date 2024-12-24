@@ -120,7 +120,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 			},
 		},
 	}))
-	r.tasksPanel.SetContentSize(widget.Bounds().Dx(), taskItemsLinearGrid.MinimumSize(context))
+	r.tasksPanel.SetContentSize(widget.Bounds().Dx(), taskItemsLinearGrid.MinimumSize(context)+1*basicwidget.UnitSize(context))
 
 	c := guigui.NewWidget(&basicwidget.LinearGrid{
 		Direction: basicwidget.LinearGridDirectionVertical,

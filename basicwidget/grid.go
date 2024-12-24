@@ -120,6 +120,12 @@ func (l *LinearGrid) MinimumSize(context *guigui.Context) int {
 		if item.SizeUnit == SizeUnitUnit {
 			sum += item.Size
 		}
+		switch l.Direction {
+		case LinearGridDirectionHorizontal:
+			sum += item.PaddingLeft + item.PaddingRight
+		case LinearGridDirectionVertical:
+			sum += item.PaddingTop + item.PaddingBottom
+		}
 	}
 	return int(sum * float64(UnitSize(context)))
 }
