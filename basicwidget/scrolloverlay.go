@@ -225,9 +225,6 @@ func (s *ScrollOverlay) Offset() (float64, float64) {
 }
 
 func (s *ScrollOverlay) adjustOffset(widget *guigui.Widget) {
-	origOffsetX := s.offsetX
-	origOffsetY := s.offsetY
-
 	bounds := widget.Bounds()
 
 	// Adjust offsets.
@@ -249,10 +246,6 @@ func (s *ScrollOverlay) adjustOffset(widget *guigui.Widget) {
 		s.offsetY = 0
 	} else if s.offsetY < -float64(h) {
 		s.offsetY = -float64(h)
-	}
-
-	if s.offsetX != origOffsetX || s.offsetY != origOffsetY {
-		widget.RequestRedraw()
 	}
 }
 
@@ -278,7 +271,12 @@ func (s *ScrollOverlay) isBarVisible(context *guigui.Context, widget *guigui.Wid
 
 func (s *ScrollOverlay) Update(context *guigui.Context, widget *guigui.Widget) error {
 	if s.needsAdjustOffset {
+		prevOffsetX := s.offsetX
+		prevOffsetY := s.offsetY
 		s.adjustOffset(widget)
+		if prevOffsetX != s.offsetX || prevOffsetY != s.offsetY {
+			widget.RequestRedraw()
+		}
 		s.needsAdjustOffset = false
 	}
 	if s.needsRedraw {
