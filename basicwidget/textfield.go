@@ -54,7 +54,6 @@ func (t *TextField) SelectAll() {
 func (t *TextField) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
 	if t.textWidget == nil {
 		t.text.SetEditable(true)
-		t.text.SetScrollable(true)
 		t.textWidget = guigui.NewWidget(&t.text)
 	}
 	bounds := widget.Bounds()

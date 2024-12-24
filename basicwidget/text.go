@@ -70,12 +70,21 @@ type Text struct {
 	filter TextFilter
 
 	cursor              textCursor
+	cursorWidget        *guigui.Widget
 	scrollOverlayWidget *guigui.Widget
 
 	needsRedraw bool
 }
 
 func (t *Text) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+	if t.cursorWidget == nil {
+		t.cursorWidget = guigui.NewPopupWidget(&t.cursor)
+	}
+	b := widget.Bounds()
+	b.Min.X -= textCursorWidth(context) * 2
+	b.Max.X += textCursorWidth(context) * 2
+	appender.AppendChildWidget(t.cursorWidget, b)
+
 	if t.scrollOverlayWidget == nil {
 		t.scrollOverlayWidget = guigui.NewWidget(&ScrollOverlay{})
 		t.scrollOverlayWidget.Hide()
@@ -591,8 +600,6 @@ func (t *Text) Update(context *guigui.Context, widget *guigui.Widget) error {
 
 	t.prevFocused = widget.IsFocused()
 
-	t.cursor.update(context, t, widget)
-
 	return nil
 }
 
@@ -664,8 +671,6 @@ func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 		}
 	}
 	drawText(textBounds, dst, text, face, t.lineHeight(context), t.hAlign, t.vAlign, clr)
-
-	t.cursor.draw(context, t, widget, dst)
 }
 
 func (t *Text) TextWidth(context *guigui.Context) int {
@@ -718,6 +723,8 @@ func (t *Text) cursorPosition(context *guigui.Context, widget *guigui.Widget) (x
 }
 
 type textCursor struct {
+	guigui.DefaultWidgetBehavior
+
 	counter    int
 	prevShown  bool
 	prevX      float64
@@ -730,7 +737,9 @@ func (t *textCursor) resetCounter() {
 	t.counter = 0
 }
 
-func (t *textCursor) update(context *guigui.Context, text *Text, textWidget *guigui.Widget) error {
+func (t *textCursor) Update(context *guigui.Context, widget *guigui.Widget) error {
+	textWidget := widget.Parent()
+	text := textWidget.Behavior().(*Text)
 	x, top, bottom, ok := text.cursorPosition(context, textWidget)
 	if t.prevX != x || t.prevTop != top || t.prevBottom != bottom || t.prevOK != ok {
 		t.resetCounter()
@@ -741,25 +750,28 @@ func (t *textCursor) update(context *guigui.Context, text *Text, textWidget *gui
 	t.prevOK = ok
 
 	t.counter++
-	if r := t.shouldRenderCursor(context, text, textWidget); t.prevShown != r {
+	if r := t.shouldRenderCursor(context, textWidget); t.prevShown != r {
 		t.prevShown = r
 		// TODO: This is not efficient. Improve this.
-		textWidget.RequestRedraw()
+		widget.RequestRedraw()
 	}
 	return nil
 }
 
-func (t *textCursor) shouldRenderCursor(context *guigui.Context, text *Text, textWidget *guigui.Widget) bool {
+func (t *textCursor) shouldRenderCursor(context *guigui.Context, textWidget *guigui.Widget) bool {
 	offset := ebiten.TPS() / 2
 	if t.counter > offset && (t.counter-offset)%ebiten.TPS() >= ebiten.TPS()/2 {
 		return false
 	}
+	text := textWidget.Behavior().(*Text)
 	_, _, _, ok := text.cursorPosition(context, textWidget)
 	return ok
 }
 
-func (t *textCursor) draw(context *guigui.Context, text *Text, textWidget *guigui.Widget, dst *ebiten.Image) {
-	if !t.shouldRenderCursor(context, text, textWidget) {
+func (t *textCursor) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
+	textWidget := widget.Parent()
+	text := textWidget.Behavior().(*Text)
+	if !t.shouldRenderCursor(context, textWidget) {
 		return
 	}
 	x, top, bottom, ok := text.cursorPosition(context, textWidget)
