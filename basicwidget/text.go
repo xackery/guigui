@@ -224,6 +224,10 @@ func (t *Text) SetScrollable(scrollable bool) {
 	}
 }
 
+func (t *Text) IsMultiline() bool {
+	return t.multiline
+}
+
 func (t *Text) SetMultiline(multiline bool) {
 	if t.multiline == multiline {
 		return
@@ -236,17 +240,35 @@ func (t *Text) SetMultiline(multiline bool) {
 func (t *Text) textBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
 	offsetX, offsetY := t.scrollOverlayWidget.Behavior().(*ScrollOverlay).Offset()
 	b := widget.Bounds()
+
 	switch t.hAlign {
 	case HorizontalAlignStart:
-		b.Min.X += int(offsetX)
 	case HorizontalAlignCenter:
 		// TODO: What is the correct value?
 	case HorizontalAlignEnd:
-		b.Min.X += int(offsetX)
 		b.Max.X += int(offsetX)
 		w, _ := text.Measure(t.field.Text(), t.face(context), t.lineHeight(context))
 		b.Max.X += max(int(w)-b.Dx()-textCursorWidth(context)/2, 0)
 	}
+
+	txt := t.textToDraw()
+	if txt == "" {
+		txt = " "
+	}
+	switch t.vAlign {
+	case VerticalAlignTop:
+	case VerticalAlignMiddle:
+		h := b.Dy()
+		th := t.textHeight(context, txt)
+		b.Min.Y += (h - th) / 2
+		b.Max.Y = b.Min.Y + th
+	case VerticalAlignBottom:
+		h := b.Dy()
+		th := t.textHeight(context, txt)
+		b.Min.Y = h - th
+	}
+
+	b.Min.X += int(offsetX)
 	b.Min.Y += int(offsetY)
 	return b
 }
@@ -672,15 +694,22 @@ func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 }
 
 func (t *Text) TextWidth(context *guigui.Context) int {
-	w, _ := text.Measure(t.textToDraw(), t.face(context), LineHeight(context))
-	return int(w) + textCursorWidth(context)
+	w, _ := text.Measure(t.textToDraw(), t.face(context), t.lineHeight(context))
+	w *= t.scaleMinus1 + 1
+	return int(w)
 }
 
 func (t *Text) TextHeight(context *guigui.Context) int {
-	if t.field.Text() == "" {
+	return t.textHeight(context, t.textToDraw())
+}
+
+func (t *Text) textHeight(context *guigui.Context, str string) int {
+	if str == "" {
 		return 0
 	}
-	return int(LineHeight(context) * float64(strings.Count(t.field.Text(), "\n")+1))
+	m := t.face(context).Metrics()
+	n := strings.Count(str, "\n")
+	return int(t.lineHeight(context)*float64(n) + m.HAscent + m.HDescent)
 }
 
 func (t *Text) CursorShape(context *guigui.Context, widget *guigui.Widget) (ebiten.CursorShapeType, bool) {

@@ -142,7 +142,7 @@ func textUpperLeft(bounds image.Rectangle, str string, face text.Face, lineHeigh
 	return x, y
 }
 
-func textIndexFromPosition(bounds image.Rectangle, x, y int, str string, face text.Face, lineHeight float64, hAlign HorizontalAlign, vAlign VerticalAlign) int {
+func textIndexFromPosition(textBounds image.Rectangle, x, y int, str string, face text.Face, lineHeight float64, hAlign HorizontalAlign, vAlign VerticalAlign) int {
 	lines := strings.Split(str, "\n")
 	if len(lines) == 0 {
 		return 0
@@ -151,7 +151,7 @@ func textIndexFromPosition(bounds image.Rectangle, x, y int, str string, face te
 	// Determine the line first.
 	m := face.Metrics()
 	gap := lineHeight - m.HAscent - m.HDescent
-	_, top := textUpperLeft(bounds, str, face, lineHeight, hAlign, vAlign)
+	top := float64(textBounds.Min.Y)
 	n := int((float64(y) - top + gap/2) / lineHeight)
 	if n < 0 {
 		n = 0
@@ -167,7 +167,7 @@ func textIndexFromPosition(bounds image.Rectangle, x, y int, str string, face te
 
 	// Deterine the line index.
 	line := lines[n]
-	left, _ := textUpperLeft(bounds, line, face, lineHeight, hAlign, vAlign)
+	left, _ := textUpperLeft(textBounds, line, face, lineHeight, hAlign, vAlign)
 	var prevA float64
 	var found bool
 	for _, c := range visibleCulsters(line, face) {
@@ -186,7 +186,7 @@ func textIndexFromPosition(bounds image.Rectangle, x, y int, str string, face te
 	return idx
 }
 
-func textPosition(bounds image.Rectangle, str string, index int, face text.Face, lineHeight float64, hAlign HorizontalAlign, vAlign VerticalAlign) (x, top, bottom float64, ok bool) {
+func textPosition(textBounds image.Rectangle, str string, index int, face text.Face, lineHeight float64, hAlign HorizontalAlign, vAlign VerticalAlign) (x, top, bottom float64, ok bool) {
 	if index < 0 || index > len(str) {
 		return 0, 0, 0, false
 	}
@@ -195,7 +195,7 @@ func textPosition(bounds image.Rectangle, str string, index int, face text.Face,
 	if str == "" {
 		str = " "
 	}
-	_, y := textUpperLeft(bounds, str, face, lineHeight, hAlign, vAlign)
+	y := float64(textBounds.Min.Y)
 
 	lines := strings.Split(str, "\n")
 	var line string
@@ -209,7 +209,7 @@ func textPosition(bounds image.Rectangle, str string, index int, face text.Face,
 		y += lineHeight
 	}
 
-	x, _ = textUpperLeft(bounds, line, face, lineHeight, hAlign, vAlign)
+	x, _ = textUpperLeft(textBounds, line, face, lineHeight, hAlign, vAlign)
 	x += text.Advance(line[:index], face)
 
 	m := face.Metrics()

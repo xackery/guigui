@@ -60,8 +60,9 @@ func (t *TextField) AppendChildWidgets(context *guigui.Context, widget *guigui.W
 	bounds.Min.X += UnitSize(context) / 2
 	bounds.Max.X -= UnitSize(context) / 2
 	// TODO: Consider multiline.
-	paddingY := int((float64(bounds.Dy()) - LineHeight(context)) / 2)
-	bounds.Min.Y += paddingY
+	if !t.text.IsMultiline() {
+		t.text.SetVerticalAlign(VerticalAlignMiddle)
+	}
 	appender.AppendChildWidget(t.textWidget, bounds)
 
 	if widget.HasFocusedChildWidget() {
