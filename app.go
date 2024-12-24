@@ -5,17 +5,47 @@ package guigui
 
 import (
 	"image"
+	"image/color"
 	"math"
+	"os"
 	"slices"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/hajimehoshi/oklab"
 )
+
+type debugMode struct {
+	showRenderingRegions bool
+}
+
+var theDebugMode debugMode
+
+func init() {
+	for _, token := range strings.Split(os.Getenv("GUIGUI_DEBUG"), ",") {
+		switch token {
+		case "showrenderingregions":
+			theDebugMode.showRenderingRegions = true
+		}
+	}
+}
+
+type invalidatedRegionsForDebugItem struct {
+	region image.Rectangle
+	time   int
+}
+
+func invalidatedRegionForDebugMaxTime() int {
+	return ebiten.TPS() / 5
+}
 
 type app struct {
 	root    *Widget
 	context *Context
 
-	invalidated image.Rectangle
+	invalidated                image.Rectangle
+	invalidatedRegionsForDebug []invalidatedRegionsForDebugItem
 
 	prevWidgets    map[*Widget]struct{}
 	currentWidgets map[*Widget]struct{}
@@ -28,6 +58,8 @@ type app struct {
 	lastScale        float64
 
 	focusedWidget *Widget
+
+	debugScreen *ebiten.Image
 }
 
 type RunOptions struct {
@@ -100,22 +132,41 @@ func (a *app) Update() error {
 		a.requestRedraw(a.bounds())
 	}
 
+	if theDebugMode.showRenderingRegions {
+		// Update the regions in the reversed order to remove items.
+		for idx := len(a.invalidatedRegionsForDebug) - 1; idx >= 0; idx-- {
+			if a.invalidatedRegionsForDebug[idx].time > 0 {
+				a.invalidatedRegionsForDebug[idx].time--
+			} else {
+				a.invalidatedRegionsForDebug = slices.Delete(a.invalidatedRegionsForDebug, idx, idx+1)
+			}
+		}
+
+		if !a.invalidated.Empty() {
+			idx := slices.IndexFunc(a.invalidatedRegionsForDebug, func(i invalidatedRegionsForDebugItem) bool {
+				return i.region.Eq(a.invalidated)
+			})
+			if idx < 0 {
+				a.invalidatedRegionsForDebug = append(a.invalidatedRegionsForDebug, invalidatedRegionsForDebugItem{
+					region: a.invalidated,
+					time:   invalidatedRegionForDebugMaxTime(),
+				})
+			} else {
+				a.invalidatedRegionsForDebug[idx].time = invalidatedRegionForDebugMaxTime()
+			}
+		}
+	}
+
 	return nil
 }
 
 func (a *app) Draw(screen *ebiten.Image) {
-	if a.invalidated.Empty() {
-		return
-	}
-
-	dst := screen.SubImage(a.invalidated).(*ebiten.Image)
-	a.drawWidget(dst, a.root)
-
+	a.drawWidget(screen)
 	a.invalidated = image.Rectangle{}
 }
 
 func (a *app) Layout(outsideWidth, outsideHeight int) (int, int) {
-	panic("gui: game.Layout should never be called")
+	panic("guigui: game.Layout should never be called")
 }
 
 func (a *app) LayoutF(outsideWidth, outsideHeight float64) (float64, float64) {
@@ -310,7 +361,41 @@ func clearEventQueues(widget *Widget) {
 	}
 }
 
-func (a *app) drawWidget(dst *ebiten.Image, widget *Widget) {
+func (a *app) drawWidget(screen *ebiten.Image) {
+	if !theDebugMode.showRenderingRegions {
+		if !a.invalidated.Empty() {
+			dst := screen.SubImage(a.invalidated).(*ebiten.Image)
+			a.doDrawWidget(dst, a.root)
+		}
+	} else {
+		a.doDrawWidget(screen, a.root)
+	}
+
+	if theDebugMode.showRenderingRegions {
+		if a.debugScreen != nil {
+			if a.debugScreen.Bounds().Dx() != screen.Bounds().Dx() || a.debugScreen.Bounds().Dy() != screen.Bounds().Dy() {
+				a.debugScreen.Deallocate()
+				a.debugScreen = nil
+			}
+		}
+		if a.debugScreen == nil {
+			a.debugScreen = ebiten.NewImage(screen.Bounds().Dx(), screen.Bounds().Dy())
+		}
+
+		a.debugScreen.Clear()
+		for _, item := range a.invalidatedRegionsForDebug {
+			clr := oklab.OklchModel.Convert(color.RGBA{R: 0xff, G: 0x4b, B: 0x00, A: 0xff}).(oklab.Oklch)
+			clr.Alpha = float64(item.time) / float64(invalidatedRegionForDebugMaxTime())
+			if clr.Alpha > 0 {
+				w := float32(4 * a.context.Scale())
+				vector.StrokeRect(a.debugScreen, float32(item.region.Min.X)+w/2, float32(item.region.Min.Y)+w/2, float32(item.region.Dx())-w, float32(item.region.Dy())-w, w, clr, false)
+			}
+		}
+		screen.DrawImage(a.debugScreen, nil)
+	}
+}
+
+func (a *app) doDrawWidget(dst *ebiten.Image, widget *Widget) {
 	if widget.visibleBounds.Empty() {
 		return
 	}
@@ -335,7 +420,7 @@ func (a *app) drawWidget(dst *ebiten.Image, widget *Widget) {
 	}
 
 	for _, child := range widget.children {
-		a.drawWidget(dst, child)
+		a.doDrawWidget(dst, child)
 	}
 
 	if canDraw {
