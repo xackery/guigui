@@ -236,8 +236,6 @@ func (t *Text) SetMultiline(multiline bool) {
 func (t *Text) textBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
 	offsetX, offsetY := t.scrollOverlayWidget.Behavior().(*ScrollOverlay).Offset()
 	b := widget.Bounds()
-	b.Min.X += textCursorWidth(context) / 2
-	b.Max.X -= textCursorWidth(context) / 2
 	switch t.hAlign {
 	case HorizontalAlignStart:
 		b.Min.X += int(offsetX)
