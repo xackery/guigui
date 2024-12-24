@@ -79,7 +79,8 @@ func (t *TextField) HandleInput(context *guigui.Context, widget *guigui.Widget) 
 	t.hovering = image.Pt(x, y).In(widget.VisibleBounds())
 	if t.hovering {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-			widget.Focus()
+			t.textWidget.Focus()
+			t.text.selectAll()
 			return guigui.HandleInputByWidget(widget)
 		}
 	}
