@@ -13,10 +13,13 @@ import (
 	"github.com/hajimehoshi/guigui"
 )
 
-const (
-	barMaxOpacity  = 10
-	barShowingTime = 60
-)
+func barMaxOpacity() int {
+	return int(float64(ebiten.TPS()) / 6)
+}
+
+func barShowingTime() int {
+	return ebiten.TPS()
+}
 
 type ScrollOverlay struct {
 	guigui.DefaultWidgetBehavior
@@ -43,8 +46,9 @@ type ScrollOverlay struct {
 	barOpacity     int
 	barVisibleTime int
 
-	needsAdjustOffset bool
-	needsRedraw       bool
+	needsAdjustOffset  bool
+	needsRedraw        bool
+	contentSizeChanged bool
 }
 
 type ScrollEvent struct {
@@ -66,6 +70,7 @@ func (s *ScrollOverlay) SetContentSize(contentWidth, contentHeight int) {
 	s.contentHeight = contentHeight
 	s.needsAdjustOffset = true
 	s.needsRedraw = true
+	s.contentSizeChanged = true
 }
 
 func (s *ScrollOverlay) SetOffsetByDelta(dx, dy float64) {
@@ -280,17 +285,21 @@ func (s *ScrollOverlay) Update(context *guigui.Context, widget *guigui.Widget) e
 		widget.RequestRedraw()
 		s.needsRedraw = false
 	}
+	if s.contentSizeChanged {
+		s.barVisibleTime = barShowingTime()
+		s.contentSizeChanged = false
+	}
 
 	if !widget.IsVisible() {
 		s.setHovering(false)
 	}
 
-	if s.isBarVisible(context, widget) || (s.barVisibleTime == barShowingTime && s.barOpacity < barMaxOpacity) {
-		if s.barOpacity < barMaxOpacity {
+	if s.isBarVisible(context, widget) || (s.barVisibleTime == barShowingTime() && s.barOpacity < barMaxOpacity()) {
+		if s.barOpacity < barMaxOpacity() {
 			s.barOpacity++
 			widget.RequestRedraw()
 		}
-		s.barVisibleTime = barShowingTime
+		s.barVisibleTime = barShowingTime()
 	} else {
 		if s.barVisibleTime > 0 {
 			s.barVisibleTime--
@@ -312,7 +321,7 @@ func (s *ScrollOverlay) Draw(context *guigui.Context, widget *guigui.Widget, dst
 		return
 	}
 
-	opacity := float64(s.barOpacity) / barMaxOpacity * 3 / 4
+	opacity := float64(s.barOpacity) / float64(barMaxOpacity()) * 3 / 4
 	r, g, b, a := Color(context.ColorMode(), ColorTypeBase, 0.2).RGBA()
 	barColor := color.RGBA64{
 		R: uint16(float64(r) * opacity),
