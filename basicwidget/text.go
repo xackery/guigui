@@ -704,9 +704,8 @@ func (t *Text) textHeight(context *guigui.Context, str string) int {
 	if str == "" {
 		return 0
 	}
-	m := t.face(context).Metrics()
-	n := strings.Count(str, "\n")
-	return int(t.lineHeight(context)*float64(n) + m.HAscent + m.HDescent)
+	// The text is already shifted by (height - (m.HAscent + m.Descent)) / 2.
+	return int(t.lineHeight(context) * float64(strings.Count(str, "\n")+1))
 }
 
 func (t *Text) CursorShape(context *guigui.Context, widget *guigui.Widget) (ebiten.CursorShapeType, bool) {
