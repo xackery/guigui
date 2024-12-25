@@ -39,6 +39,7 @@ func FontFace(size float64, weight text.Weight, lang language.Tag) text.Face {
 		if err != nil {
 			panic(err)
 		}
+		defer r.Close()
 		f, err := text.NewGoTextFaceSource(r)
 		if err != nil {
 			panic(err)
