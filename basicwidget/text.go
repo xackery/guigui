@@ -11,14 +11,15 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/atotto/clipboard"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/exp/textinput"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"github.com/hajimehoshi/guigui"
 	"golang.org/x/text/language"
+
+	"github.com/hajimehoshi/guigui"
+	"github.com/hajimehoshi/guigui/internal/clipboard"
 )
 
 type TextEventType int
