@@ -15,6 +15,7 @@ import (
 
 	"github.com/hajimehoshi/guigui"
 	"github.com/hajimehoshi/guigui/basicwidget"
+	_ "github.com/hajimehoshi/guigui/basicwidget/cjkfont"
 )
 
 type Task struct {

@@ -4,9 +4,6 @@
 package basicwidget
 
 import (
-	"bytes"
-	"compress/gzip"
-	_ "embed"
 	"image"
 	"image/color"
 	"strings"
@@ -14,58 +11,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"golang.org/x/text/language"
 )
-
-//go:generate go run gen.go
-
-//go:embed NotoSans.ttf.gz
-var notoSansTTFGz []byte
-
-var (
-	faceSource *text.GoTextFaceSource
-	faceCache  map[faceCacheKey]text.Face
-)
-
-type faceCacheKey struct {
-	size   float64
-	weight text.Weight
-	lang   language.Tag
-}
-
-func FontFace(size float64, weight text.Weight, lang language.Tag) text.Face {
-	if faceSource == nil {
-		r, err := gzip.NewReader(bytes.NewReader(notoSansTTFGz))
-		if err != nil {
-			panic(err)
-		}
-		defer r.Close()
-		f, err := text.NewGoTextFaceSource(r)
-		if err != nil {
-			panic(err)
-		}
-		faceSource = f
-	}
-	key := faceCacheKey{
-		size:   size,
-		weight: weight,
-		lang:   lang,
-	}
-	if f, ok := faceCache[key]; ok {
-		return f
-	}
-	f := &text.GoTextFace{
-		Source:   faceSource,
-		Size:     size,
-		Language: lang,
-	}
-	f.SetVariation(text.MustParseTag("wght"), float32(weight))
-	if faceCache == nil {
-		faceCache = map[faceCacheKey]text.Face{}
-	}
-	faceCache[key] = f
-	return f
-}
 
 type HorizontalAlign int
 
