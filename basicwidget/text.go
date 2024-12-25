@@ -370,6 +370,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 				t.setTextAndSelection(text, start+len("\n"), start+len("\n"), -1)
 			}
 			t.applyFilter()
+			// TODO: This is not reached on browsers. Fix this.
 			widget.EnqueueEvent(TextEvent{
 				Type: TextEventTypeEnterPressed,
 				Text: t.field.Text(),

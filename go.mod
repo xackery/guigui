@@ -7,6 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hajimehoshi/ebiten/v2 v2.9.0-alpha.3.0.20241224100237-c985e9bdc6c9
 	github.com/hajimehoshi/oklab v0.0.0-20231202174141-83d68450b640
+	github.com/jeandeaual/go-locale v0.0.0-20241217141322-fcc2cadd6f08
 	golang.org/x/text v0.21.0
 )
 
