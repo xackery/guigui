@@ -213,7 +213,8 @@ func textPosition(textBounds image.Rectangle, str string, index int, face text.F
 	x += text.Advance(line[:index], face)
 
 	m := face.Metrics()
-	return x, y, y + m.HAscent + m.HDescent, true
+	paddingY := (lineHeight - (m.HAscent + m.HDescent)) / 2
+	return x, y + paddingY, y + lineHeight - paddingY, true
 }
 
 func visibleCulsters(str string, face text.Face) []text.Glyph {
