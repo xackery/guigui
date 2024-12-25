@@ -5,6 +5,7 @@ package basicwidget
 
 import (
 	"bytes"
+	"compress/gzip"
 	_ "embed"
 	"image"
 	"image/color"
@@ -16,8 +17,10 @@ import (
 	"golang.org/x/text/language"
 )
 
-//go:embed NotoSans.ttf
-var notoSansTTF []byte
+//go:generate go run gen.go
+
+//go:embed NotoSans.ttf.gz
+var notoSansTTFGz []byte
 
 var (
 	faceSource *text.GoTextFaceSource
@@ -32,7 +35,11 @@ type faceCacheKey struct {
 
 func FontFace(size float64, weight text.Weight, lang language.Tag) text.Face {
 	if faceSource == nil {
-		f, err := text.NewGoTextFaceSource(bytes.NewReader(notoSansTTF))
+		r, err := gzip.NewReader(bytes.NewReader(notoSansTTFGz))
+		if err != nil {
+			panic(err)
+		}
+		f, err := text.NewGoTextFaceSource(r)
 		if err != nil {
 			panic(err)
 		}
