@@ -625,10 +625,35 @@ func (t *Text) selectionToDraw(widget *guigui.Widget) (start, end int, ok bool) 
 	if !ok {
 		return s, e, true
 	}
+	// When cs == ce, the composition already started but any conversion is not done yet.
+	// In this case, put the cursor at the end of the composition.
+	// TODO: This behavior might be macOS specific. Investigate this.
 	if cs == ce {
 		return s + ce, e + ce, true
 	}
-	return -1, -1, false
+	return 0, 0, false
+}
+
+func (t *Text) compositionSelectionToDraw(widget *guigui.Widget) (uStart, cStart, cEnd, uEnd int, ok bool) {
+	if !t.editable {
+		return 0, 0, 0, 0, false
+	}
+	if !widget.IsFocused() {
+		return 0, 0, 0, 0, false
+	}
+	s, _ := t.field.Selection()
+	cs, ce, ok := t.field.CompositionSelection()
+	if !ok {
+		return 0, 0, 0, 0, false
+	}
+	// When cs == ce, the composition already started but any conversion is not done yet.
+	// In this case, assume the entire region is the composition.
+	// TODO: This behavior might be macOS specific. Investigate this.
+	l := t.field.UncommittedTextLengthInBytes()
+	if cs == ce {
+		return s, s, s + l, s + l, true
+	}
+	return s, s + cs, s + ce, s + l, true
 }
 
 func (t *Text) Update(context *guigui.Context, widget *guigui.Widget) error {
@@ -703,6 +728,35 @@ func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 				vector.DrawFilledRect(dst, x, y, width, height, Color(context.ColorMode(), ColorTypeAccent, 0.8), false)
 			}
 			headIdx = idx + 1
+		}
+	}
+
+	if uStart, cStart, cEnd, uEnd, ok := t.compositionSelectionToDraw(widget); ok {
+		// Assume that the composition is always in the same line.
+		if strings.Contains(text[uStart:uEnd], "\n") {
+			slog.Error("composition text must not contain '\\n'")
+		}
+		{
+			x0, _, bottom0, ok0 := textPosition(textBounds, text, uStart, face, t.lineHeight(context), t.hAlign, t.vAlign)
+			x1, _, _, ok1 := textPosition(textBounds, text, uEnd, face, t.lineHeight(context), t.hAlign, t.vAlign)
+			if ok0 && ok1 {
+				x := float32(x0)
+				y := float32(bottom0) - float32(cursorWidth(context))
+				w := float32(x1 - x0)
+				h := float32(cursorWidth(context))
+				vector.DrawFilledRect(dst, x, y, w, h, Color(context.ColorMode(), ColorTypeAccent, 0.8), false)
+			}
+		}
+		{
+			x0, _, bottom0, ok0 := textPosition(textBounds, text, cStart, face, t.lineHeight(context), t.hAlign, t.vAlign)
+			x1, _, _, ok1 := textPosition(textBounds, text, cEnd, face, t.lineHeight(context), t.hAlign, t.vAlign)
+			if ok0 && ok1 {
+				x := float32(x0)
+				y := float32(bottom0) - float32(cursorWidth(context))
+				w := float32(x1 - x0)
+				h := float32(cursorWidth(context))
+				vector.DrawFilledRect(dst, x, y, w, h, Color(context.ColorMode(), ColorTypeAccent, 0.4), false)
+			}
 		}
 	}
 
