@@ -140,7 +140,6 @@ func main() {
 	op := &guigui.RunOptions{
 		Title: "Counter",
 	}
-	// scheme.ColorMode = basicwidget.ColorModeDark
 	if err := guigui.Run(guigui.NewWidget(&Root{}), op); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
