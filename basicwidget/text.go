@@ -791,7 +791,7 @@ func (t *Text) textHeight(context *guigui.Context, str string) int {
 	if str == "" {
 		return 0
 	}
-	// The text is already shifted by (height - (m.HAscent + m.Descent)) / 2.
+	// The text is already shifted by (lineHeight - (m.HAscent + m.Descent)) / 2.
 	return int(t.lineHeight(context) * float64(strings.Count(str, "\n")+1))
 }
 
