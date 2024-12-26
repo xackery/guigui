@@ -83,7 +83,10 @@ func (t *Text) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	if t.cursorWidget == nil {
 		t.cursorWidget = guigui.NewPopupWidget(&t.cursor)
 	}
-	appender.AppendChildWidget(t.cursorWidget, t.cursorBounds(context, widget))
+	b := widget.Bounds()
+	b.Min.X -= cursorWidth(context) / 2
+	b.Max.X += cursorWidth(context) / 2
+	appender.AppendChildWidget(t.cursorWidget, b)
 
 	if t.scrollOverlayWidget == nil {
 		t.scrollOverlayWidget = guigui.NewWidget(&ScrollOverlay{})
@@ -770,12 +773,16 @@ func (t *Text) cursorPosition(context *guigui.Context, widget *guigui.Widget) (x
 	return textPosition(textBounds, text, e, face, t.lineHeight(context), t.hAlign, t.vAlign)
 }
 
+func cursorWidth(context *guigui.Context) int {
+	return int(2 * context.Scale())
+}
+
 func (t *Text) cursorBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
 	x, top, bottom, ok := t.cursorPosition(context, widget)
 	if !ok {
 		return image.Rectangle{}
 	}
-	w := int(2 * context.Scale())
+	w := cursorWidth(context)
 	return image.Rect(int(x)-w/2, int(top), int(x)+w/2, int(bottom))
 }
 
@@ -830,5 +837,6 @@ func (t *textCursor) Draw(context *guigui.Context, widget *guigui.Widget, dst *e
 	if !t.shouldRenderCursor(context, textWidget) {
 		return
 	}
-	dst.Fill(Color(context.ColorMode(), ColorTypeAccent, 0.4))
+	b := textWidget.Behavior().(*Text).cursorBounds(context, textWidget)
+	vector.DrawFilledRect(dst, float32(b.Min.X), float32(b.Min.Y), float32(b.Dx()), float32(b.Dy()), Color(context.ColorMode(), ColorTypeAccent, 0.4), false)
 }
