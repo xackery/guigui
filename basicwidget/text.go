@@ -74,6 +74,8 @@ type Text struct {
 	cursorWidget        *guigui.Widget
 	scrollOverlayWidget *guigui.Widget
 
+	temporaryClipboard string
+
 	needsRedraw bool
 }
 
@@ -544,6 +546,27 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 				slog.Error(err.Error())
 				return guigui.HandleInputResult{}
 			}
+		}
+	case isDarwin && ebiten.IsKeyPressed(ebiten.KeyControl) && isKeyRepeating(ebiten.KeyK):
+		// 'Kill' the text after the cursor or the selection.
+		start, end := t.field.Selection()
+		if start == end {
+			end = strings.Index(t.field.Text()[start:], "\n")
+			if end < 0 {
+				end = len(t.field.Text())
+			} else {
+				end += start
+			}
+		}
+		t.temporaryClipboard = t.field.Text()[start:end]
+		text := t.field.Text()[:start] + t.field.Text()[end:]
+		t.setTextAndSelection(text, start, start, -1)
+	case isDarwin && ebiten.IsKeyPressed(ebiten.KeyControl) && isKeyRepeating(ebiten.KeyY):
+		// 'Yank' the killed text.
+		if t.temporaryClipboard != "" {
+			start, _ := t.field.Selection()
+			text := t.field.Text()[:start] + t.temporaryClipboard + t.field.Text()[start:]
+			t.setTextAndSelection(text, start+len(t.temporaryClipboard), start+len(t.temporaryClipboard), -1)
 		}
 	}
 
