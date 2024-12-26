@@ -8,11 +8,11 @@ import "github.com/hajimehoshi/guigui"
 const baseUnitSize = 24
 
 func FontSize(context *guigui.Context) float64 {
-	return baseUnitSize * context.Scale() * 5 / 9
+	return baseUnitSize * context.Scale() * 1 / 2
 }
 
 func LineHeight(context *guigui.Context) float64 {
-	return baseUnitSize * context.Scale() * 5 / 6
+	return baseUnitSize * context.Scale() * 3 / 4
 }
 
 func UnitSize(context *guigui.Context) int {
