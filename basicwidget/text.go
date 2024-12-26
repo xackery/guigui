@@ -579,7 +579,10 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 func (t *Text) adjustScrollOffset(context *guigui.Context, widget *guigui.Widget) {
 	t.updateContentSize(context)
 
-	s, e := t.selectionToDraw(widget)
+	s, e, ok := t.selectionToDraw(widget)
+	if !ok {
+		return
+	}
 	text := t.textToDraw()
 
 	tb := t.textBounds(context, widget)
@@ -610,15 +613,22 @@ func (t *Text) textToDraw() string {
 	return t.field.TextForRendering()
 }
 
-func (t *Text) selectionToDraw(widget *guigui.Widget) (int, int) {
+func (t *Text) selectionToDraw(widget *guigui.Widget) (start, end int, ok bool) {
 	s, e := t.field.Selection()
-	if t.editable && widget.IsFocused() {
-		if cs, _, ok := t.field.CompositionSelection(); ok {
-			s += cs
-			e = s
-		}
+	if !t.editable {
+		return s, e, true
 	}
-	return s, e
+	if !widget.IsFocused() {
+		return s, e, true
+	}
+	cs, ce, ok := t.field.CompositionSelection()
+	if !ok {
+		return s, e, true
+	}
+	if cs == ce {
+		return s + ce, e + ce, true
+	}
+	return -1, -1, false
 }
 
 func (t *Text) Update(context *guigui.Context, widget *guigui.Widget) error {
@@ -668,35 +678,31 @@ func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 		return
 	}
 
-	s, e := t.selectionToDraw(widget)
 	text := t.textToDraw()
 	face := t.face(context)
 
-	// TODO: Change the color to detect focus.
-	if start, end := t.field.Selection(); widget.IsFocused() && start >= 0 && end >= 0 {
-		if s != e {
-			var tailIndices []int
-			for i, r := range text[s:e] {
-				if r != '\n' {
-					continue
-				}
-				tailIndices = append(tailIndices, s+i)
+	if start, end, ok := t.selectionToDraw(widget); ok {
+		var tailIndices []int
+		for i, r := range text[start:end] {
+			if r != '\n' {
+				continue
 			}
-			tailIndices = append(tailIndices, e)
+			tailIndices = append(tailIndices, start+i)
+		}
+		tailIndices = append(tailIndices, end)
 
-			headIdx := s
-			for _, idx := range tailIndices {
-				x0, top0, bottom0, ok0 := textPosition(textBounds, text, headIdx, face, t.lineHeight(context), t.hAlign, t.vAlign)
-				x1, _, _, ok1 := textPosition(textBounds, text, idx, face, t.lineHeight(context), t.hAlign, t.vAlign)
-				if ok0 && ok1 {
-					x := float32(x0)
-					y := float32(top0)
-					width := float32(x1 - x0)
-					height := float32(bottom0 - top0)
-					vector.DrawFilledRect(dst, x, y, width, height, Color(context.ColorMode(), ColorTypeAccent, 0.8), false)
-				}
-				headIdx = idx + 1
+		headIdx := start
+		for _, idx := range tailIndices {
+			x0, top0, bottom0, ok0 := textPosition(textBounds, text, headIdx, face, t.lineHeight(context), t.hAlign, t.vAlign)
+			x1, _, _, ok1 := textPosition(textBounds, text, idx, face, t.lineHeight(context), t.hAlign, t.vAlign)
+			if ok0 && ok1 {
+				x := float32(x0)
+				y := float32(top0)
+				width := float32(x1 - x0)
+				height := float32(bottom0 - top0)
+				vector.DrawFilledRect(dst, x, y, width, height, Color(context.ColorMode(), ColorTypeAccent, 0.8), false)
 			}
+			headIdx = idx + 1
 		}
 	}
 
@@ -763,8 +769,8 @@ func (t *Text) cursorPosition(context *guigui.Context, widget *guigui.Widget) (x
 		return 0, 0, 0, false
 	}
 
-	s, e := t.selectionToDraw(widget)
-	if s != e {
+	_, e, ok := t.selectionToDraw(widget)
+	if !ok {
 		return 0, 0, 0, false
 	}
 
@@ -828,8 +834,13 @@ func (t *textCursor) shouldRenderCursor(context *guigui.Context, textWidget *gui
 		return false
 	}
 	text := textWidget.Behavior().(*Text)
-	_, _, _, ok := text.cursorPosition(context, textWidget)
-	return ok
+	if _, _, _, ok := text.cursorPosition(context, textWidget); !ok {
+		return false
+	}
+	if _, _, ok := text.selectionToDraw(textWidget); !ok {
+		return false
+	}
+	return true
 }
 
 func (t *textCursor) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
