@@ -22,7 +22,7 @@ var notoSansTTFGz []byte
 
 type FaceSourceQueryResult struct {
 	FaceSource *text.GoTextFaceSource
-	Score      float64
+	Priority   float64
 }
 
 type FaceSourcesQuerier func(locale language.Tag) ([]FaceSourceQueryResult, error)
@@ -49,24 +49,24 @@ func queryDefaultFaceSource(locale language.Tag) ([]FaceSourceQueryResult, error
 		defaultFaceSource = f
 	}
 
-	var score float64
+	var priority float64
 	script, conf := locale.Script()
 	if script == language.MustParseScript("Latn") || script == language.MustParseScript("Grek") || script == language.MustParseScript("Cyrl") {
 		switch conf {
 		case language.Exact:
-			score = 1
+			priority = 1
 		case language.High:
-			score = 1
+			priority = 1
 		case language.Low:
-			score = 0.5
+			priority = 0.5
 		case language.No:
-			score = 0
+			priority = 0
 		}
 	}
 	return []FaceSourceQueryResult{
 		{
 			FaceSource: defaultFaceSource,
-			Score:      score,
+			Priority:   priority,
 		},
 	}, nil
 }
@@ -111,7 +111,7 @@ func fontFace(size float64, weight text.Weight, locales []language.Tag) text.Fac
 				if len(results[r.FaceSource]) < i+1 {
 					results[r.FaceSource] = append(results[r.FaceSource], make([]float64, i+1-len(results[r.FaceSource]))...)
 				}
-				results[r.FaceSource][i] = r.Score
+				results[r.FaceSource][i] = r.Priority
 			}
 		}
 	}
@@ -121,18 +121,18 @@ func fontFace(size float64, weight text.Weight, locales []language.Tag) text.Fac
 		faceSources = append(faceSources, f)
 	}
 	slices.SortFunc(faceSources, func(fs0, fs1 *text.GoTextFaceSource) int {
-		scores0 := results[fs0]
-		scores1 := results[fs1]
-		for i := range scores0 {
-			var score0, score1 float64
-			if i < len(scores0) {
-				score0 = scores0[i]
+		ps0 := results[fs0]
+		ps1 := results[fs1]
+		for i := range ps0 {
+			var p0, p1 float64
+			if i < len(ps0) {
+				p0 = min(max(ps0[i], 0), 1)
 			}
-			if i < len(scores1) {
-				score1 = scores1[i]
+			if i < len(ps1) {
+				p1 = min(max(ps1[i], 0), 1)
 			}
-			if score0 != score1 {
-				return -cmp.Compare(score0, score1)
+			if p0 != p1 {
+				return -cmp.Compare(p0, p1)
 			}
 		}
 		// Deprioritize the default face source.

@@ -73,7 +73,7 @@ func queryFaceSources(locale language.Tag) ([]basicwidget.FaceSourceQueryResult,
 		}
 		rs = append(rs, basicwidget.FaceSourceQueryResult{
 			FaceSource: faceSources[id],
-			Score:      score,
+			Priority:   score,
 		})
 	}
 	return rs, nil
