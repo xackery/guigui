@@ -68,6 +68,7 @@ type RunOptions struct {
 	WindowMinHeight int
 	WindowMaxWidth  int
 	WindowMaxHeight int
+	AppScale        float64
 }
 
 func Run(root *Widget, options *RunOptions) error {
@@ -102,6 +103,9 @@ func Run(root *Widget, options *RunOptions) error {
 	a.root.app_ = a
 	a.context = &Context{
 		app: a,
+	}
+	if options.AppScale > 0 {
+		a.context.appScaleMinus1 = options.AppScale - 1
 	}
 	return ebiten.RunGame(a)
 }
