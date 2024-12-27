@@ -14,7 +14,6 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/hajimehoshi/guigui/basicwidget"
-	"github.com/hajimehoshi/guigui/internal/locale"
 )
 
 //go:generate go run gen.go
@@ -63,24 +62,10 @@ func init() {
 	basicwidget.RegisterFaceSource(getFaceSources)
 }
 
-func getFaceSources(lang language.Tag) ([]*text.GoTextFaceSource, error) {
+func getFaceSources(langs []language.Tag) ([]*text.GoTextFaceSource, error) {
 	faceIDRanks := map[faceID]int{}
-	id, ok := langToFaceID(lang)
-	if ok {
-		faceIDRanks[id] = 0
-	}
-
-	// Define the rank of each face based on the OS locations.
-	locales, err := locale.Locales()
-	if err != nil {
-		return nil, err
-	}
-	rank := 1
-	for _, locale := range locales {
-		l, err := language.Parse(locale)
-		if err != nil {
-			continue
-		}
+	var rank int
+	for _, l := range langs {
 		f, ok := langToFaceID(l)
 		if !ok {
 			continue

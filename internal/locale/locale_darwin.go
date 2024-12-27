@@ -11,7 +11,7 @@ import (
 	"howett.net/plist"
 )
 
-func Locales() ([]string, error) {
+func locales() ([]string, error) {
 	// `[[NSBundle mainBundle] preferredLocalizations]` might be available,
 	// but this could return only one language.
 	cmd := exec.Command("defaults", "read", "-g", "AppleLanguages")

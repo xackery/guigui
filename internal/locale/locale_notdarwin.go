@@ -7,6 +7,6 @@ package locale
 
 import "github.com/jeandeaual/go-locale"
 
-func Locales() ([]string, error) {
+func locales() ([]string, error) {
 	return locale.GetLocales()
 }

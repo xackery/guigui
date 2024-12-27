@@ -9,6 +9,7 @@ import (
 	_ "embed"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/hajimehoshi/guigui/internal/locale"
 	"golang.org/x/text/language"
 )
 
@@ -17,7 +18,17 @@ import (
 //go:embed NotoSans.ttf.gz
 var notoSansTTFGz []byte
 
-type FaceSourcesGetter func(lang language.Tag) ([]*text.GoTextFaceSource, error)
+var locales []language.Tag
+
+func init() {
+	ls, err := locale.Locales()
+	if err != nil {
+		panic(err)
+	}
+	locales = ls
+}
+
+type FaceSourcesGetter func(lang []language.Tag) ([]*text.GoTextFaceSource, error)
 
 var faceSourcesGetters []FaceSourcesGetter
 
@@ -27,7 +38,7 @@ func RegisterFaceSource(f FaceSourcesGetter) {
 
 var defaultFaceSource *text.GoTextFaceSource
 
-func getDefaultFaceSource(lang language.Tag) ([]*text.GoTextFaceSource, error) {
+func getDefaultFaceSource(lang []language.Tag) ([]*text.GoTextFaceSource, error) {
 	if defaultFaceSource == nil {
 		r, err := gzip.NewReader(bytes.NewReader(notoSansTTFGz))
 		if err != nil {
@@ -67,9 +78,15 @@ func fontFace(size float64, weight text.Weight, lang language.Tag) text.Face {
 		return f
 	}
 
+	var langs []language.Tag
+	if lang != language.Und {
+		langs = append(langs, lang)
+	}
+	langs = append(langs, locales...)
+
 	var faceSources []*text.GoTextFaceSource
-	for i := len(faceSourcesGetters) - 1; i >= 0; i-- {
-		fs, err := faceSourcesGetters[i](lang)
+	for _, f := range faceSourcesGetters {
+		fs, err := f(langs)
 		if err != nil {
 			panic(err)
 		}
