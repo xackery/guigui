@@ -424,7 +424,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 				return guigui.HandleInputResult{}
 			}
 			text := t.field.Text()[:start] + ct + t.field.Text()[end:]
-			t.setTextAndSelection(text, start+len(ct), start, -1)
+			t.setTextAndSelection(text, start+len(ct), start+len(ct), -1)
 		}
 	}
 
