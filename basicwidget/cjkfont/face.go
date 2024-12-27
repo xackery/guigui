@@ -94,19 +94,6 @@ func faceSCPriority(locale language.Tag) float64 {
 			return 0.5
 		}
 	}
-	if base, conf := locale.Base(); base == language.MustParseBase("zh") {
-		switch conf {
-		case language.Exact, language.High:
-			if region, conf := locale.Region(); conf > language.No {
-				if !preferHK(region) && !preferTC(region) {
-					return 1
-				}
-			}
-			return 0.5
-		case language.Low:
-			return 0.5
-		}
-	}
 	return 0
 }
 
@@ -132,19 +119,6 @@ func faceTCPriority(locale language.Tag) float64 {
 			}
 		}
 	}
-	if base, conf := locale.Base(); base == language.MustParseBase("zh") {
-		switch conf {
-		case language.Exact, language.High:
-			if region, conf := locale.Region(); conf > language.No {
-				if preferTC(region) {
-					return 1
-				}
-			}
-			return 0.5
-		case language.Low:
-			return 0.5
-		}
-	}
 	return 0
 }
 
@@ -159,19 +133,6 @@ func faceHKPriority(locale language.Tag) float64 {
 					return 1
 				}
 			}
-			return 0.5
-		}
-	}
-	if base, conf := locale.Base(); base == language.MustParseBase("zh") {
-		switch conf {
-		case language.Exact, language.High:
-			if region, conf := locale.Region(); conf > language.No {
-				if preferHK(region) {
-					return 1
-				}
-			}
-			return 0.5
-		case language.Low:
 			return 0.5
 		}
 	}
@@ -190,27 +151,11 @@ func faceJPPriority(locale language.Tag) float64 {
 			return 0.5
 		}
 	}
-	if base, conf := locale.Base(); base == language.MustParseBase("ja") {
-		switch conf {
-		case language.Exact, language.High:
-			return 1
-		case language.Low:
-			return 0.5
-		}
-	}
 	return 0
 }
 
 func faceKRPriority(locale language.Tag) float64 {
 	if script, conf := locale.Script(); script == language.MustParseScript("Hang") || script == language.MustParseScript("Kore") {
-		switch conf {
-		case language.Exact, language.High:
-			return 1
-		case language.Low:
-			return 0.5
-		}
-	}
-	if base, conf := locale.Base(); base == language.MustParseBase("ko") {
 		switch conf {
 		case language.Exact, language.High:
 			return 1
