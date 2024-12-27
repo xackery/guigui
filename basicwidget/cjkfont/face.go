@@ -77,91 +77,102 @@ func init() {
 }
 
 func faceSCPriority(locale language.Tag) float64 {
-	if script, conf := locale.Script(); conf > language.No {
-		switch script {
-		case language.MustParseScript("Hans"):
-			switch conf {
-			case language.Exact, language.High:
+	script, conf := locale.Script()
+	if conf == language.No {
+		return 0
+	}
+	switch script {
+	case language.MustParseScript("Hans"):
+		switch conf {
+		case language.Exact, language.High:
+			return 1
+		case language.Low:
+			// As a special case, if only `zh` is specified, prefer SC.
+			if base, conf := locale.Base(); base == language.MustParseBase("zh") && conf > language.No {
 				return 1
-			case language.Low:
-				// As a special case, if only `zh` is specified, prefer SC.
-				if base, conf := locale.Base(); base == language.MustParseBase("zh") && conf > language.No {
-					return 1
-				}
-				return 0.5
 			}
-		case language.MustParseScript("Hant"):
 			return 0.5
 		}
+	case language.MustParseScript("Hant"):
+		return 0.5
 	}
 	return 0
 }
 
 func faceTCPriority(locale language.Tag) float64 {
-	if script, conf := locale.Script(); conf > language.No {
-		switch script {
-		case language.MustParseScript("Hans"):
-			return 0.5
-		case language.MustParseScript("Hant"):
-			if region, conf := locale.Region(); conf > language.No {
-				if preferTC(region) {
-					return 1
-				}
-				if preferHK(region) {
-					return 0.5
-				}
-			}
-			switch conf {
-			case language.Exact, language.High:
+	script, conf := locale.Script()
+	if conf == language.No {
+		return 0
+	}
+	switch script {
+	case language.MustParseScript("Hans"):
+		return 0.5
+	case language.MustParseScript("Hant"):
+		if region, conf := locale.Region(); conf > language.No {
+			if preferTC(region) {
 				return 1
-			case language.Low:
+			}
+			if preferHK(region) {
 				return 0.5
 			}
+		}
+		switch conf {
+		case language.Exact, language.High:
+			return 1
+		case language.Low:
+			return 0.5
 		}
 	}
 	return 0
 }
 
 func faceHKPriority(locale language.Tag) float64 {
-	if script, conf := locale.Script(); conf > language.No {
-		switch script {
-		case language.MustParseScript("Hans"):
-			return 0.5
-		case language.MustParseScript("Hant"):
-			if region, conf := locale.Region(); conf > language.No {
-				if preferHK(region) {
-					return 1
-				}
+	script, conf := locale.Script()
+	if conf == language.No {
+		return 0
+	}
+	switch script {
+	case language.MustParseScript("Hans"):
+		return 0.5
+	case language.MustParseScript("Hant"):
+		if region, conf := locale.Region(); conf > language.No {
+			if preferHK(region) {
+				return 1
 			}
-			return 0.5
 		}
+		return 0.5
 	}
 	return 0
 }
 
 func faceJPPriority(locale language.Tag) float64 {
-	if script, conf := locale.Script(); script == language.MustParseScript("Jpan") ||
-		script == language.MustParseScript("Hira") ||
-		script == language.MustParseScript("Kana") ||
-		script == language.MustParseScript("Hrkt") {
-		switch conf {
-		case language.Exact, language.High:
-			return 1
-		case language.Low:
-			return 0.5
-		}
+	script, conf := locale.Script()
+	if script != language.MustParseScript("Jpan") &&
+		script != language.MustParseScript("Hira") &&
+		script != language.MustParseScript("Kana") &&
+		script != language.MustParseScript("Hrkt") {
+		return 0
+	}
+	switch conf {
+	case language.Exact, language.High:
+		return 1
+	case language.Low:
+		return 0.5
 	}
 	return 0
 }
 
 func faceKRPriority(locale language.Tag) float64 {
-	if script, conf := locale.Script(); script == language.MustParseScript("Hang") || script == language.MustParseScript("Kore") {
-		switch conf {
-		case language.Exact, language.High:
-			return 1
-		case language.Low:
-			return 0.5
-		}
+	script, conf := locale.Script()
+	if script != language.MustParseScript("Hang") &&
+		script != language.MustParseScript("Kore") {
+		return 0
+	}
+	switch conf {
+	case language.Exact, language.High:
+		return 1
+	case language.Low:
+		return 0.5
 	}
 	return 0
 }
