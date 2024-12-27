@@ -282,7 +282,7 @@ func (t *Text) face(context *guigui.Context) text.Face {
 	if t.bold {
 		weight = text.WeightBold
 	}
-	return FontFace(size, weight, t.lang)
+	return fontFace(size, weight, t.lang)
 }
 
 func (t *Text) lineHeight(context *guigui.Context) float64 {

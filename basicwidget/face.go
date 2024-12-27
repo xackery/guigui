@@ -57,7 +57,7 @@ type faceCacheKey struct {
 	lang   language.Tag
 }
 
-func FontFace(size float64, weight text.Weight, lang language.Tag) text.Face {
+func fontFace(size float64, weight text.Weight, lang language.Tag) text.Face {
 	key := faceCacheKey{
 		size:   size,
 		weight: weight,

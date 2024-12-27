@@ -22,17 +22,17 @@ import (
 //go:embed NotoSansCJK-VF.otf.ttc.gz
 var notoSansCJKVFOTFTTCGz []byte
 
-type baseFaceID int
+type faceID int
 
 const (
-	baseFaceJP baseFaceID = iota
-	baseFaceKR
-	baseFaceSC
-	baseFaceTC
-	baseFaceHK
+	faceJP faceID = iota
+	faceKR
+	faceSC
+	faceTC
+	faceHK
 )
 
-var faceSources = map[baseFaceID]*text.GoTextFaceSource{}
+var faceSources = map[faceID]*text.GoTextFaceSource{}
 
 func init() {
 	r, err := gzip.NewReader(bytes.NewReader(notoSansCJKVFOTFTTCGz))
@@ -46,15 +46,15 @@ func init() {
 	for _, f := range fs {
 		switch f.Metadata().Family {
 		case "Noto Sans CJK JP":
-			faceSources[baseFaceJP] = f
+			faceSources[faceJP] = f
 		case "Noto Sans CJK KR":
-			faceSources[baseFaceKR] = f
+			faceSources[faceKR] = f
 		case "Noto Sans CJK SC":
-			faceSources[baseFaceSC] = f
+			faceSources[faceSC] = f
 		case "Noto Sans CJK TC":
-			faceSources[baseFaceTC] = f
+			faceSources[faceTC] = f
 		case "Noto Sans CJK HK":
-			faceSources[baseFaceHK] = f
+			faceSources[faceHK] = f
 		default:
 			panic(fmt.Sprintf("cjkfont: unknown family: %s", f.Metadata().Family))
 		}
@@ -64,7 +64,7 @@ func init() {
 }
 
 func getFaceSources(lang language.Tag) ([]*text.GoTextFaceSource, error) {
-	faceIDRanks := map[baseFaceID]int{}
+	faceIDRanks := map[faceID]int{}
 	id, ok := langToFaceID(lang)
 	if ok {
 		faceIDRanks[id] = 0
@@ -92,8 +92,8 @@ func getFaceSources(lang language.Tag) ([]*text.GoTextFaceSource, error) {
 		rank++
 	}
 
-	ids := []baseFaceID{baseFaceSC, baseFaceTC, baseFaceHK, baseFaceJP, baseFaceKR}
-	slices.SortStableFunc(ids, func(l1, l2 baseFaceID) int {
+	ids := []faceID{faceSC, faceTC, faceHK, faceJP, faceKR}
+	slices.SortStableFunc(ids, func(l1, l2 faceID) int {
 		if _, ok := faceIDRanks[l1]; !ok {
 			return 1
 		}
@@ -114,31 +114,31 @@ func getFaceSources(lang language.Tag) ([]*text.GoTextFaceSource, error) {
 	return fs, nil
 }
 
-func langToFaceID(lang language.Tag) (baseFaceID, bool) {
+func langToFaceID(lang language.Tag) (faceID, bool) {
 	switch base, _ := lang.Base(); base.String() {
 	case "ja":
-		return baseFaceJP, true
+		return faceJP, true
 	case "ko":
-		return baseFaceKR, true
+		return faceKR, true
 	case "zh":
 		script, _ := lang.Script()
 		region, _ := lang.Region()
 		switch script.String() {
 		case "Hans":
-			return baseFaceSC, true
+			return faceSC, true
 		case "Hant":
 			if region.String() == "HK" {
-				return baseFaceHK, true
+				return faceHK, true
 			}
-			return baseFaceTC, true
+			return faceTC, true
 		}
 		switch region.String() {
 		case "HK":
-			return baseFaceHK, true
+			return faceHK, true
 		case "MO", "TW":
-			return baseFaceTC, true
+			return faceTC, true
 		}
-		return baseFaceSC, true
+		return faceSC, true
 	}
 	return 0, false
 }
