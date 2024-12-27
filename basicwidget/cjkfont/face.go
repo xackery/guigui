@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2024 Hajime Hoshi
 
-package font
+package cjkfont
 
 import (
 	"bytes"
@@ -20,17 +20,21 @@ import (
 //go:embed NotoSansCJK-VF.otf.ttc.gz
 var notoSansCJKVFOTFTTCGz []byte
 
-type faceID int
+func preferTC(region language.Region) bool {
+	switch region {
+	case language.MustParseRegion("MO"), language.MustParseRegion("TW"):
+		return true
+	}
+	return false
+}
 
-const (
-	faceJP faceID = iota
-	faceKR
-	faceSC
-	faceTC
-	faceHK
-)
-
-var faceSources = map[faceID]*text.GoTextFaceSource{}
+func preferHK(region language.Region) bool {
+	switch region {
+	case language.MustParseRegion("HK"):
+		return true
+	}
+	return false
+}
 
 func init() {
 	r, err := gzip.NewReader(bytes.NewReader(notoSansCJKVFOTFTTCGz))
@@ -41,69 +45,181 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	var (
+		faceSC *text.GoTextFaceSource
+		faceTC *text.GoTextFaceSource
+		faceHK *text.GoTextFaceSource
+		faceJP *text.GoTextFaceSource
+		faceKR *text.GoTextFaceSource
+	)
 	for _, f := range fs {
 		switch f.Metadata().Family {
-		case "Noto Sans CJK JP":
-			faceSources[faceJP] = f
-		case "Noto Sans CJK KR":
-			faceSources[faceKR] = f
 		case "Noto Sans CJK SC":
-			faceSources[faceSC] = f
+			faceSC = f
 		case "Noto Sans CJK TC":
-			faceSources[faceTC] = f
+			faceTC = f
 		case "Noto Sans CJK HK":
-			faceSources[faceHK] = f
+			faceHK = f
+		case "Noto Sans CJK JP":
+			faceJP = f
+		case "Noto Sans CJK KR":
+			faceKR = f
 		default:
 			panic(fmt.Sprintf("cjkfont: unknown family: %s", f.Metadata().Family))
 		}
 	}
 
-	basicwidget.RegisterFaceSource(queryFaceSources)
+	basicwidget.RegisterFaceSource(faceSC, faceSCPriority)
+	basicwidget.RegisterFaceSource(faceTC, faceTCPriority)
+	basicwidget.RegisterFaceSource(faceHK, faceHKPriority)
+	basicwidget.RegisterFaceSource(faceJP, faceJPPriority)
+	basicwidget.RegisterFaceSource(faceKR, faceKRPriority)
 }
 
-func queryFaceSources(locale language.Tag) ([]basicwidget.FaceSourceQueryResult, error) {
-	primaryID, primaryIDScore := faceIDFromLocale(locale)
-
-	ids := []faceID{faceSC, faceTC, faceHK, faceJP, faceKR}
-	rs := make([]basicwidget.FaceSourceQueryResult, 0, len(ids))
-	for _, id := range ids {
-		var score float64
-		if id == primaryID {
-			score = primaryIDScore
-		}
-		rs = append(rs, basicwidget.FaceSourceQueryResult{
-			FaceSource: faceSources[id],
-			Priority:   score,
-		})
-	}
-	return rs, nil
-}
-
-func faceIDFromLocale(locale language.Tag) (faceID, float64) {
-	switch base, _ := locale.Base(); base.String() {
-	case "ja":
-		return faceJP, 1
-	case "ko":
-		return faceKR, 1
-	case "zh":
-		script, _ := locale.Script()
-		region, _ := locale.Region()
-		switch script.String() {
-		case "Hans":
-			return faceSC, 1
-		case "Hant":
-			if region.String() == "HK" {
-				return faceHK, 1
+func faceSCPriority(locale language.Tag) float64 {
+	if script, conf := locale.Script(); conf > language.No {
+		switch script {
+		case language.MustParseScript("Hans"):
+			switch conf {
+			case language.Exact, language.High:
+				return 1
+			case language.Low:
+				return 0.5
 			}
-			return faceTC, 1
+		case language.MustParseScript("Hant"):
+			return 0.5
 		}
-		switch region.String() {
-		case "HK":
-			return faceHK, 1
-		case "MO", "TW":
-			return faceTC, 0.5
-		}
-		return faceSC, 0.5
 	}
-	return 0, 0
+	base, conf := locale.Base()
+	if base == language.MustParseBase("zh") {
+		switch conf {
+		case language.Exact, language.High:
+			if region, conf := locale.Region(); conf > language.No {
+				if !preferHK(region) && !preferTC(region) {
+					return 1
+				}
+			}
+			return 0.5
+		case language.Low:
+			return 0.5
+		}
+	}
+	return 0
+}
+
+func faceTCPriority(locale language.Tag) float64 {
+	if script, conf := locale.Script(); conf > language.No {
+		switch script {
+		case language.MustParseScript("Hans"):
+			return 0.5
+		case language.MustParseScript("Hant"):
+			if region, conf := locale.Region(); conf > language.No {
+				if preferTC(region) {
+					return 1
+				}
+				if preferHK(region) {
+					return 0.5
+				}
+			}
+			switch conf {
+			case language.Exact, language.High:
+				return 1
+			case language.Low:
+				return 0.5
+			}
+		}
+	}
+	base, conf := locale.Base()
+	if base == language.MustParseBase("zh") {
+		switch conf {
+		case language.Exact, language.High:
+			if region, conf := locale.Region(); conf > language.No {
+				if preferTC(region) {
+					return 1
+				}
+			}
+			return 0.5
+		case language.Low:
+			return 0.5
+		}
+	}
+	return 0
+}
+
+func faceHKPriority(locale language.Tag) float64 {
+	if script, conf := locale.Script(); conf > language.No {
+		switch script {
+		case language.MustParseScript("Hans"):
+			return 0.5
+		case language.MustParseScript("Hant"):
+			if region, conf := locale.Region(); conf > language.No {
+				if preferHK(region) {
+					return 1
+				}
+			}
+			return 0.5
+		}
+	}
+	base, conf := locale.Base()
+	if base == language.MustParseBase("zh") {
+		switch conf {
+		case language.Exact, language.High:
+			if region, conf := locale.Region(); conf > language.No {
+				if preferHK(region) {
+					return 1
+				}
+			}
+			return 0.5
+		case language.Low:
+			return 0.5
+		}
+	}
+	return 0
+}
+
+func faceJPPriority(locale language.Tag) float64 {
+	script, conf := locale.Script()
+	if script == language.MustParseScript("Jpan") ||
+		script == language.MustParseScript("Hira") ||
+		script == language.MustParseScript("Kana") ||
+		script == language.MustParseScript("Hrkt") {
+		switch conf {
+		case language.Exact, language.High:
+			return 1
+		case language.Low:
+			return 0.5
+		}
+	}
+	base, conf := locale.Base()
+	if base == language.MustParseBase("ja") {
+		switch conf {
+		case language.Exact, language.High:
+			return 1
+		case language.Low:
+			return 0.5
+		}
+	}
+	return 0
+}
+
+func faceKRPriority(locale language.Tag) float64 {
+	script, conf := locale.Script()
+	if script == language.MustParseScript("Hang") || script == language.MustParseScript("Kore") {
+		switch conf {
+		case language.Exact, language.High:
+			return 1
+		case language.Low:
+			return 0.5
+		}
+	}
+	base, conf := locale.Base()
+	if base == language.MustParseBase("ko") {
+		switch conf {
+		case language.Exact, language.High:
+			return 1
+		case language.Low:
+			return 0.5
+		}
+	}
+	return 0
 }

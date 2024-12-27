@@ -5,10 +5,8 @@ package basicwidget
 
 import (
 	"bytes"
-	"cmp"
 	"compress/gzip"
 	_ "embed"
-	"slices"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -25,54 +23,42 @@ type FaceSourceQueryResult struct {
 	Priority   float64
 }
 
-type FaceSourcesQuerier func(locale language.Tag) ([]FaceSourceQueryResult, error)
-
-var faceSourcesQueriers []FaceSourcesQuerier
-
-func RegisterFaceSource(f FaceSourcesQuerier) {
-	faceSourcesQueriers = append(faceSourcesQueriers, f)
+type faceSourceWithPriority struct {
+	faceSource *text.GoTextFaceSource
+	priority   func(locale language.Tag) float64
 }
 
-var defaultFaceSource *text.GoTextFaceSource
+var faceSourceWithPriorities []faceSourceWithPriority
 
-func queryDefaultFaceSource(locale language.Tag) ([]FaceSourceQueryResult, error) {
-	if defaultFaceSource == nil {
-		r, err := gzip.NewReader(bytes.NewReader(notoSansTTFGz))
-		if err != nil {
-			return nil, err
-		}
-		defer r.Close()
-		f, err := text.NewGoTextFaceSource(r)
-		if err != nil {
-			return nil, err
-		}
-		defaultFaceSource = f
-	}
-
-	var priority float64
-	script, conf := locale.Script()
-	if script == language.MustParseScript("Latn") || script == language.MustParseScript("Grek") || script == language.MustParseScript("Cyrl") {
-		switch conf {
-		case language.Exact:
-			priority = 1
-		case language.High:
-			priority = 1
-		case language.Low:
-			priority = 0.5
-		case language.No:
-			priority = 0
-		}
-	}
-	return []FaceSourceQueryResult{
-		{
-			FaceSource: defaultFaceSource,
-			Priority:   priority,
-		},
-	}, nil
+func RegisterFaceSource(faceSource *text.GoTextFaceSource, priority func(locale language.Tag) float64) {
+	faceSourceWithPriorities = append(faceSourceWithPriorities, faceSourceWithPriority{
+		faceSource: faceSource,
+		priority:   priority,
+	})
 }
 
 func init() {
-	RegisterFaceSource(queryDefaultFaceSource)
+	r, err := gzip.NewReader(bytes.NewReader(notoSansTTFGz))
+	if err != nil {
+		panic(err)
+	}
+	defer r.Close()
+	f, err := text.NewGoTextFaceSource(r)
+	if err != nil {
+		panic(err)
+	}
+	RegisterFaceSource(f, func(locale language.Tag) float64 {
+		script, conf := locale.Script()
+		if script == language.MustParseScript("Latn") || script == language.MustParseScript("Grek") || script == language.MustParseScript("Cyrl") {
+			switch conf {
+			case language.Exact, language.High:
+				return 1
+			case language.Low:
+				return 0.5
+			}
+		}
+		return 0
+	})
 }
 
 var (
@@ -100,51 +86,23 @@ func fontFace(size float64, weight text.Weight, locales []language.Tag) text.Fac
 		return f
 	}
 
-	results := map[*text.GoTextFaceSource][]float64{}
-	for i, l := range locales {
-		for _, f := range faceSourcesQueriers {
-			rs, err := f(l)
-			if err != nil {
-				panic(err)
-			}
-			for _, r := range rs {
-				if len(results[r.FaceSource]) < i+1 {
-					results[r.FaceSource] = append(results[r.FaceSource], make([]float64, i+1-len(results[r.FaceSource]))...)
-				}
-				results[r.FaceSource][i] = r.Priority
-			}
-		}
-	}
+	fps := append([]faceSourceWithPriority{}, faceSourceWithPriorities...)
 
 	var faceSources []*text.GoTextFaceSource
-	for f := range results {
-		faceSources = append(faceSources, f)
+	for _, l := range locales {
+		var highestPriority float64
+		var index int
+		for i, fp := range fps {
+			p := min(max(fp.priority(l), 0), 1)
+			// If the priority is the same, the later one is used.
+			if highestPriority <= p {
+				highestPriority = p
+				index = i
+			}
+		}
+		faceSources = append(faceSources, fps[index].faceSource)
+		fps = append(fps[:index], fps[index+1:]...)
 	}
-	slices.SortFunc(faceSources, func(fs0, fs1 *text.GoTextFaceSource) int {
-		ps0 := results[fs0]
-		ps1 := results[fs1]
-		for i := range ps0 {
-			var p0, p1 float64
-			if i < len(ps0) {
-				p0 = min(max(ps0[i], 0), 1)
-			}
-			if i < len(ps1) {
-				p1 = min(max(ps1[i], 0), 1)
-			}
-			if p0 != p1 {
-				return -cmp.Compare(p0, p1)
-			}
-		}
-		// Deprioritize the default face source.
-		if fs0 == defaultFaceSource && fs1 != defaultFaceSource {
-			return 1
-		}
-		if fs0 != defaultFaceSource && fs1 == defaultFaceSource {
-			return -1
-		}
-		// This is the final tie breaker.
-		return cmp.Compare(fs0.Metadata().Family, fs1.Metadata().Family)
-	})
 
 	var fs []text.Face
 	var lang language.Tag
