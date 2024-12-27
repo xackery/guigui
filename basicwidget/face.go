@@ -112,6 +112,9 @@ func fontFace(size float64, weight text.Weight, locales []language.Tag) text.Fac
 		}
 		faceSources = append(faceSources, fps[index].faceSource)
 		fps = append(fps[:index], fps[index+1:]...)
+		if len(fps) == 0 {
+			break
+		}
 	}
 
 	var fs []text.Face
