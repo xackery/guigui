@@ -135,6 +135,14 @@ func fontFace(size float64, weight text.Weight, locales []language.Tag) text.Fac
 				return -cmp.Compare(score0, score1)
 			}
 		}
+		// Deprioritize the default face source.
+		if fs0 == defaultFaceSource && fs1 != defaultFaceSource {
+			return 1
+		}
+		if fs0 != defaultFaceSource && fs1 == defaultFaceSource {
+			return -1
+		}
+		// This is the final tie breaker.
 		return cmp.Compare(fs0.Metadata().Family, fs1.Metadata().Family)
 	})
 
