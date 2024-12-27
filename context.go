@@ -7,6 +7,11 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"slices"
+	"strings"
+
+	"github.com/hajimehoshi/guigui/internal/locale"
+	"golang.org/x/text/language"
 )
 
 type ColorMode int
@@ -25,6 +30,30 @@ func init() {
 	}
 }
 
+var envLocales []language.Tag
+
+func init() {
+	for _, tag := range strings.Split(os.Getenv("GUIGUI_LOCALES"), ",") {
+		l, err := language.Parse(tag)
+		if err != nil {
+			slog.Warn(fmt.Sprintf("invalid GUIGUI_LOCALES: %s", tag))
+			continue
+		}
+		envLocales = append(envLocales, l)
+	}
+}
+
+var systemLocales []language.Tag
+
+func init() {
+	ls, err := locale.Locales()
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+	systemLocales = ls
+}
+
 const (
 	ColorModeLight ColorMode = iota
 	ColorModeDark
@@ -37,6 +66,7 @@ type Context struct {
 	appScaleMinus1 float64
 	colorMode      ColorMode
 	hasColorMode   bool
+	locales        []language.Tag
 }
 
 func (c *Context) Scale() float64 {
@@ -86,4 +116,48 @@ func (c *Context) SetColorMode(mode ColorMode) {
 
 func (c *Context) ResetColorMode() {
 	c.hasColorMode = false
+}
+
+func (c *Context) AppendLocales(locales []language.Tag) []language.Tag {
+	// App locales
+	for _, l := range c.locales {
+		if slices.Contains(locales, l) {
+			continue
+		}
+		locales = append(locales, l)
+	}
+	// Env locales
+	for _, l := range envLocales {
+		if slices.Contains(locales, l) {
+			continue
+		}
+		locales = append(locales, l)
+	}
+	// System locales
+	for _, l := range systemLocales {
+		if slices.Contains(locales, l) {
+			continue
+		}
+		locales = append(locales, l)
+	}
+	return locales
+}
+
+func (c *Context) AppendAppLocales(locales []language.Tag) []language.Tag {
+	for _, l := range c.locales {
+		if slices.Contains(locales, l) {
+			continue
+		}
+		locales = append(locales, l)
+	}
+	return locales
+}
+
+func (c *Context) SetAppLocales(locales []language.Tag) {
+	if slices.Equal(c.locales, locales) {
+		return
+	}
+
+	c.locales = append([]language.Tag{}, locales...)
+	c.app.requestRedraw(c.app.bounds())
 }

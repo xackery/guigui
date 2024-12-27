@@ -61,8 +61,8 @@ func init() {
 	basicwidget.RegisterFaceSource(queryFaceSources)
 }
 
-func queryFaceSources(lang language.Tag) ([]basicwidget.FaceSourceQueryResult, error) {
-	primaryID, primaryIDScore := langToFaceID(lang)
+func queryFaceSources(locale language.Tag) ([]basicwidget.FaceSourceQueryResult, error) {
+	primaryID, primaryIDScore := faceIDFromLocale(locale)
 
 	ids := []faceID{faceSC, faceTC, faceHK, faceJP, faceKR}
 	rs := make([]basicwidget.FaceSourceQueryResult, 0, len(ids))
@@ -79,15 +79,15 @@ func queryFaceSources(lang language.Tag) ([]basicwidget.FaceSourceQueryResult, e
 	return rs, nil
 }
 
-func langToFaceID(lang language.Tag) (faceID, float64) {
-	switch base, _ := lang.Base(); base.String() {
+func faceIDFromLocale(locale language.Tag) (faceID, float64) {
+	switch base, _ := locale.Base(); base.String() {
 	case "ja":
 		return faceJP, 1
 	case "ko":
 		return faceKR, 1
 	case "zh":
-		script, _ := lang.Script()
-		region, _ := lang.Region()
+		script, _ := locale.Script()
+		region, _ := locale.Region()
 		switch script.String() {
 		case "Hans":
 			return faceSC, 1

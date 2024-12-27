@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"github.com/hajimehoshi/guigui/internal/locale"
 	"golang.org/x/text/language"
 )
 
@@ -21,22 +20,12 @@ import (
 //go:embed NotoSans.ttf.gz
 var notoSansTTFGz []byte
 
-var locales []language.Tag
-
-func init() {
-	ls, err := locale.Locales()
-	if err != nil {
-		panic(err)
-	}
-	locales = ls
-}
-
 type FaceSourceQueryResult struct {
 	FaceSource *text.GoTextFaceSource
 	Score      float64
 }
 
-type FaceSourcesQuerier func(lang language.Tag) ([]FaceSourceQueryResult, error)
+type FaceSourcesQuerier func(locale language.Tag) ([]FaceSourceQueryResult, error)
 
 var faceSourcesQueriers []FaceSourcesQuerier
 
@@ -46,7 +35,7 @@ func RegisterFaceSource(f FaceSourcesQuerier) {
 
 var defaultFaceSource *text.GoTextFaceSource
 
-func queryDefaultFaceSource(lang language.Tag) ([]FaceSourceQueryResult, error) {
+func queryDefaultFaceSource(locale language.Tag) ([]FaceSourceQueryResult, error) {
 	if defaultFaceSource == nil {
 		r, err := gzip.NewReader(bytes.NewReader(notoSansTTFGz))
 		if err != nil {
@@ -61,7 +50,7 @@ func queryDefaultFaceSource(lang language.Tag) ([]FaceSourceQueryResult, error) 
 	}
 
 	var score float64
-	script, conf := lang.Script()
+	script, conf := locale.Script()
 	if script == language.MustParseScript("Latn") || script == language.MustParseScript("Grek") || script == language.MustParseScript("Cyrl") {
 		switch conf {
 		case language.Exact:
@@ -96,9 +85,9 @@ type faceCacheKey struct {
 	langs  string
 }
 
-func fontFace(size float64, weight text.Weight, langs []language.Tag) text.Face {
+func fontFace(size float64, weight text.Weight, locales []language.Tag) text.Face {
 	var langStrs []string
-	for _, l := range langs {
+	for _, l := range locales {
 		langStrs = append(langStrs, l.String())
 	}
 
@@ -111,22 +100,8 @@ func fontFace(size float64, weight text.Weight, langs []language.Tag) text.Face 
 		return f
 	}
 
-	var allLangs []language.Tag
-	for _, l := range langs {
-		if slices.Contains(allLangs, l) {
-			continue
-		}
-		allLangs = append(allLangs, l)
-	}
-	for _, l := range locales {
-		if slices.Contains(allLangs, l) {
-			continue
-		}
-		allLangs = append(allLangs, l)
-	}
-
 	results := map[*text.GoTextFaceSource][]float64{}
-	for i, l := range allLangs {
+	for i, l := range locales {
 		for _, f := range faceSourcesQueriers {
 			rs, err := f(l)
 			if err != nil {
@@ -165,8 +140,8 @@ func fontFace(size float64, weight text.Weight, langs []language.Tag) text.Face 
 
 	var fs []text.Face
 	var lang language.Tag
-	if len(allLangs) > 0 {
-		lang = allLangs[0]
+	if len(locales) > 0 {
+		lang = locales[0]
 	}
 	for _, faceSource := range faceSources {
 		f := &text.GoTextFace{
