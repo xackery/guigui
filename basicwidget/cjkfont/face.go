@@ -84,14 +84,17 @@ func faceSCPriority(locale language.Tag) float64 {
 			case language.Exact, language.High:
 				return 1
 			case language.Low:
+				// As a special case, if only `zh` is specified, prefer SC.
+				if base, conf := locale.Base(); base == language.MustParseBase("zh") && conf > language.No {
+					return 1
+				}
 				return 0.5
 			}
 		case language.MustParseScript("Hant"):
 			return 0.5
 		}
 	}
-	base, conf := locale.Base()
-	if base == language.MustParseBase("zh") {
+	if base, conf := locale.Base(); base == language.MustParseBase("zh") {
 		switch conf {
 		case language.Exact, language.High:
 			if region, conf := locale.Region(); conf > language.No {
@@ -129,8 +132,7 @@ func faceTCPriority(locale language.Tag) float64 {
 			}
 		}
 	}
-	base, conf := locale.Base()
-	if base == language.MustParseBase("zh") {
+	if base, conf := locale.Base(); base == language.MustParseBase("zh") {
 		switch conf {
 		case language.Exact, language.High:
 			if region, conf := locale.Region(); conf > language.No {
@@ -160,8 +162,7 @@ func faceHKPriority(locale language.Tag) float64 {
 			return 0.5
 		}
 	}
-	base, conf := locale.Base()
-	if base == language.MustParseBase("zh") {
+	if base, conf := locale.Base(); base == language.MustParseBase("zh") {
 		switch conf {
 		case language.Exact, language.High:
 			if region, conf := locale.Region(); conf > language.No {
@@ -178,8 +179,7 @@ func faceHKPriority(locale language.Tag) float64 {
 }
 
 func faceJPPriority(locale language.Tag) float64 {
-	script, conf := locale.Script()
-	if script == language.MustParseScript("Jpan") ||
+	if script, conf := locale.Script(); script == language.MustParseScript("Jpan") ||
 		script == language.MustParseScript("Hira") ||
 		script == language.MustParseScript("Kana") ||
 		script == language.MustParseScript("Hrkt") {
@@ -190,8 +190,7 @@ func faceJPPriority(locale language.Tag) float64 {
 			return 0.5
 		}
 	}
-	base, conf := locale.Base()
-	if base == language.MustParseBase("ja") {
+	if base, conf := locale.Base(); base == language.MustParseBase("ja") {
 		switch conf {
 		case language.Exact, language.High:
 			return 1
@@ -203,8 +202,7 @@ func faceJPPriority(locale language.Tag) float64 {
 }
 
 func faceKRPriority(locale language.Tag) float64 {
-	script, conf := locale.Script()
-	if script == language.MustParseScript("Hang") || script == language.MustParseScript("Kore") {
+	if script, conf := locale.Script(); script == language.MustParseScript("Hang") || script == language.MustParseScript("Kore") {
 		switch conf {
 		case language.Exact, language.High:
 			return 1
@@ -212,8 +210,7 @@ func faceKRPriority(locale language.Tag) float64 {
 			return 0.5
 		}
 	}
-	base, conf := locale.Base()
-	if base == language.MustParseBase("ko") {
+	if base, conf := locale.Base(); base == language.MustParseBase("ko") {
 		switch conf {
 		case language.Exact, language.High:
 			return 1
