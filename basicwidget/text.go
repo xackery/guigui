@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"math"
 	"runtime"
+	"slices"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -55,7 +56,7 @@ type Text struct {
 	vAlign      VerticalAlign
 	color       color.Color
 	transparent float64
-	lang        language.Tag
+	locales     []language.Tag
 	scaleMinus1 float64
 	bold        bool
 
@@ -139,12 +140,12 @@ func (t *Text) setTextAndSelection(text string, start, end int, shiftIndex int) 
 	t.needsRedraw = true
 }
 
-func (t *Text) SetLanguage(lang language.Tag) {
-	if t.lang == lang {
+func (t *Text) SetLocales(locales []language.Tag) {
+	if slices.Equal(t.locales, locales) {
 		return
 	}
 
-	t.lang = lang
+	t.locales = append([]language.Tag(nil), locales...)
 	t.needsRedraw = true
 }
 
@@ -282,12 +283,9 @@ func (t *Text) face(context *guigui.Context) text.Face {
 	if t.bold {
 		weight = text.WeightBold
 	}
-	var langs []language.Tag
-	if t.lang != language.Und {
-		langs = append(langs, t.lang)
-	}
-	langs = context.AppendLocales(langs)
-	return fontFace(size, weight, langs)
+	locales := append([]language.Tag(nil), t.locales...)
+	locales = context.AppendLocales(locales)
+	return fontFace(size, weight, locales)
 }
 
 func (t *Text) lineHeight(context *guigui.Context) float64 {
