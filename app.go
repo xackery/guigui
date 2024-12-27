@@ -63,7 +63,11 @@ type app struct {
 }
 
 type RunOptions struct {
-	Title string
+	Title           string
+	WindowMinWidth  int
+	WindowMinHeight int
+	WindowMaxWidth  int
+	WindowMaxHeight int
 }
 
 func Run(root *Widget, options *RunOptions) error {
@@ -74,6 +78,24 @@ func Run(root *Widget, options *RunOptions) error {
 	ebiten.SetWindowTitle(options.Title)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetScreenClearedEveryFrame(false)
+	minW := -1
+	minH := -1
+	maxW := -1
+	maxH := -1
+	if options.WindowMinWidth > 0 {
+		minW = options.WindowMinWidth
+	}
+	if options.WindowMinHeight > 0 {
+		minH = options.WindowMinHeight
+	}
+	if options.WindowMaxWidth > 0 {
+		maxW = options.WindowMaxWidth
+	}
+	if options.WindowMaxHeight > 0 {
+		maxH = options.WindowMaxHeight
+	}
+	ebiten.SetWindowSizeLimits(minW, minH, maxW, maxH)
+
 	a := &app{
 		root: root,
 	}

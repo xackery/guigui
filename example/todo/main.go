@@ -230,7 +230,9 @@ func (r *Root) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 
 func main() {
 	op := &guigui.RunOptions{
-		Title: "TODO",
+		Title:           "TODO",
+		WindowMinWidth:  320,
+		WindowMinHeight: 240,
 	}
 	if err := guigui.Run(guigui.NewWidget(&Root{}), op); err != nil {
 		fmt.Fprintln(os.Stderr, err)
