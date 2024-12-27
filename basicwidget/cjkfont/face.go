@@ -8,7 +8,6 @@ import (
 	"compress/gzip"
 	_ "embed"
 	"fmt"
-	"slices"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"golang.org/x/text/language"
@@ -59,71 +58,52 @@ func init() {
 		}
 	}
 
-	basicwidget.RegisterFaceSource(getFaceSources)
+	basicwidget.RegisterFaceSource(queryFaceSources)
 }
 
-func getFaceSources(langs []language.Tag) ([]*text.GoTextFaceSource, error) {
-	faceIDRanks := map[faceID]int{}
-	var rank int
-	for _, l := range langs {
-		f, ok := langToFaceID(l)
-		if !ok {
-			continue
-		}
-		if _, ok := faceIDRanks[f]; ok {
-			continue
-		}
-		faceIDRanks[f] = rank
-		rank++
-	}
+func queryFaceSources(lang language.Tag) ([]basicwidget.FaceSourceQueryResult, error) {
+	primaryID, primaryIDScore := langToFaceID(lang)
 
 	ids := []faceID{faceSC, faceTC, faceHK, faceJP, faceKR}
-	slices.SortStableFunc(ids, func(l1, l2 faceID) int {
-		if _, ok := faceIDRanks[l1]; !ok {
-			return 1
-		}
-		if _, ok := faceIDRanks[l2]; !ok {
-			return -1
-		}
-		return faceIDRanks[l1] - faceIDRanks[l2]
-	})
-
-	fs := make([]*text.GoTextFaceSource, 0, len(ids))
+	rs := make([]basicwidget.FaceSourceQueryResult, 0, len(ids))
 	for _, id := range ids {
-		f, ok := faceSources[id]
-		if !ok {
-			return nil, fmt.Errorf("cjkfont: face source not found: %d", id)
+		var score float64
+		if id == primaryID {
+			score = primaryIDScore
 		}
-		fs = append(fs, f)
+		rs = append(rs, basicwidget.FaceSourceQueryResult{
+			FaceSource: faceSources[id],
+			Score:      score,
+		})
 	}
-	return fs, nil
+	return rs, nil
 }
 
-func langToFaceID(lang language.Tag) (faceID, bool) {
+func langToFaceID(lang language.Tag) (faceID, float64) {
 	switch base, _ := lang.Base(); base.String() {
 	case "ja":
-		return faceJP, true
+		return faceJP, 1
 	case "ko":
-		return faceKR, true
+		return faceKR, 1
 	case "zh":
 		script, _ := lang.Script()
 		region, _ := lang.Region()
 		switch script.String() {
 		case "Hans":
-			return faceSC, true
+			return faceSC, 1
 		case "Hant":
 			if region.String() == "HK" {
-				return faceHK, true
+				return faceHK, 1
 			}
-			return faceTC, true
+			return faceTC, 1
 		}
 		switch region.String() {
 		case "HK":
-			return faceHK, true
+			return faceHK, 1
 		case "MO", "TW":
-			return faceTC, true
+			return faceTC, 0.5
 		}
-		return faceSC, true
+		return faceSC, 0.5
 	}
-	return 0, false
+	return 0, 0
 }

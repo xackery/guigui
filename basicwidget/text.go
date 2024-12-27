@@ -282,7 +282,11 @@ func (t *Text) face(context *guigui.Context) text.Face {
 	if t.bold {
 		weight = text.WeightBold
 	}
-	return fontFace(size, weight, t.lang)
+	var langs []language.Tag
+	if t.lang != language.Und {
+		langs = append(langs, t.lang)
+	}
+	return fontFace(size, weight, langs)
 }
 
 func (t *Text) lineHeight(context *guigui.Context) float64 {

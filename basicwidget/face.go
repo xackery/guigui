@@ -5,8 +5,11 @@ package basicwidget
 
 import (
 	"bytes"
+	"cmp"
 	"compress/gzip"
 	_ "embed"
+	"slices"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/guigui/internal/locale"
@@ -28,17 +31,22 @@ func init() {
 	locales = ls
 }
 
-type FaceSourcesGetter func(lang []language.Tag) ([]*text.GoTextFaceSource, error)
+type FaceSourceQueryResult struct {
+	FaceSource *text.GoTextFaceSource
+	Score      float64
+}
 
-var faceSourcesGetters []FaceSourcesGetter
+type FaceSourcesQuerier func(lang language.Tag) ([]FaceSourceQueryResult, error)
 
-func RegisterFaceSource(f FaceSourcesGetter) {
-	faceSourcesGetters = append(faceSourcesGetters, f)
+var faceSourcesQueriers []FaceSourcesQuerier
+
+func RegisterFaceSource(f FaceSourcesQuerier) {
+	faceSourcesQueriers = append(faceSourcesQueriers, f)
 }
 
 var defaultFaceSource *text.GoTextFaceSource
 
-func getDefaultFaceSource(lang []language.Tag) ([]*text.GoTextFaceSource, error) {
+func queryDefaultFaceSource(lang language.Tag) ([]FaceSourceQueryResult, error) {
 	if defaultFaceSource == nil {
 		r, err := gzip.NewReader(bytes.NewReader(notoSansTTFGz))
 		if err != nil {
@@ -51,11 +59,31 @@ func getDefaultFaceSource(lang []language.Tag) ([]*text.GoTextFaceSource, error)
 		}
 		defaultFaceSource = f
 	}
-	return []*text.GoTextFaceSource{defaultFaceSource}, nil
+
+	var score float64
+	script, conf := lang.Script()
+	if script == language.MustParseScript("Latn") || script == language.MustParseScript("Grek") || script == language.MustParseScript("Cyrl") {
+		switch conf {
+		case language.Exact:
+			score = 1
+		case language.High:
+			score = 1
+		case language.Low:
+			score = 0.5
+		case language.No:
+			score = 0
+		}
+	}
+	return []FaceSourceQueryResult{
+		{
+			FaceSource: defaultFaceSource,
+			Score:      score,
+		},
+	}, nil
 }
 
 func init() {
-	RegisterFaceSource(getDefaultFaceSource)
+	RegisterFaceSource(queryDefaultFaceSource)
 }
 
 var (
@@ -65,35 +93,81 @@ var (
 type faceCacheKey struct {
 	size   float64
 	weight text.Weight
-	lang   language.Tag
+	langs  string
 }
 
-func fontFace(size float64, weight text.Weight, lang language.Tag) text.Face {
+func fontFace(size float64, weight text.Weight, langs []language.Tag) text.Face {
+	var langStrs []string
+	for _, l := range langs {
+		langStrs = append(langStrs, l.String())
+	}
+
 	key := faceCacheKey{
 		size:   size,
 		weight: weight,
-		lang:   lang,
+		langs:  strings.Join(langStrs, ","),
 	}
 	if f, ok := faceCache[key]; ok {
 		return f
 	}
 
-	var langs []language.Tag
-	if lang != language.Und {
-		langs = append(langs, lang)
+	var allLangs []language.Tag
+	for _, l := range langs {
+		if slices.Contains(allLangs, l) {
+			continue
+		}
+		allLangs = append(allLangs, l)
 	}
-	langs = append(langs, locales...)
+	for _, l := range locales {
+		if slices.Contains(allLangs, l) {
+			continue
+		}
+		allLangs = append(allLangs, l)
+	}
+
+	results := map[*text.GoTextFaceSource][]float64{}
+	for i, l := range allLangs {
+		for _, f := range faceSourcesQueriers {
+			rs, err := f(l)
+			if err != nil {
+				panic(err)
+			}
+			for _, r := range rs {
+				if len(results[r.FaceSource]) < i+1 {
+					results[r.FaceSource] = append(results[r.FaceSource], make([]float64, i+1-len(results[r.FaceSource]))...)
+				}
+				results[r.FaceSource][i] = r.Score
+			}
+		}
+	}
 
 	var faceSources []*text.GoTextFaceSource
-	for _, f := range faceSourcesGetters {
-		fs, err := f(langs)
-		if err != nil {
-			panic(err)
-		}
-		faceSources = append(faceSources, fs...)
+	for f := range results {
+		faceSources = append(faceSources, f)
 	}
+	slices.SortFunc(faceSources, func(fs0, fs1 *text.GoTextFaceSource) int {
+		scores0 := results[fs0]
+		scores1 := results[fs1]
+		for i := range scores0 {
+			var score0, score1 float64
+			if i < len(scores0) {
+				score0 = scores0[i]
+			}
+			if i < len(scores1) {
+				score1 = scores1[i]
+			}
+			if score0 != score1 {
+				return -cmp.Compare(score0, score1)
+			}
+		}
+		return cmp.Compare(fs0.Metadata().Family, fs1.Metadata().Family)
+	})
 
 	var fs []text.Face
+	var lang language.Tag
+	if len(allLangs) > 0 {
+		lang = allLangs[0]
+	}
 	for _, faceSource := range faceSources {
 		f := &text.GoTextFace{
 			Source:   faceSource,
