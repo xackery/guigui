@@ -8,6 +8,7 @@ import (
 
 	"golang.org/x/text/language"
 
+	"github.com/hajimehoshi/guigui/basicwidget"
 	"github.com/hajimehoshi/guigui/basicwidget/cjkfont"
 )
 
@@ -240,19 +241,22 @@ func TestPriorities(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.locale.String(), func(t *testing.T) {
-			if got, want := cjkfont.FaceTCPriority(tc.locale), tc.priorityTC; got != want {
+			hint := basicwidget.FaceSourceHint{
+				Locale: tc.locale,
+			}
+			if got, want := cjkfont.FaceTCPriority(hint), tc.priorityTC; got != want {
 				t.Errorf("FaceTCPriority(%v) = %f; want %f", tc.locale, got, want)
 			}
-			if got, want := cjkfont.FaceSCPriority(tc.locale), tc.prioritySC; got != want {
+			if got, want := cjkfont.FaceSCPriority(hint), tc.prioritySC; got != want {
 				t.Errorf("FaceSCPriority(%v) = %f; want %f", tc.locale, got, want)
 			}
-			if got, want := cjkfont.FaceHKPriority(tc.locale), tc.priorityHK; got != want {
+			if got, want := cjkfont.FaceHKPriority(hint), tc.priorityHK; got != want {
 				t.Errorf("FaceHKPriority(%v) = %f; want %f", tc.locale, got, want)
 			}
-			if got, want := cjkfont.FaceJPPriority(tc.locale), tc.priorityJP; got != want {
+			if got, want := cjkfont.FaceJPPriority(hint), tc.priorityJP; got != want {
 				t.Errorf("FaceJPPriority(%v) = %f; want %f", tc.locale, got, want)
 			}
-			if got, want := cjkfont.FaceKRPriority(tc.locale), tc.priorityKR; got != want {
+			if got, want := cjkfont.FaceKRPriority(hint), tc.priorityKR; got != want {
 				t.Errorf("FaceKRPriority(%v) = %f; want %f", tc.locale, got, want)
 			}
 		})

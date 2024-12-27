@@ -76,7 +76,8 @@ func init() {
 	basicwidget.RegisterFaceSource(faceKR, faceKRPriority)
 }
 
-func faceSCPriority(locale language.Tag) float64 {
+func faceSCPriority(hint basicwidget.FaceSourceHint) float64 {
+	locale := hint.Locale
 	script, conf := locale.Script()
 	if conf == language.No {
 		return 0
@@ -99,7 +100,8 @@ func faceSCPriority(locale language.Tag) float64 {
 	return 0
 }
 
-func faceTCPriority(locale language.Tag) float64 {
+func faceTCPriority(hint basicwidget.FaceSourceHint) float64 {
+	locale := hint.Locale
 	script, conf := locale.Script()
 	if conf == language.No {
 		return 0
@@ -126,7 +128,8 @@ func faceTCPriority(locale language.Tag) float64 {
 	return 0
 }
 
-func faceHKPriority(locale language.Tag) float64 {
+func faceHKPriority(hint basicwidget.FaceSourceHint) float64 {
+	locale := hint.Locale
 	script, conf := locale.Script()
 	if conf == language.No {
 		return 0
@@ -145,7 +148,8 @@ func faceHKPriority(locale language.Tag) float64 {
 	return 0
 }
 
-func faceJPPriority(locale language.Tag) float64 {
+func faceJPPriority(hint basicwidget.FaceSourceHint) float64 {
+	locale := hint.Locale
 	script, conf := locale.Script()
 	if script != language.MustParseScript("Jpan") &&
 		script != language.MustParseScript("Hira") &&
@@ -162,7 +166,8 @@ func faceJPPriority(locale language.Tag) float64 {
 	return 0
 }
 
-func faceKRPriority(locale language.Tag) float64 {
+func faceKRPriority(hint basicwidget.FaceSourceHint) float64 {
+	locale := hint.Locale
 	script, conf := locale.Script()
 	if script != language.MustParseScript("Hang") &&
 		script != language.MustParseScript("Kore") {

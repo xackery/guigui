@@ -23,14 +23,20 @@ type FaceSourceQueryResult struct {
 	Priority   float64
 }
 
+type FaceSourceHint struct {
+	Size   float64
+	Weight text.Weight
+	Locale language.Tag
+}
+
 type faceSourceWithPriority struct {
 	faceSource *text.GoTextFaceSource
-	priority   func(locale language.Tag) float64
+	priority   func(hint FaceSourceHint) float64
 }
 
 var faceSourceWithPriorities []faceSourceWithPriority
 
-func RegisterFaceSource(faceSource *text.GoTextFaceSource, priority func(locale language.Tag) float64) {
+func RegisterFaceSource(faceSource *text.GoTextFaceSource, priority func(hint FaceSourceHint) float64) {
 	faceSourceWithPriorities = append(faceSourceWithPriorities, faceSourceWithPriority{
 		faceSource: faceSource,
 		priority:   priority,
@@ -47,8 +53,8 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	RegisterFaceSource(f, func(locale language.Tag) float64 {
-		script, conf := locale.Script()
+	RegisterFaceSource(f, func(hint FaceSourceHint) float64 {
+		script, conf := hint.Locale.Script()
 		if script == language.MustParseScript("Latn") || script == language.MustParseScript("Grek") || script == language.MustParseScript("Cyrl") {
 			switch conf {
 			case language.Exact, language.High:
@@ -66,21 +72,21 @@ var (
 )
 
 type faceCacheKey struct {
-	size   float64
-	weight text.Weight
-	langs  string
+	size    float64
+	weight  text.Weight
+	locales string
 }
 
 func fontFace(size float64, weight text.Weight, locales []language.Tag) text.Face {
-	var langStrs []string
+	var localeStrs []string
 	for _, l := range locales {
-		langStrs = append(langStrs, l.String())
+		localeStrs = append(localeStrs, l.String())
 	}
 
 	key := faceCacheKey{
-		size:   size,
-		weight: weight,
-		langs:  strings.Join(langStrs, ","),
+		size:    size,
+		weight:  weight,
+		locales: strings.Join(localeStrs, ","),
 	}
 	if f, ok := faceCache[key]; ok {
 		return f
@@ -93,7 +99,11 @@ func fontFace(size float64, weight text.Weight, locales []language.Tag) text.Fac
 		var highestPriority float64
 		var index int
 		for i, fp := range fps {
-			p := min(max(fp.priority(l), 0), 1)
+			p := min(max(fp.priority(FaceSourceHint{
+				Size:   size,
+				Weight: weight,
+				Locale: l,
+			}), 0), 1)
 			// If the priority is the same, the later one is used.
 			if highestPriority <= p {
 				highestPriority = p

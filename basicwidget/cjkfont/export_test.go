@@ -3,24 +3,26 @@
 
 package cjkfont
 
-import "golang.org/x/text/language"
+import (
+	"github.com/hajimehoshi/guigui/basicwidget"
+)
 
-func FaceSCPriority(locale language.Tag) float64 {
-	return faceSCPriority(locale)
+func FaceSCPriority(hint basicwidget.FaceSourceHint) float64 {
+	return faceSCPriority(hint)
 }
 
-func FaceTCPriority(locale language.Tag) float64 {
-	return faceTCPriority(locale)
+func FaceTCPriority(hint basicwidget.FaceSourceHint) float64 {
+	return faceTCPriority(hint)
 }
 
-func FaceHKPriority(locale language.Tag) float64 {
-	return faceHKPriority(locale)
+func FaceHKPriority(hint basicwidget.FaceSourceHint) float64 {
+	return faceHKPriority(hint)
 }
 
-func FaceJPPriority(locale language.Tag) float64 {
-	return faceJPPriority(locale)
+func FaceJPPriority(hint basicwidget.FaceSourceHint) float64 {
+	return faceJPPriority(hint)
 }
 
-func FaceKRPriority(locale language.Tag) float64 {
-	return faceKRPriority(locale)
+func FaceKRPriority(hint basicwidget.FaceSourceHint) float64 {
+	return faceKRPriority(hint)
 }
