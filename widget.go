@@ -298,3 +298,7 @@ func (w *Widget) ensureOffscreen(bounds image.Rectangle) *ebiten.Image {
 	}
 	return w.offscreen.SubImage(bounds).(*ebiten.Image)
 }
+
+func (w *Widget) ContentSize(context *Context) (int, int) {
+	return w.behavior.ContentSize(context, w)
+}

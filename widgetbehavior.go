@@ -12,6 +12,7 @@ type WidgetBehavior interface {
 	HandleInput(context *Context, widget *Widget) HandleInputResult
 	Update(context *Context, widget *Widget) error
 	CursorShape(context *Context, widget *Widget) (ebiten.CursorShapeType, bool)
+	ContentSize(context *Context, widget *Widget) (int, int)
 
 	private()
 }
@@ -63,5 +64,48 @@ func (DefaultWidgetBehavior) CursorShape(context *Context, widget *Widget) (ebit
 	return 0, false
 }
 
+func (DefaultWidgetBehavior) ContentSize(context *Context, widget *Widget) (int, int) {
+	return widget.Bounds().Dx(), widget.Bounds().Dy()
+}
+
 func (DefaultWidgetBehavior) private() {
+}
+
+func NewWidgetWithPadding(behavior WidgetBehavior, paddingLeft, paddingRight, paddingTop, paddingBottom int) *Widget {
+	return NewWidget(&widgetBehaviorWithPadding{
+		content:       NewWidget(behavior),
+		paddingLeft:   paddingLeft,
+		paddingRight:  paddingRight,
+		paddingTop:    paddingTop,
+		paddingBottom: paddingBottom,
+	})
+}
+
+type widgetBehaviorWithPadding struct {
+	DefaultWidgetBehavior
+
+	content       *Widget
+	paddingLeft   int
+	paddingRight  int
+	paddingTop    int
+	paddingBottom int
+}
+
+func (w *widgetBehaviorWithPadding) AppendChildWidgets(context *Context, widget *Widget, appender *ChildWidgetAppender) {
+	if w.content != nil {
+		b := widget.Bounds()
+		b.Min.X += w.paddingLeft
+		b.Max.X -= w.paddingRight
+		b.Min.Y += w.paddingTop
+		b.Max.Y -= w.paddingBottom
+		appender.AppendChildWidget(w.content, b)
+	}
+}
+
+func (w *widgetBehaviorWithPadding) ContentSize(context *Context, widget *Widget) (int, int) {
+	if w.content == nil {
+		return widget.Bounds().Dx(), widget.Bounds().Dy()
+	}
+	width, height := w.content.ContentSize(context)
+	return width + w.paddingLeft + w.paddingRight, height + w.paddingTop + w.paddingBottom
 }

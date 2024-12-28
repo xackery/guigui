@@ -17,18 +17,10 @@ type ScrollablePanel struct {
 	content            *guigui.Widget
 	scollOverlayWidget *guigui.Widget
 	border             *guigui.Widget
-
-	contentWidth  int
-	contentHeight int
 }
 
 func (s *ScrollablePanel) SetContent(content *guigui.Widget) {
 	s.content = content
-}
-
-func (s *ScrollablePanel) SetContentSize(width, height int) {
-	s.contentWidth = width
-	s.contentHeight = height
 }
 
 func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
@@ -40,8 +32,9 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *gu
 	if s.content != nil {
 		offsetX, offsetY := s.scollOverlayWidget.Behavior().(*ScrollOverlay).Offset()
 		b := widget.Bounds()
-		b.Max.X = max(b.Max.X, b.Min.X+s.contentWidth)
-		b.Max.Y = max(b.Max.Y, b.Min.Y+s.contentHeight)
+		w, h := s.content.ContentSize(context)
+		b.Max.X = max(b.Max.X, b.Min.X+w)
+		b.Max.Y = max(b.Max.Y, b.Min.Y+h)
 		b = b.Add(image.Pt(int(offsetX), int(offsetY)))
 		appender.AppendChildWidget(s.content, b)
 	}
@@ -59,7 +52,7 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *gu
 
 func (s *ScrollablePanel) Update(context *guigui.Context, widget *guigui.Widget) error {
 	so := s.scollOverlayWidget.Behavior().(*ScrollOverlay)
-	so.SetContentSize(s.contentWidth, s.contentHeight)
+	so.SetContentSize(s.content.ContentSize(context))
 
 	return nil
 }

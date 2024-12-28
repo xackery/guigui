@@ -17,13 +17,9 @@ const (
 )
 
 type LinearGridItem struct {
-	Widget        *guigui.Widget
-	Size          float64
-	SizeUnit      SizeUnit
-	PaddingLeft   float64
-	PaddingRight  float64
-	PaddingTop    float64
-	PaddingBottom float64
+	Widget   *guigui.Widget
+	Size     float64
+	SizeUnit SizeUnit
 }
 
 type LinearGridDirection int
@@ -84,48 +80,50 @@ func (l *LinearGrid) AppendChildWidgets(context *guigui.Context, widget *guigui.
 	case LinearGridDirectionHorizontal:
 		for i, item := range l.Items {
 			bounds.Max.X = bounds.Min.X + l.sizesInPixels[i]
-
-			b := bounds
-			b.Min.X += int(float64(UnitSize(context)) * item.PaddingLeft)
-			b.Max.X -= int(float64(UnitSize(context)) * item.PaddingRight)
-			b.Min.Y += int(float64(UnitSize(context)) * item.PaddingTop)
-			b.Max.Y -= int(float64(UnitSize(context)) * item.PaddingBottom)
 			if item.Widget != nil {
-				appender.AppendChildWidget(item.Widget, b.Intersect(origBounds))
+				appender.AppendChildWidget(item.Widget, bounds.Intersect(origBounds))
 			}
-
 			bounds.Min.X = bounds.Max.X
 		}
 	case LinearGridDirectionVertical:
 		for i, item := range l.Items {
 			bounds.Max.Y = bounds.Min.Y + l.sizesInPixels[i]
-
-			b := bounds
-			b.Min.X += int(float64(UnitSize(context)) * item.PaddingLeft)
-			b.Max.X -= int(float64(UnitSize(context)) * item.PaddingRight)
-			b.Min.Y += int(float64(UnitSize(context)) * item.PaddingTop)
-			b.Max.Y -= int(float64(UnitSize(context)) * item.PaddingBottom)
 			if item.Widget != nil {
-				appender.AppendChildWidget(item.Widget, b.Intersect(origBounds))
+				appender.AppendChildWidget(item.Widget, bounds.Intersect(origBounds))
 			}
-
 			bounds.Min.Y = bounds.Max.Y
 		}
 	}
 }
 
-func (l *LinearGrid) MinimumSize(context *guigui.Context) int {
+func (l *LinearGrid) ContentSize(context *guigui.Context, widget *guigui.Widget) (int, int) {
+	s, flexible := l.size(context)
+	switch l.Direction {
+	case LinearGridDirectionHorizontal:
+		if flexible {
+			s = max(s, widget.Bounds().Dx())
+		}
+		return s, widget.Bounds().Dy()
+	case LinearGridDirectionVertical:
+		if flexible {
+			s = max(s, widget.Bounds().Dy())
+		}
+		return widget.Bounds().Dx(), s
+	default:
+		panic("not reached")
+	}
+}
+
+func (l *LinearGrid) size(context *guigui.Context) (int, bool) {
+	var flexible bool
 	var sum float64
 	for _, item := range l.Items {
+		if item.SizeUnit == SizeUnitFraction {
+			flexible = true
+		}
 		if item.SizeUnit == SizeUnitUnit {
 			sum += item.Size
 		}
-		switch l.Direction {
-		case LinearGridDirectionHorizontal:
-			sum += item.PaddingLeft + item.PaddingRight
-		case LinearGridDirectionVertical:
-			sum += item.PaddingTop + item.PaddingBottom
-		}
 	}
-	return int(sum * float64(UnitSize(context)))
+	return int(sum * float64(UnitSize(context))), flexible
 }

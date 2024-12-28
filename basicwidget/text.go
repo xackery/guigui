@@ -7,7 +7,6 @@ import (
 	"image"
 	"image/color"
 	"log/slog"
-	"math"
 	"runtime"
 	"slices"
 	"strings"
@@ -582,7 +581,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 }
 
 func (t *Text) adjustScrollOffset(context *guigui.Context, widget *guigui.Widget) {
-	t.updateContentSize(context)
+	t.updateContentSize(context, widget)
 
 	s, e, ok := t.selectionToDraw(widget)
 	if !ok {
@@ -696,10 +695,9 @@ func (t *Text) applyFilter() {
 	}
 }
 
-func (t *Text) updateContentSize(context *guigui.Context) {
-	face := t.face(context)
-	w, h := text.Measure(t.textToDraw(), face, t.lineHeight(context))
-	t.scrollOverlayWidget.Behavior().(*ScrollOverlay).SetContentSize(int(math.Floor(w)), int(math.Floor(h)))
+func (t *Text) updateContentSize(context *guigui.Context, widget *guigui.Widget) {
+	w, h := t.ContentSize(context, widget)
+	t.scrollOverlayWidget.Behavior().(*ScrollOverlay).SetContentSize(w, h)
 }
 
 func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
@@ -783,14 +781,11 @@ func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 	drawText(textBounds, dst, text, face, t.lineHeight(context), t.hAlign, t.vAlign, clr)
 }
 
-func (t *Text) TextWidth(context *guigui.Context) int {
+func (t *Text) ContentSize(context *guigui.Context, widget *guigui.Widget) (int, int) {
 	w, _ := text.Measure(t.textToDraw(), t.face(context), t.lineHeight(context))
 	w *= t.scaleMinus1 + 1
-	return int(w)
-}
-
-func (t *Text) TextHeight(context *guigui.Context) int {
-	return t.textHeight(context, t.textToDraw())
+	h := t.textHeight(context, t.textToDraw())
+	return int(w), h
 }
 
 func (t *Text) textHeight(context *guigui.Context, str string) int {

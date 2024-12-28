@@ -40,12 +40,9 @@ type TaskWidgets struct {
 type Root struct {
 	guigui.DefaultWidgetBehavior
 
-	createButton       basicwidget.TextButton
 	createButtonWidget *guigui.Widget
-	textField          basicwidget.TextField
 	textFieldWidget    *guigui.Widget
 	taskWidgets        map[uuid.UUID]*TaskWidgets
-	tasksPanel         basicwidget.ScrollablePanel
 	tasksPanelWidget   *guigui.Widget
 
 	tasks []Task
@@ -53,11 +50,13 @@ type Root struct {
 
 func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
 	if r.createButtonWidget == nil {
-		r.createButton.SetText("Create")
-		r.createButtonWidget = guigui.NewWidget(&r.createButton)
+		var b basicwidget.TextButton
+		b.SetText("Create")
+		r.createButtonWidget = guigui.NewWidget(&b)
 	}
 	if r.textFieldWidget == nil {
-		r.textFieldWidget = guigui.NewWidget(&r.textField)
+		var t basicwidget.TextField
+		r.textFieldWidget = guigui.NewWidget(&t)
 	}
 
 	taskItemsLinearGrid := &basicwidget.LinearGrid{
@@ -106,28 +105,17 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	}
 
 	if r.tasksPanelWidget == nil {
-		r.tasksPanelWidget = guigui.NewWidget(&r.tasksPanel)
+		var sp basicwidget.ScrollablePanel
+		r.tasksPanelWidget = guigui.NewWidget(&sp)
 	}
-	r.tasksPanel.SetContent(guigui.NewWidget(&basicwidget.LinearGrid{
-		Items: []basicwidget.LinearGridItem{
-			{
-				Widget:        guigui.NewWidget(taskItemsLinearGrid),
-				PaddingLeft:   0.5,
-				PaddingRight:  0.5,
-				PaddingTop:    0.5,
-				PaddingBottom: 0.5,
-				Size:          1,
-				SizeUnit:      basicwidget.SizeUnitFraction,
-			},
-		},
-	}))
-	r.tasksPanel.SetContentSize(widget.Bounds().Dx(), taskItemsLinearGrid.MinimumSize(context)+1*basicwidget.UnitSize(context))
+	r.tasksPanelWidget.Behavior().(*basicwidget.ScrollablePanel).SetContent(guigui.NewWidgetWithPadding(taskItemsLinearGrid,
+		basicwidget.UnitSize(context)/2, basicwidget.UnitSize(context)/2, basicwidget.UnitSize(context)/2, basicwidget.UnitSize(context)/2))
 
 	appender.AppendChildWidget(guigui.NewWidget(&basicwidget.LinearGrid{
 		Direction: basicwidget.LinearGridDirectionVertical,
 		Items: []basicwidget.LinearGridItem{
 			{
-				Widget: guigui.NewWidget(&basicwidget.LinearGrid{
+				Widget: guigui.NewWidgetWithPadding(&basicwidget.LinearGrid{
 					Direction: basicwidget.LinearGridDirectionHorizontal,
 					Items: []basicwidget.LinearGridItem{
 						{
@@ -143,12 +131,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 							Size:   4,
 						},
 					},
-				}),
-				Size:          2,
-				PaddingLeft:   0.5,
-				PaddingRight:  0.5,
-				PaddingTop:    0.5,
-				PaddingBottom: 0.5,
+				}, basicwidget.UnitSize(context)/2, basicwidget.UnitSize(context)/2, basicwidget.UnitSize(context)/2, basicwidget.UnitSize(context)/2),
+				Size: 2,
 			},
 			{
 				Widget:   r.tasksPanelWidget,
@@ -209,17 +193,19 @@ func (r *Root) Update(context *guigui.Context, widget *guigui.Widget) error {
 }
 
 func (r *Root) canCreateTask() bool {
-	str := r.textField.Text()
+	t := r.textFieldWidget.Behavior().(*basicwidget.TextField)
+	str := t.Text()
 	str = strings.TrimSpace(str)
 	return str != ""
 }
 
 func (r *Root) tryCreateTask() {
-	str := r.textField.Text()
+	t := r.textFieldWidget.Behavior().(*basicwidget.TextField)
+	str := t.Text()
 	str = strings.TrimSpace(str)
 	if str != "" {
 		r.tasks = slices.Insert(r.tasks, 0, NewTask(str))
-		r.textField.SetText("")
+		t.SetText("")
 	}
 }
 
