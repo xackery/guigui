@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"os"
 	"slices"
 	"strings"
@@ -58,58 +59,44 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		var t basicwidget.TextField
 		r.textFieldWidget = guigui.NewWidget(&t)
 	}
-
-	taskItemsLinearGrid := &basicwidget.LinearGrid{
-		Direction: basicwidget.LinearGridDirectionVertical,
-	}
-	for _, t := range r.tasks {
-		if _, ok := r.taskWidgets[t.ID]; !ok {
-			var b basicwidget.TextButton
-			b.SetText("Done")
-			var text basicwidget.Text
-			text.SetText(t.Text)
-			text.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
-			if r.taskWidgets == nil {
-				r.taskWidgets = map[uuid.UUID]*TaskWidgets{}
-			}
-			r.taskWidgets[t.ID] = &TaskWidgets{
-				doneButtonWidget: guigui.NewWidget(&b),
-				textWidget:       guigui.NewWidget(&text),
-			}
-		}
-		if len(taskItemsLinearGrid.Items) > 0 {
-			taskItemsLinearGrid.Items = append(taskItemsLinearGrid.Items, basicwidget.LinearGridItem{
-				Size: 0.25,
-			})
-		}
-		taskItemsLinearGrid.Items = append(taskItemsLinearGrid.Items, basicwidget.LinearGridItem{
-			Widget: guigui.NewWidget(&basicwidget.LinearGrid{
-				Direction: basicwidget.LinearGridDirectionHorizontal,
-				Items: []basicwidget.LinearGridItem{
-					{
-						Widget: r.taskWidgets[t.ID].doneButtonWidget,
-						Size:   3,
-					},
-					{
-						Size: 0.5,
-					},
-					{
-						Widget:   r.taskWidgets[t.ID].textWidget,
-						Size:     1,
-						SizeUnit: basicwidget.SizeUnitFraction,
-					},
-				},
-			}),
-			Size: 1,
-		})
-	}
-
 	if r.tasksPanelWidget == nil {
 		var sp basicwidget.ScrollablePanel
 		r.tasksPanelWidget = guigui.NewWidget(&sp)
 	}
-	r.tasksPanelWidget.Behavior().(*basicwidget.ScrollablePanel).SetContent(guigui.NewWidgetWithPadding(taskItemsLinearGrid,
-		basicwidget.UnitSize(context)/2, basicwidget.UnitSize(context)/2, basicwidget.UnitSize(context)/2, basicwidget.UnitSize(context)/2))
+
+	u := float64(basicwidget.UnitSize(context))
+	tasksSP := r.tasksPanelWidget.Behavior().(*basicwidget.ScrollablePanel)
+	tasksSP.SetContent(func(childAppender *basicwidget.ScrollablePanelChildWidgetAppender) {
+		bounds := r.tasksPanelWidget.Bounds()
+		minX := bounds.Min.X + int(0.5*u)
+		maxX := bounds.Max.X - int(0.5*u)
+		y := bounds.Min.Y
+		for i, t := range r.tasks {
+			if _, ok := r.taskWidgets[t.ID]; !ok {
+				var b basicwidget.TextButton
+				b.SetText("Done")
+				var text basicwidget.Text
+				text.SetText(t.Text)
+				text.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
+				if r.taskWidgets == nil {
+					r.taskWidgets = map[uuid.UUID]*TaskWidgets{}
+				}
+				r.taskWidgets[t.ID] = &TaskWidgets{
+					doneButtonWidget: guigui.NewWidget(&b),
+					textWidget:       guigui.NewWidget(&text),
+				}
+			}
+			if i > 0 {
+				y += int(u / 4)
+			}
+			childAppender.AppendChildWidget(r.taskWidgets[t.ID].doneButtonWidget,
+				image.Rect(minX, y, minX+int(3*u), y+int(u)))
+			childAppender.AppendChildWidget(r.taskWidgets[t.ID].textWidget,
+				image.Rect(minX+int(3.5*u), y, maxX, y+int(u)))
+			y += int(u)
+		}
+	})
+	tasksSP.SetPadding(0, int(0.5*u))
 
 	appender.AppendChildWidget(guigui.NewWidget(&basicwidget.LinearGrid{
 		Direction: basicwidget.LinearGridDirectionVertical,
@@ -131,7 +118,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 							Size:   4,
 						},
 					},
-				}, basicwidget.UnitSize(context)/2, basicwidget.UnitSize(context)/2, basicwidget.UnitSize(context)/2, basicwidget.UnitSize(context)/2),
+				}, int(0.5*u), int(0.5*u), int(0.5*u), int(0.5*u)),
 				Size: 2,
 			},
 			{
