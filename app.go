@@ -282,11 +282,7 @@ func (a *app) cursorShape(widget *Widget) bool {
 	if !image.Pt(ebiten.CursorPosition()).In(widget.visibleBounds) {
 		return false
 	}
-	c, ok := widget.behavior.(CursorShaper)
-	if !ok {
-		return false
-	}
-	shape, ok := c.CursorShape(a.context, widget)
+	shape, ok := widget.behavior.CursorShape(a.context, widget)
 	if !ok {
 		return false
 	}

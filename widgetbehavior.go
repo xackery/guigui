@@ -11,6 +11,7 @@ type WidgetBehavior interface {
 	AppendChildWidgets(context *Context, widget *Widget, appender *ChildWidgetAppender)
 	HandleInput(context *Context, widget *Widget) HandleInputResult
 	Update(context *Context, widget *Widget) error
+	CursorShape(context *Context, widget *Widget) (ebiten.CursorShapeType, bool)
 
 	private()
 }
@@ -21,10 +22,6 @@ type EventPropagator interface {
 
 type Drawer interface {
 	Draw(context *Context, widget *Widget, dst *ebiten.Image)
-}
-
-type CursorShaper interface {
-	CursorShape(context *Context, widget *Widget) (ebiten.CursorShapeType, bool)
 }
 
 type HandleInputResult struct {
@@ -60,6 +57,10 @@ func (DefaultWidgetBehavior) HandleInput(context *Context, widget *Widget) Handl
 
 func (DefaultWidgetBehavior) Update(context *Context, widget *Widget) error {
 	return nil
+}
+
+func (DefaultWidgetBehavior) CursorShape(context *Context, widget *Widget) (ebiten.CursorShapeType, bool) {
+	return 0, false
 }
 
 func (DefaultWidgetBehavior) private() {
