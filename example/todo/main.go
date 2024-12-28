@@ -50,21 +50,39 @@ type Root struct {
 }
 
 func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+	u := float64(basicwidget.UnitSize(context))
+
+	if r.textFieldWidget == nil {
+		var t basicwidget.TextField
+		r.textFieldWidget = guigui.NewWidget(&t)
+	}
+	{
+		b := widget.Bounds()
+		b.Min.X += int(0.5 * u)
+		b.Max.X -= int(5.5 * u)
+		b.Min.Y += int(0.5 * u)
+		b.Max.Y = b.Min.Y + int(u)
+		appender.AppendChildWidget(r.textFieldWidget, b)
+	}
+
 	if r.createButtonWidget == nil {
 		var b basicwidget.TextButton
 		b.SetText("Create")
 		r.createButtonWidget = guigui.NewWidget(&b)
 	}
-	if r.textFieldWidget == nil {
-		var t basicwidget.TextField
-		r.textFieldWidget = guigui.NewWidget(&t)
+	{
+		b := widget.Bounds()
+		b.Min.X = b.Max.X - int(5*u)
+		b.Max.X -= int(0.5 * u)
+		b.Min.Y += int(0.5 * u)
+		b.Max.Y = b.Min.Y + int(u)
+		appender.AppendChildWidget(r.createButtonWidget, b)
 	}
+
 	if r.tasksPanelWidget == nil {
 		var sp basicwidget.ScrollablePanel
 		r.tasksPanelWidget = guigui.NewWidget(&sp)
 	}
-
-	u := float64(basicwidget.UnitSize(context))
 	tasksSP := r.tasksPanelWidget.Behavior().(*basicwidget.ScrollablePanel)
 	tasksSP.SetContent(func(childAppender *basicwidget.ScrollablePanelChildWidgetAppender) {
 		bounds := r.tasksPanelWidget.Bounds()
@@ -97,37 +115,11 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		}
 	})
 	tasksSP.SetPadding(0, int(0.5*u))
-
-	appender.AppendChildWidget(guigui.NewWidget(&basicwidget.LinearGrid{
-		Direction: basicwidget.LinearGridDirectionVertical,
-		Items: []basicwidget.LinearGridItem{
-			{
-				Widget: guigui.NewWidgetWithPadding(&basicwidget.LinearGrid{
-					Direction: basicwidget.LinearGridDirectionHorizontal,
-					Items: []basicwidget.LinearGridItem{
-						{
-							Widget:   r.textFieldWidget,
-							Size:     1,
-							SizeUnit: basicwidget.SizeUnitFraction,
-						},
-						{
-							Size: 0.5,
-						},
-						{
-							Widget: r.createButtonWidget,
-							Size:   4,
-						},
-					},
-				}, int(0.5*u), int(0.5*u), int(0.5*u), int(0.5*u)),
-				Size: 2,
-			},
-			{
-				Widget:   r.tasksPanelWidget,
-				Size:     1,
-				SizeUnit: basicwidget.SizeUnitFraction,
-			},
-		},
-	}), widget.Bounds())
+	{
+		b := widget.Bounds()
+		b.Min.Y += int(2 * u)
+		appender.AppendChildWidget(r.tasksPanelWidget, b)
+	}
 
 	// GC widgets
 	for id := range r.taskWidgets {
