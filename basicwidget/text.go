@@ -50,6 +50,8 @@ func isKeyRepeating(key ebiten.Key) bool {
 type TextFilter func(text string, start, end int) (string, int, int)
 
 type Text struct {
+	guigui.DefaultWidgetBehavior
+
 	field textinput.Field
 
 	hAlign      HorizontalAlign

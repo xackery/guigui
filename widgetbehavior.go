@@ -11,6 +11,8 @@ type WidgetBehavior interface {
 	AppendChildWidgets(context *Context, widget *Widget, appender *ChildWidgetAppender)
 	HandleInput(context *Context, widget *Widget) HandleInputResult
 	Update(context *Context, widget *Widget) error
+
+	private()
 }
 
 type EventPropagator interface {
@@ -58,4 +60,7 @@ func (DefaultWidgetBehavior) HandleInput(context *Context, widget *Widget) Handl
 
 func (DefaultWidgetBehavior) Update(context *Context, widget *Widget) error {
 	return nil
+}
+
+func (DefaultWidgetBehavior) private() {
 }

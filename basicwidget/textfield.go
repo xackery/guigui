@@ -12,6 +12,8 @@ import (
 )
 
 type TextField struct {
+	guigui.DefaultWidgetBehavior
+
 	text        Text
 	textWidget  *guigui.Widget
 	focusWidget *guigui.Widget
