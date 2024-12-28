@@ -44,56 +44,43 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		r.counterTextWidget = guigui.NewWidget(&basicwidget.Text{})
 	}
 
-	c := &basicwidget.LinearGrid{
+	appender.AppendChildWidget(guigui.NewWidget(&basicwidget.LinearGrid{
+		Direction: basicwidget.LinearGridDirectionVertical,
 		Items: []basicwidget.LinearGridItem{
 			{
+				Widget:   r.counterTextWidget,
+				Size:     1,
+				SizeUnit: basicwidget.SizeUnitFraction,
+			},
+			{
 				Widget: guigui.NewWidget(&basicwidget.LinearGrid{
-					Direction: basicwidget.LinearGridDirectionVertical,
+					Direction: basicwidget.LinearGridDirectionHorizontal,
 					Items: []basicwidget.LinearGridItem{
 						{
-							Widget:   r.counterTextWidget,
+							Widget: r.resetButtonWidget,
+							Size:   6,
+						},
+						{
 							Size:     1,
 							SizeUnit: basicwidget.SizeUnitFraction,
 						},
 						{
-							Widget: guigui.NewWidget(&basicwidget.LinearGrid{
-								Direction: basicwidget.LinearGridDirectionHorizontal,
-								Items: []basicwidget.LinearGridItem{
-									{
-										Widget: r.resetButtonWidget,
-										Size:   6,
-									},
-									{
-										Size:     1,
-										SizeUnit: basicwidget.SizeUnitFraction,
-									},
-									{
-										Widget: r.decButtonWidget,
-										Size:   6,
-									},
-									{
-										Size: 0.5,
-									},
-									{
-										Widget: r.incButtonWidget,
-										Size:   6,
-									},
-								},
-							}),
-							Size: 1,
+							Widget: r.decButtonWidget,
+							Size:   6,
+						},
+						{
+							Size: 0.5,
+						},
+						{
+							Widget: r.incButtonWidget,
+							Size:   6,
 						},
 					},
 				}),
-				Size:          1,
-				SizeUnit:      basicwidget.SizeUnitFraction,
-				PaddingLeft:   1,
-				PaddingRight:  1,
-				PaddingTop:    1,
-				PaddingBottom: 1,
+				Size: 1,
 			},
 		},
-	}
-	c.AppendChildWidgets(context, widget, appender)
+	}), widget.Bounds().Inset(basicwidget.UnitSize(context)))
 }
 
 func (r *Root) Update(context *guigui.Context, widget *guigui.Widget) error {

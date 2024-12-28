@@ -123,7 +123,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	}))
 	r.tasksPanel.SetContentSize(widget.Bounds().Dx(), taskItemsLinearGrid.MinimumSize(context)+1*basicwidget.UnitSize(context))
 
-	c := guigui.NewWidget(&basicwidget.LinearGrid{
+	appender.AppendChildWidget(guigui.NewWidget(&basicwidget.LinearGrid{
 		Direction: basicwidget.LinearGridDirectionVertical,
 		Items: []basicwidget.LinearGridItem{
 			{
@@ -156,8 +156,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 				SizeUnit: basicwidget.SizeUnitFraction,
 			},
 		},
-	})
-	appender.AppendChildWidget(c, widget.Bounds())
+	}), widget.Bounds())
 
 	// GC widgets
 	for id := range r.taskWidgets {
