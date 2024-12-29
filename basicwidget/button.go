@@ -223,6 +223,10 @@ func (t *TextButton) Update(context *guigui.Context, widget *guigui.Widget) erro
 	return nil
 }
 
+func (t *TextButton) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+	return t.button.Size(context, widget)
+}
+
 func (t *TextButton) SetSize(context *guigui.Context, width, height int) {
 	t.button.SetSize(context, width, height)
 }
