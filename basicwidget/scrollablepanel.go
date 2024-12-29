@@ -39,9 +39,9 @@ func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget *guigui.Wi
 	})
 }
 
-func (s *ScrollablePanel) SetContent(f func(childAppender *ScrollablePanelChildWidgetAppender)) {
+func (s *ScrollablePanel) SetContent(context *guigui.Context, widget *guigui.Widget, f func(context *guigui.Context, widget *guigui.Widget, childAppender *ScrollablePanelChildWidgetAppender)) {
 	s.childWidgets = slices.Delete(s.childWidgets, 0, len(s.childWidgets))
-	f(&ScrollablePanelChildWidgetAppender{
+	f(context, widget, &ScrollablePanelChildWidgetAppender{
 		scrollablePanel: s,
 	})
 }

@@ -85,8 +85,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		r.tasksPanelWidget = guigui.NewWidget(&sp)
 	}
 	tasksSP := r.tasksPanelWidget.Behavior().(*basicwidget.ScrollablePanel)
-	tasksSP.SetContent(func(childAppender *basicwidget.ScrollablePanelChildWidgetAppender) {
-		bounds := r.tasksPanelWidget.Bounds()
+	tasksSP.SetContent(context, r.tasksPanelWidget, func(context *guigui.Context, widget *guigui.Widget, childAppender *basicwidget.ScrollablePanelChildWidgetAppender) {
+		bounds := widget.Bounds()
 		minX := bounds.Min.X + int(0.5*u)
 		maxX := bounds.Max.X - int(0.5*u)
 		y := bounds.Min.Y
