@@ -20,6 +20,7 @@ type widgetWithBounds struct {
 type ScrollablePanel struct {
 	guigui.DefaultWidgetBehavior
 
+	setContentFunc     func(context *guigui.Context, widget *guigui.Widget, childAppender *ScrollablePanelChildWidgetAppender)
 	childWidgets       []widgetWithBounds
 	scollOverlayWidget *guigui.Widget
 	border             *guigui.Widget
@@ -39,11 +40,9 @@ func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget *guigui.Wi
 	})
 }
 
-func (s *ScrollablePanel) SetContent(context *guigui.Context, widget *guigui.Widget, f func(context *guigui.Context, widget *guigui.Widget, childAppender *ScrollablePanelChildWidgetAppender)) {
-	s.childWidgets = slices.Delete(s.childWidgets, 0, len(s.childWidgets))
-	f(context, widget, &ScrollablePanelChildWidgetAppender{
-		scrollablePanel: s,
-	})
+func (s *ScrollablePanel) SetContent(f func(context *guigui.Context, widget *guigui.Widget, childAppender *ScrollablePanelChildWidgetAppender)) {
+	s.setContentFunc = f
+
 }
 
 func (s *ScrollablePanel) SetPadding(paddingX, paddingY int) {
@@ -52,6 +51,13 @@ func (s *ScrollablePanel) SetPadding(paddingX, paddingY int) {
 }
 
 func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+	s.childWidgets = slices.Delete(s.childWidgets, 0, len(s.childWidgets))
+	if s.setContentFunc != nil {
+		s.setContentFunc(context, widget, &ScrollablePanelChildWidgetAppender{
+			scrollablePanel: s,
+		})
+	}
+
 	if s.scollOverlayWidget == nil {
 		var so ScrollOverlay
 		s.scollOverlayWidget = guigui.NewWidget(&so)
