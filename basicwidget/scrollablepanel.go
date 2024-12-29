@@ -13,8 +13,8 @@ import (
 )
 
 type widgetWithBounds struct {
-	widget *guigui.Widget
-	bounds image.Rectangle
+	widget   *guigui.Widget
+	position image.Point
 }
 
 type ScrollablePanel struct {
@@ -32,10 +32,10 @@ type ScrollablePanelChildWidgetAppender struct {
 	scrollablePanel *ScrollablePanel
 }
 
-func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget *guigui.Widget, bounds image.Rectangle) {
+func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget *guigui.Widget, x, y int) {
 	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widgetWithBounds{
-		widget: widget,
-		bounds: bounds,
+		widget:   widget,
+		position: image.Pt(x, y),
 	})
 }
 
@@ -59,7 +59,10 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *gu
 
 	offsetX, offsetY := s.scollOverlayWidget.Behavior().(*ScrollOverlay).Offset()
 	for _, childWidget := range s.childWidgets {
-		b := childWidget.bounds.Add(image.Pt(int(offsetX), int(offsetY)))
+		x, y := childWidget.position.X, childWidget.position.Y
+		w, h := childWidget.widget.Size(context)
+		b := image.Rect(x, y, x+w, y+h)
+		b = b.Add(image.Pt(int(offsetX), int(offsetY)))
 		appender.AppendChildWidget(childWidget.widget, b)
 	}
 
@@ -78,8 +81,10 @@ func (s *ScrollablePanel) Update(context *guigui.Context, widget *guigui.Widget)
 	b := widget.Bounds()
 	var w, h int
 	for _, childWidget := range s.childWidgets {
-		w = max(w, childWidget.bounds.Max.X-b.Min.X+s.paddingX)
-		h = max(h, childWidget.bounds.Max.Y-b.Min.Y+s.paddingY)
+		cx, cy := childWidget.position.X, childWidget.position.Y
+		cw, ch := childWidget.widget.Size(context)
+		w = max(w, cx+cw-b.Min.X+s.paddingX)
+		h = max(h, cy+ch-b.Min.Y+s.paddingY)
 	}
 	w = max(w, b.Dx())
 	h = max(h, b.Dy())

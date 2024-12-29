@@ -5,7 +5,6 @@ package main
 
 import (
 	"fmt"
-	"image"
 	"os"
 	"slices"
 	"strings"
@@ -88,7 +87,6 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	tasksSP.SetContent(context, r.tasksPanelWidget, func(context *guigui.Context, widget *guigui.Widget, childAppender *basicwidget.ScrollablePanelChildWidgetAppender) {
 		bounds := widget.Bounds()
 		minX := bounds.Min.X + int(0.5*u)
-		maxX := bounds.Max.X - int(0.5*u)
 		y := bounds.Min.Y
 		for i, t := range r.tasks {
 			if _, ok := r.taskWidgets[t.ID]; !ok {
@@ -109,10 +107,9 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 			if i > 0 {
 				y += int(u / 4)
 			}
-			childAppender.AppendChildWidget(r.taskWidgets[t.ID].doneButtonWidget,
-				image.Rect(minX, y, minX+int(3*u), y+int(u)))
-			childAppender.AppendChildWidget(r.taskWidgets[t.ID].textWidget,
-				image.Rect(minX+int(3.5*u), y, maxX, y+int(u)))
+			childAppender.AppendChildWidget(r.taskWidgets[t.ID].doneButtonWidget, minX, y)
+			_, textH := r.taskWidgets[t.ID].textWidget.Size(context)
+			childAppender.AppendChildWidget(r.taskWidgets[t.ID].textWidget, minX+int(3.5*u), y+int((u-float64(textH))/2))
 			y += int(u)
 		}
 	})
