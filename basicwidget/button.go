@@ -17,7 +17,11 @@ type Button struct {
 
 	mouseEventHandlerWidget *guigui.Widget
 
-	borderInvisible bool
+	widthMinusDefault  int
+	heightMinusDefault int
+	borderInvisible    bool
+
+	needsRedraw bool
 }
 
 type ButtonEventType int
@@ -65,39 +69,20 @@ func (b *Button) PropagateEvent(context *guigui.Context, widget *guigui.Widget, 
 	}, true
 }
 
+func (b *Button) Update(context *guigui.Context, widget *guigui.Widget) error {
+	if b.needsRedraw {
+		widget.RequestRedraw()
+		b.needsRedraw = false
+	}
+	return nil
+}
+
 func (b *Button) CursorShape(context *guigui.Context, widget *guigui.Widget) (ebiten.CursorShapeType, bool) {
 	if widget.IsEnabled() && b.mouseEventHandler().IsHovering() {
 		return ebiten.CursorShapePointer, true
 	}
 	return 0, true
 }
-
-/*func (b *Button) SetContent(content view.Widget) {
-	if b.content != nil {
-		if view.NodeFromWidget(b.content) == view.NodeFromWidget(content) {
-			return
-		}
-		b.RemoveChild(b.content)
-	}
-	b.content = content
-	b.AddChild(b.content, view.LayoutFunc(func(args view.WidgetArgs) image.Rectangle {
-		bounds := args.Bounds
-		bounds.Min.X += b.settings.SmallUnitSize(args.Scale)
-		bounds.Max.X -= b.settings.SmallUnitSize(args.Scale)
-		bounds.Min.Y += b.settings.SmallUnitSize(args.Scale)
-		bounds.Max.Y -= b.settings.SmallUnitSize(args.Scale)
-		return bounds
-	}))
-}*/
-
-/*func (b *Button) setBorderVisibility(visibility bool) {
-	if b.borderVisibility == visibility {
-		return
-	}
-
-	b.borderVisibility = visibility
-	b.Invalidate()
-}*/
 
 func (b *Button) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
 	// TODO: In the dark theme, the color should be different.
@@ -147,17 +132,30 @@ func (b *Button) isActive() bool {
 }
 
 func (b *Button) buttonBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
+	dw, dh := defaultButtonSize(context)
 	bounds := widget.Bounds()
-	bounds.Max.Y = bounds.Min.Y + buttonHeight(context)
+	bounds.Max.X = bounds.Min.X + b.widthMinusDefault + dw
+	bounds.Max.Y = bounds.Min.Y + b.heightMinusDefault + dh
 	return bounds
 }
 
-func buttonHeight(context *guigui.Context) int {
-	return UnitSize(context)
+func defaultButtonSize(context *guigui.Context) (int, int) {
+	return 6 * UnitSize(context), UnitSize(context)
+}
+
+func (b *Button) SetSize(context *guigui.Context, width, height int) {
+	dw, dh := defaultButtonSize(context)
+	if b.widthMinusDefault+dw == width && b.heightMinusDefault+dh == height {
+		return
+	}
+	b.widthMinusDefault = width - dw
+	b.heightMinusDefault = height - dh
+	b.needsRedraw = true
 }
 
 func (b *Button) ContentSize(context *guigui.Context, widget *guigui.Widget) (int, int) {
-	return widget.Bounds().Dx(), buttonHeight(context)
+	dw, dh := defaultButtonSize(context)
+	return b.widthMinusDefault + dw, b.heightMinusDefault + dh
 }
 
 type TextButton struct {
@@ -223,6 +221,10 @@ func (t *TextButton) Update(context *guigui.Context, widget *guigui.Widget) erro
 		t.text.SetColor(t.textColor)
 	}
 	return nil
+}
+
+func (t *TextButton) SetSize(context *guigui.Context, width, height int) {
+	t.button.SetSize(context, width, height)
 }
 
 /*func (t *TextButton) MinimumWidth(scale float64) int {
