@@ -13,7 +13,7 @@ type WidgetBehavior interface {
 	Update(context *Context, widget *Widget) error
 	CursorShape(context *Context, widget *Widget) (ebiten.CursorShapeType, bool)
 	Draw(context *Context, widget *Widget, dst *ebiten.Image)
-	ContentSize(context *Context, widget *Widget) (int, int)
+	Size(context *Context, widget *Widget) (int, int)
 
 	private()
 }
@@ -64,7 +64,7 @@ func (DefaultWidgetBehavior) CursorShape(context *Context, widget *Widget) (ebit
 func (DefaultWidgetBehavior) Draw(context *Context, widget *Widget, dst *ebiten.Image) {
 }
 
-func (DefaultWidgetBehavior) ContentSize(context *Context, widget *Widget) (int, int) {
+func (DefaultWidgetBehavior) Size(context *Context, widget *Widget) (int, int) {
 	return widget.Bounds().Dx(), widget.Bounds().Dy()
 }
 

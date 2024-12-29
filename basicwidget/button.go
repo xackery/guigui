@@ -153,7 +153,7 @@ func (b *Button) SetSize(context *guigui.Context, width, height int) {
 	b.needsRedraw = true
 }
 
-func (b *Button) ContentSize(context *guigui.Context, widget *guigui.Widget) (int, int) {
+func (b *Button) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
 	dw, dh := defaultButtonSize(context)
 	return b.widthMinusDefault + dw, b.heightMinusDefault + dh
 }

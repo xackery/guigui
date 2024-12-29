@@ -696,7 +696,7 @@ func (t *Text) applyFilter() {
 }
 
 func (t *Text) updateContentSize(context *guigui.Context, widget *guigui.Widget) {
-	w, h := t.ContentSize(context, widget)
+	w, h := t.Size(context, widget)
 	t.scrollOverlayWidget.Behavior().(*ScrollOverlay).SetContentSize(w, h)
 }
 
@@ -781,7 +781,7 @@ func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 	drawText(textBounds, dst, text, face, t.lineHeight(context), t.hAlign, t.vAlign, clr)
 }
 
-func (t *Text) ContentSize(context *guigui.Context, widget *guigui.Widget) (int, int) {
+func (t *Text) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
 	w, _ := text.Measure(t.textToDraw(), t.face(context), t.lineHeight(context))
 	w *= t.scaleMinus1 + 1
 	h := t.textHeight(context, t.textToDraw())
