@@ -39,7 +39,7 @@ func (b *Button) AppendChildWidgets(context *guigui.Context, widget *guigui.Widg
 	if b.mouseEventHandlerWidget == nil {
 		b.mouseEventHandlerWidget = guigui.NewWidget(&guigui.MouseEventHandler{})
 	}
-	appender.AppendChildWidget(b.mouseEventHandlerWidget, widget.Bounds())
+	appender.AppendChildWidget(b.mouseEventHandlerWidget, b.buttonBounds(context, widget))
 }
 
 func (b *Button) PropagateEvent(context *guigui.Context, widget *guigui.Widget, event guigui.Event) (guigui.Event, bool) {
@@ -117,7 +117,7 @@ func (b *Button) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebite
 		borderColor = Color2(cm, ColorTypeBase, 0.8, 0.1)
 	}
 
-	bounds := widget.Bounds()
+	bounds := b.buttonBounds(context, widget)
 	r := min(RoundedCornerRadius(context), bounds.Dx()/4, bounds.Dy()/4)
 	border := !b.borderInvisible
 	if b.mouseEventHandler().IsHovering() && b.mouseEventHandlerWidget.IsEnabled() {
@@ -146,6 +146,20 @@ func (b *Button) isActive() bool {
 	return b.mouseEventHandlerWidget.IsEnabled() && b.mouseEventHandler().IsHovering() && b.mouseEventHandler().IsPressing()
 }
 
+func (b *Button) buttonBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
+	bounds := widget.Bounds()
+	bounds.Max.Y = bounds.Min.Y + buttonHeight(context)
+	return bounds
+}
+
+func buttonHeight(context *guigui.Context) int {
+	return UnitSize(context)
+}
+
+func (b *Button) ContentSize(context *guigui.Context, widget *guigui.Widget) (int, int) {
+	return widget.Bounds().Dx(), buttonHeight(context)
+}
+
 type TextButton struct {
 	guigui.DefaultWidgetBehavior
 
@@ -172,7 +186,7 @@ func (t *TextButton) SetTextColor(clr color.Color) {
 }
 
 func (t *TextButton) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	bounds := widget.Bounds()
+	bounds := t.button.buttonBounds(context, widget)
 
 	if t.buttonWidget == nil {
 		t.buttonWidget = guigui.NewWidget(&t.button)

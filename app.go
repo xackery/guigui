@@ -227,9 +227,6 @@ func (a *app) appendChildWidgets() {
 
 	// If the previous children are not in the current children, redraw the region.
 	for w := range a.prevWidgets {
-		if _, ok := w.behavior.(Drawer); !ok {
-			continue
-		}
 		if _, ok := a.currentWidgets[w]; !ok {
 			a.requestRedraw(w.bounds)
 		}
@@ -385,28 +382,22 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget *Widget) {
 		return
 	}
 
-	drawer, canDraw := widget.behavior.(Drawer)
-
 	var origDst *ebiten.Image
-	if canDraw {
-		if widget.Opacity() < 1 {
-			origDst = dst
-			dst = widget.ensureOffscreen(dst.Bounds())
-			dst.Clear()
-		}
-		drawer.Draw(a.context, widget, dst.SubImage(widget.visibleBounds).(*ebiten.Image))
+	if widget.Opacity() < 1 {
+		origDst = dst
+		dst = widget.ensureOffscreen(dst.Bounds())
+		dst.Clear()
 	}
+	widget.behavior.Draw(a.context, widget, dst.SubImage(widget.visibleBounds).(*ebiten.Image))
 
 	for _, child := range widget.children {
 		a.doDrawWidget(dst, child)
 	}
 
-	if canDraw {
-		if widget.Opacity() < 1 {
-			op := &ebiten.DrawImageOptions{}
-			op.GeoM.Translate(float64(dst.Bounds().Min.X), float64(dst.Bounds().Min.Y))
-			op.ColorScale.ScaleAlpha(float32(widget.Opacity()))
-			origDst.DrawImage(dst, op)
-		}
+	if widget.Opacity() < 1 {
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(float64(dst.Bounds().Min.X), float64(dst.Bounds().Min.Y))
+		op.ColorScale.ScaleAlpha(float32(widget.Opacity()))
+		origDst.DrawImage(dst, op)
 	}
 }

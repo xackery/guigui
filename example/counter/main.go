@@ -25,62 +25,59 @@ type Root struct {
 }
 
 func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+	if r.counterTextWidget == nil {
+		r.counterTextWidget = guigui.NewWidget(&basicwidget.Text{})
+	}
+	{
+		b := widget.Bounds()
+		b.Min.X += basicwidget.UnitSize(context)
+		b.Max.X -= basicwidget.UnitSize(context)
+		b.Min.Y += basicwidget.UnitSize(context)
+		b.Max.Y -= 3 * basicwidget.UnitSize(context)
+		appender.AppendChildWidget(r.counterTextWidget, b)
+	}
+
 	if r.resetButtonWidget == nil {
 		var b basicwidget.TextButton
 		b.SetText("Reset")
 		r.resetButtonWidget = guigui.NewWidget(&b)
 	}
+	{
+		b := widget.Bounds()
+		b.Min.X += basicwidget.UnitSize(context)
+		b.Max.X = b.Min.X + 6*basicwidget.UnitSize(context)
+		b.Max.Y -= basicwidget.UnitSize(context)
+		b.Min.Y = b.Max.Y - basicwidget.UnitSize(context)
+		appender.AppendChildWidget(r.resetButtonWidget, b)
+	}
+
 	if r.incButtonWidget == nil {
 		var b basicwidget.TextButton
 		b.SetText("Increment")
 		r.incButtonWidget = guigui.NewWidget(&b)
 	}
+	{
+		b := widget.Bounds()
+		b.Max.X -= basicwidget.UnitSize(context)
+		b.Min.X = b.Max.X - 6*basicwidget.UnitSize(context)
+		b.Max.Y -= basicwidget.UnitSize(context)
+		b.Min.Y = b.Max.Y - basicwidget.UnitSize(context)
+		appender.AppendChildWidget(r.incButtonWidget, b)
+	}
+
 	if r.decButtonWidget == nil {
 		var b basicwidget.TextButton
 		b.SetText("Decrement")
 		r.decButtonWidget = guigui.NewWidget(&b)
 	}
-	if r.counterTextWidget == nil {
-		r.counterTextWidget = guigui.NewWidget(&basicwidget.Text{})
+	{
+		b := widget.Bounds()
+		b.Max.X -= int(7.5 * float64(basicwidget.UnitSize(context)))
+		b.Min.X = b.Max.X - 6*basicwidget.UnitSize(context)
+		b.Max.Y -= basicwidget.UnitSize(context)
+		b.Min.Y = b.Max.Y - basicwidget.UnitSize(context)
+		appender.AppendChildWidget(r.decButtonWidget, b)
 	}
-
-	appender.AppendChildWidget(guigui.NewWidget(&basicwidget.LinearGrid{
-		Direction: basicwidget.LinearGridDirectionVertical,
-		Items: []basicwidget.LinearGridItem{
-			{
-				Widget:   r.counterTextWidget,
-				Size:     1,
-				SizeUnit: basicwidget.SizeUnitFraction,
-			},
-			{
-				Widget: guigui.NewWidget(&basicwidget.LinearGrid{
-					Direction: basicwidget.LinearGridDirectionHorizontal,
-					Items: []basicwidget.LinearGridItem{
-						{
-							Widget: r.resetButtonWidget,
-							Size:   6,
-						},
-						{
-							Size:     1,
-							SizeUnit: basicwidget.SizeUnitFraction,
-						},
-						{
-							Widget: r.decButtonWidget,
-							Size:   6,
-						},
-						{
-							Size: 0.5,
-						},
-						{
-							Widget: r.incButtonWidget,
-							Size:   6,
-						},
-					},
-				}),
-				Size: 1,
-			},
-		},
-	}), widget.Bounds().Inset(basicwidget.UnitSize(context)))
 }
 
 func (r *Root) Update(context *guigui.Context, widget *guigui.Widget) error {
