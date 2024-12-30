@@ -65,8 +65,17 @@ func (DefaultWidgetBehavior) Draw(context *Context, widget *Widget, dst *ebiten.
 }
 
 func (DefaultWidgetBehavior) Size(context *Context, widget *Widget) (int, int) {
-	return widget.Bounds().Dx(), widget.Bounds().Dy()
+	return int(16 * context.Scale()), int(16 * context.Scale())
 }
 
 func (DefaultWidgetBehavior) private() {
+}
+
+type RootWidgetBehavior struct {
+	DefaultWidgetBehavior
+}
+
+func (RootWidgetBehavior) Size(context *Context, widget *Widget) (int, int) {
+	bounds := context.app.bounds()
+	return bounds.Dx(), bounds.Dy()
 }

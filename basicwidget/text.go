@@ -94,7 +94,7 @@ func (t *Text) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		t.scrollOverlayWidget = guigui.NewWidget(&ScrollOverlay{})
 		t.scrollOverlayWidget.Hide()
 	}
-	appender.AppendChildWidgetWithBounds(t.scrollOverlayWidget, widget.Bounds())
+	appender.AppendChildWidget(t.scrollOverlayWidget, widget.Position())
 }
 
 func (t *Text) SetSelectable(selectable bool) {
@@ -907,4 +907,9 @@ func (t *textCursor) Draw(context *guigui.Context, widget *guigui.Widget, dst *e
 	}
 	b := textWidget.Behavior().(*Text).cursorBounds(context, textWidget)
 	vector.DrawFilledRect(dst, float32(b.Min.X), float32(b.Min.Y), float32(b.Dx()), float32(b.Dy()), Color(context.ColorMode(), ColorTypeAccent, 0.4), false)
+}
+
+func (t *textCursor) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+	w, h := widget.Parent().Size(context)
+	return w + cursorWidth(context), h
 }

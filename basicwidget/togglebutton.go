@@ -53,7 +53,7 @@ func (t *ToggleButton) AppendChildWidgets(context *guigui.Context, widget *guigu
 	if t.mouseEventHandlerWidget == nil {
 		t.mouseEventHandlerWidget = guigui.NewWidget(&guigui.MouseEventHandler{})
 	}
-	appender.AppendChildWidgetWithBounds(t.mouseEventHandlerWidget, t.bounds(context, widget))
+	appender.AppendChildWidget(t.mouseEventHandlerWidget, widget.Position())
 }
 
 func (t *ToggleButton) Update(context *guigui.Context, widget *guigui.Widget) error {

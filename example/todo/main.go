@@ -39,7 +39,7 @@ type TaskWidgets struct {
 }
 
 type Root struct {
-	guigui.DefaultWidgetBehavior
+	guigui.RootWidgetBehavior
 
 	createButtonWidget *guigui.Widget
 	textFieldWidget    *guigui.Widget
@@ -81,6 +81,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		r.tasksPanelWidget = guigui.NewWidget(&sp)
 	}
 	tasksSP := r.tasksPanelWidget.Behavior().(*basicwidget.ScrollablePanel)
+	w, h := widget.Size(context)
+	tasksSP.SetSize(context, w, h-int(2*u))
 	tasksSP.SetContent(func(context *guigui.Context, widget *guigui.Widget, childAppender *basicwidget.ScrollablePanelChildWidgetAppender) {
 		bounds := widget.Bounds()
 		minX := bounds.Min.X + int(0.5*u)
@@ -111,11 +113,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		}
 	})
 	tasksSP.SetPadding(0, int(0.5*u))
-	{
-		b := widget.Bounds()
-		b.Min.Y += int(2 * u)
-		appender.AppendChildWidgetWithBounds(r.tasksPanelWidget, b)
-	}
+	appender.AppendChildWidget(r.tasksPanelWidget, image.Pt(0, int(2*u)))
 
 	// GC widgets
 	for id := range r.taskWidgets {

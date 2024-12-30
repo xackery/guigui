@@ -41,7 +41,7 @@ func (b *Button) AppendChildWidgets(context *guigui.Context, widget *guigui.Widg
 	if b.mouseEventHandlerWidget == nil {
 		b.mouseEventHandlerWidget = guigui.NewWidget(&guigui.MouseEventHandler{})
 	}
-	appender.AppendChildWidgetWithBounds(b.mouseEventHandlerWidget, b.buttonBounds(context, widget))
+	appender.AppendChildWidget(b.mouseEventHandlerWidget, widget.Position())
 }
 
 func (b *Button) PropagateEvent(context *guigui.Context, widget *guigui.Widget, event guigui.Event) (guigui.Event, bool) {
@@ -92,7 +92,7 @@ func (b *Button) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebite
 		borderColor = Color2(cm, ColorTypeBase, 0.8, 0.1)
 	}
 
-	bounds := b.buttonBounds(context, widget)
+	bounds := b.bounds(context, widget)
 	r := min(RoundedCornerRadius(context), bounds.Dx()/4, bounds.Dy()/4)
 	border := !b.borderInvisible
 	if b.mouseEventHandler().IsHovering() && b.mouseEventHandlerWidget.IsEnabled() {
@@ -121,7 +121,7 @@ func (b *Button) isActive() bool {
 	return b.mouseEventHandlerWidget.IsEnabled() && b.mouseEventHandler().IsHovering() && b.mouseEventHandler().IsPressing()
 }
 
-func (b *Button) buttonBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
+func (b *Button) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
 	dw, dh := defaultButtonSize(context)
 	p := widget.Position()
 	return image.Rectangle{
@@ -171,18 +171,17 @@ func (t *TextButton) SetTextColor(clr color.Color) {
 }
 
 func (t *TextButton) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	bounds := t.button.buttonBounds(context, widget)
-
 	if t.buttonWidget == nil {
 		t.buttonWidget = guigui.NewWidget(&t.button)
 	}
-	appender.AppendChildWidget(t.buttonWidget, bounds.Min)
+	appender.AppendChildWidget(t.buttonWidget, widget.Position())
 
 	if t.textWidget == nil {
 		t.text.SetHorizontalAlign(HorizontalAlignCenter)
 		t.text.SetVerticalAlign(VerticalAlignMiddle)
 		t.textWidget = guigui.NewWidget(&t.text)
 	}
+	bounds := t.button.bounds(context, widget)
 	if t.button.isActive() {
 		// As the text is centered, shift it down by double sizes of the stroke width.
 		bounds.Min.Y += int(2 * context.Scale())

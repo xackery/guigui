@@ -78,6 +78,10 @@ func (m *MouseEventHandler) Update(context *Context, widget *Widget) error {
 	return nil
 }
 
+func (m *MouseEventHandler) Size(context *Context, widget *Widget) (int, int) {
+	return widget.Parent().Size(context)
+}
+
 func (m *MouseEventHandler) setPressing(pressing bool, widget *Widget) {
 	if m.pressing == pressing {
 		return

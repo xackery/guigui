@@ -15,7 +15,7 @@ import (
 )
 
 type Root struct {
-	guigui.DefaultWidgetBehavior
+	guigui.RootWidgetBehavior
 
 	sideBarWidget *guigui.Widget
 
@@ -36,9 +36,9 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		r.sideBarWidget = guigui.NewWidget(&s)
 	}
 	{
-		b := widget.Bounds()
-		b.Max.X = b.Min.X + int(8*u)
-		appender.AppendChildWidgetWithBounds(r.sideBarWidget, b)
+		_, h := widget.Size(context)
+		r.sideBarWidget.Behavior().(*basicwidget.Sidebar).SetSize(context, int(8*u), h)
+		appender.AppendChildWidget(r.sideBarWidget, widget.Position())
 	}
 
 	if r.generalGroupWidget == nil {

@@ -61,7 +61,7 @@ func (t *TextField) AppendChildWidgets(context *guigui.Context, widget *guigui.W
 		t.text.SetEditable(true)
 		t.textWidget = guigui.NewWidget(&t.text)
 	}
-	bounds := t.textFieldBounds(context, widget)
+	bounds := t.bounds(context, widget)
 	bounds.Min.X += UnitSize(context) / 2
 	bounds.Max.X -= UnitSize(context) / 2
 	// TODO: Consider multiline.
@@ -110,7 +110,7 @@ func (t *TextField) Update(context *guigui.Context, widget *guigui.Widget) error
 }
 
 func (t *TextField) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
-	bounds := t.textFieldBounds(context, widget)
+	bounds := t.bounds(context, widget)
 	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.85), RoundedCornerRadius(context))
 	DrawRoundedRectBorder(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.8), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeInset)
 }
@@ -120,7 +120,7 @@ func defaultTextFieldSize(context *guigui.Context) (int, int) {
 	return 6 * UnitSize(context), UnitSize(context)
 }
 
-func (t *TextField) textFieldBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
+func (t *TextField) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
 	dw, dh := defaultTextFieldSize(context)
 	p := widget.Position()
 	return image.Rectangle{
@@ -153,7 +153,7 @@ type textFieldFocus struct {
 
 func (t *textFieldFocus) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
 	textFieldWidget := widget.Parent()
-	bounds := textFieldWidget.Behavior().(*TextField).textFieldBounds(context, textFieldWidget)
+	bounds := textFieldWidget.Behavior().(*TextField).bounds(context, textFieldWidget)
 	w := textFieldFocusBorderWidth(context)
 	bounds = bounds.Inset(-w)
 	DrawRoundedRectBorder(context, dst, bounds, Color(context.ColorMode(), ColorTypeAccent, 0.8), int(4*context.Scale())+RoundedCornerRadius(context), float32(4*context.Scale()), RoundedRectBorderTypeRegular)

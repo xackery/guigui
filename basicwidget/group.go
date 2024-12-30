@@ -36,10 +36,10 @@ func (g *Group) AppendChildWidgets(context *guigui.Context, widget *guigui.Widge
 			continue
 		}
 		bounds := g.itemBounds(context, widget, i)
-		appender.AppendChildWidgetWithBounds(item.PrimaryWidget, bounds)
+		appender.AppendChildWidget(item.PrimaryWidget, bounds.Min)
 		w, _ := item.SecondaryWidget.Size(context)
 		bounds.Min.X = bounds.Max.X - w
-		appender.AppendChildWidgetWithBounds(item.SecondaryWidget, bounds)
+		appender.AppendChildWidget(item.SecondaryWidget, bounds.Min)
 	}
 }
 

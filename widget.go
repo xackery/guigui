@@ -60,6 +60,7 @@ func (w *Widget) Position() image.Point {
 	return w.bounds.Min
 }
 
+// Deprecated: Do not use this.
 func (w *Widget) Bounds() image.Rectangle {
 	return w.bounds
 }

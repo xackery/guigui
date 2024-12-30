@@ -9,12 +9,20 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+
 	"github.com/hajimehoshi/guigui"
 )
 
 type widgetWithBounds struct {
-	widget *guigui.Widget
-	bounds image.Rectangle
+	widget   *guigui.Widget
+	position image.Point
+}
+
+func (w *widgetWithBounds) bounds(context *guigui.Context) image.Rectangle {
+	return image.Rectangle{
+		Min: w.position,
+		Max: w.position.Add(image.Pt(w.widget.Size(context))),
+	}
 }
 
 type ScrollablePanel struct {
@@ -25,8 +33,10 @@ type ScrollablePanel struct {
 	scollOverlayWidget *guigui.Widget
 	border             *guigui.Widget
 
-	paddingX int
-	paddingY int
+	paddingX           int
+	paddingY           int
+	widthMinusDefault  int
+	heightMinusDefault int
 }
 
 type ScrollablePanelChildWidgetAppender struct {
@@ -35,21 +45,9 @@ type ScrollablePanelChildWidgetAppender struct {
 }
 
 func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget *guigui.Widget, position image.Point) {
-	w, h := widget.Size(s.context)
-	bounds := image.Rectangle{
-		Min: position,
-		Max: position.Add(image.Point{w, h}),
-	}
 	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widgetWithBounds{
-		widget: widget,
-		bounds: bounds,
-	})
-}
-
-func (s *ScrollablePanelChildWidgetAppender) AppendChildWidgetWithBounds(widget *guigui.Widget, bounds image.Rectangle) {
-	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widgetWithBounds{
-		widget: widget,
-		bounds: bounds,
+		widget:   widget,
+		position: position,
 	})
 }
 
@@ -79,12 +77,12 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *gu
 
 	offsetX, offsetY := s.scollOverlayWidget.Behavior().(*ScrollOverlay).Offset()
 	for _, childWidget := range s.childWidgets {
-		b := childWidget.bounds
-		b = b.Add(image.Pt(int(offsetX), int(offsetY)))
-		appender.AppendChildWidgetWithBounds(childWidget.widget, b)
+		p := childWidget.position
+		p = p.Add(image.Pt(int(offsetX), int(offsetY)))
+		appender.AppendChildWidget(childWidget.widget, p)
 	}
 
-	appender.AppendChildWidgetWithBounds(s.scollOverlayWidget, widget.Bounds())
+	appender.AppendChildWidget(s.scollOverlayWidget, widget.Position())
 
 	if s.border == nil {
 		b := scrollablePanelBorder{
@@ -92,20 +90,35 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *gu
 		}
 		s.border = guigui.NewWidget(&b)
 	}
-	appender.AppendChildWidgetWithBounds(s.border, widget.Bounds())
+	appender.AppendChildWidget(s.border, widget.Position())
 }
 
 func (s *ScrollablePanel) Update(context *guigui.Context, widget *guigui.Widget) error {
 	p := widget.Position()
 	var w, h int
 	for _, childWidget := range s.childWidgets {
-		bounds := childWidget.bounds
-		w = max(w, bounds.Max.X-p.X+s.paddingX)
-		h = max(h, bounds.Max.Y-p.Y+s.paddingY)
+		b := childWidget.bounds(context)
+		w = max(w, b.Max.X-p.X+s.paddingX)
+		h = max(h, b.Max.Y-p.Y+s.paddingY)
 	}
 	so := s.scollOverlayWidget.Behavior().(*ScrollOverlay)
 	so.SetContentSize(w, h)
 	return nil
+}
+
+func defaultScrollablePanelSize(context *guigui.Context) (int, int) {
+	return 6 * UnitSize(context), 6 * UnitSize(context)
+}
+
+func (s *ScrollablePanel) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+	dw, dh := defaultScrollablePanelSize(context)
+	return s.widthMinusDefault + dw, s.heightMinusDefault + dh
+}
+
+func (s *ScrollablePanel) SetSize(context *guigui.Context, width, height int) {
+	dw, dh := defaultScrollablePanelSize(context)
+	s.widthMinusDefault = width - dw
+	s.heightMinusDefault = height - dh
 }
 
 type scrollablePanelBorder struct {
@@ -117,15 +130,29 @@ type scrollablePanelBorder struct {
 func (s *scrollablePanelBorder) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
 	// Render borders.
 	strokeWidth := float32(1 * context.Scale())
-	x0 := float32(widget.Bounds().Min.X)
-	x1 := float32(widget.Bounds().Max.X)
-	y0 := float32(widget.Bounds().Min.Y)
-	y1 := float32(widget.Bounds().Max.Y)
+	bounds := s.bounds(context, widget)
+	x0 := float32(bounds.Min.X)
+	x1 := float32(bounds.Max.X)
+	y0 := float32(bounds.Min.Y)
+	y1 := float32(bounds.Max.Y)
 	offsetX, offsetY := s.scrollOverlay.Offset()
 	if offsetX < 0 {
 		vector.StrokeLine(dst, x0+strokeWidth/2, y0, x0+strokeWidth/2, y1, strokeWidth, Color(context.ColorMode(), ColorTypeBase, 0.85), false)
 	}
 	if offsetY < 0 {
 		vector.StrokeLine(dst, x0, y0+strokeWidth/2, x1, y0+strokeWidth/2, strokeWidth, Color(context.ColorMode(), ColorTypeBase, 0.85), false)
+	}
+}
+
+func (s *scrollablePanelBorder) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+	return widget.Parent().Size(context)
+}
+
+func (s *scrollablePanelBorder) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
+	p := widget.Position()
+	w, h := s.Size(context, widget)
+	return image.Rectangle{
+		Min: p,
+		Max: p.Add(image.Pt(w, h)),
 	}
 }
