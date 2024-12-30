@@ -12,16 +12,16 @@ import (
 	"github.com/hajimehoshi/guigui"
 )
 
-type widgetWithPosition struct {
-	widget   *guigui.Widget
-	position image.Point
+type widgetWithBounds struct {
+	widget *guigui.Widget
+	bounds image.Rectangle
 }
 
 type ScrollablePanel struct {
 	guigui.DefaultWidgetBehavior
 
 	setContentFunc     func(context *guigui.Context, widget *guigui.Widget, childAppender *ScrollablePanelChildWidgetAppender)
-	childWidgets       []widgetWithPosition
+	childWidgets       []widgetWithBounds
 	scollOverlayWidget *guigui.Widget
 	border             *guigui.Widget
 
@@ -30,13 +30,23 @@ type ScrollablePanel struct {
 }
 
 type ScrollablePanelChildWidgetAppender struct {
+	context         *guigui.Context
 	scrollablePanel *ScrollablePanel
 }
 
 func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget *guigui.Widget, x, y int) {
-	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widgetWithPosition{
-		widget:   widget,
-		position: image.Pt(x, y),
+	w, h := widget.Size(s.context)
+	bounds := image.Rect(x, y, x+w, y+h)
+	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widgetWithBounds{
+		widget: widget,
+		bounds: bounds,
+	})
+}
+
+func (s *ScrollablePanelChildWidgetAppender) AppendChildWidgetWithBounds(widget *guigui.Widget, bounds image.Rectangle) {
+	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widgetWithBounds{
+		widget: widget,
+		bounds: bounds,
 	})
 }
 
@@ -54,6 +64,7 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *gu
 	s.childWidgets = slices.Delete(s.childWidgets, 0, len(s.childWidgets))
 	if s.setContentFunc != nil {
 		s.setContentFunc(context, widget, &ScrollablePanelChildWidgetAppender{
+			context:         context,
 			scrollablePanel: s,
 		})
 	}
@@ -65,14 +76,12 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *gu
 
 	offsetX, offsetY := s.scollOverlayWidget.Behavior().(*ScrollOverlay).Offset()
 	for _, childWidget := range s.childWidgets {
-		x, y := childWidget.position.X, childWidget.position.Y
-		w, h := childWidget.widget.Size(context)
-		b := image.Rect(x, y, x+w, y+h)
+		b := childWidget.bounds
 		b = b.Add(image.Pt(int(offsetX), int(offsetY)))
-		appender.AppendChildWidget(childWidget.widget, b)
+		appender.AppendChildWidgetWithBounds(childWidget.widget, b)
 	}
 
-	appender.AppendChildWidget(s.scollOverlayWidget, widget.Bounds())
+	appender.AppendChildWidgetWithBounds(s.scollOverlayWidget, widget.Bounds())
 
 	if s.border == nil {
 		b := scrollablePanelBorder{
@@ -80,17 +89,16 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *gu
 		}
 		s.border = guigui.NewWidget(&b)
 	}
-	appender.AppendChildWidget(s.border, widget.Bounds())
+	appender.AppendChildWidgetWithBounds(s.border, widget.Bounds())
 }
 
 func (s *ScrollablePanel) Update(context *guigui.Context, widget *guigui.Widget) error {
 	b := widget.Bounds()
 	var w, h int
 	for _, childWidget := range s.childWidgets {
-		cx, cy := childWidget.position.X, childWidget.position.Y
-		cw, ch := childWidget.widget.Size(context)
-		w = max(w, cx+cw-b.Min.X+s.paddingX)
-		h = max(h, cy+ch-b.Min.Y+s.paddingY)
+		bounds := childWidget.bounds
+		w = max(w, bounds.Max.X-b.Min.X+s.paddingX)
+		h = max(h, bounds.Max.Y-b.Min.Y+s.paddingY)
 	}
 	w = max(w, b.Dx())
 	h = max(h, b.Dy())

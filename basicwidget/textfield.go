@@ -18,6 +18,9 @@ type TextField struct {
 	textWidget  *guigui.Widget
 	focusWidget *guigui.Widget
 
+	widthMinusDefault  int
+	heightMinusDefault int
+
 	hovering bool
 	readonly bool
 
@@ -58,21 +61,21 @@ func (t *TextField) AppendChildWidgets(context *guigui.Context, widget *guigui.W
 		t.text.SetEditable(true)
 		t.textWidget = guigui.NewWidget(&t.text)
 	}
-	bounds := widget.Bounds()
+	bounds := t.textFieldBounds(context, widget)
 	bounds.Min.X += UnitSize(context) / 2
 	bounds.Max.X -= UnitSize(context) / 2
 	// TODO: Consider multiline.
 	if !t.text.IsMultiline() {
 		t.text.SetVerticalAlign(VerticalAlignMiddle)
 	}
-	appender.AppendChildWidget(t.textWidget, bounds)
+	appender.AppendChildWidgetWithBounds(t.textWidget, bounds)
 
 	if widget.HasFocusedChildWidget() {
 		if t.focusWidget == nil {
 			t.focusWidget = guigui.NewPopupWidget(&textFieldFocus{})
 		}
-		bounds := widget.Bounds().Inset(-int(3 * context.Scale()))
-		appender.AppendChildWidget(t.focusWidget, bounds)
+		bounds := t.textFieldBounds(context, widget).Inset(-int(3 * context.Scale()))
+		appender.AppendChildWidgetWithBounds(t.focusWidget, bounds)
 	}
 }
 
@@ -106,8 +109,33 @@ func (t *TextField) Update(context *guigui.Context, widget *guigui.Widget) error
 }
 
 func (t *TextField) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
-	DrawRoundedRect(context, dst, widget.Bounds(), Color(context.ColorMode(), ColorTypeBase, 0.85), RoundedCornerRadius(context))
-	DrawRoundedRectBorder(context, dst, widget.Bounds(), Color(context.ColorMode(), ColorTypeBase, 0.8), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeInset)
+	bounds := t.textFieldBounds(context, widget)
+	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.85), RoundedCornerRadius(context))
+	DrawRoundedRectBorder(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.8), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeInset)
+}
+
+func defaultTextFieldSize(context *guigui.Context) (int, int) {
+	// TODO: Increase the height for multiple lines.
+	return 6 * UnitSize(context), UnitSize(context)
+}
+
+func (t *TextField) textFieldBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
+	dw, dh := defaultTextFieldSize(context)
+	bounds := widget.Bounds()
+	bounds.Max.X = bounds.Min.X + t.widthMinusDefault + dw
+	bounds.Max.Y = bounds.Min.Y + t.heightMinusDefault + dh
+	return bounds
+}
+
+func (t *TextField) SetSize(context *guigui.Context, width, height int) {
+	dw, dh := defaultTextFieldSize(context)
+	t.widthMinusDefault = width - dw
+	t.heightMinusDefault = height - dh
+}
+
+func (t *TextField) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+	dw, dh := defaultTextFieldSize(context)
+	return t.widthMinusDefault + dw, t.heightMinusDefault + dh
 }
 
 type textFieldFocus struct {

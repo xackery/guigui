@@ -34,7 +34,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		b.Max.X -= basicwidget.UnitSize(context)
 		b.Min.Y += basicwidget.UnitSize(context)
 		b.Max.Y -= 3 * basicwidget.UnitSize(context)
-		appender.AppendChildWidget(r.counterTextWidget, b)
+		appender.AppendChildWidgetWithBounds(r.counterTextWidget, b)
 	}
 
 	if r.resetButtonWidget == nil {
@@ -44,11 +44,9 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	}
 	{
 		b := widget.Bounds()
-		b.Min.X += basicwidget.UnitSize(context)
-		b.Max.X = b.Min.X + 6*basicwidget.UnitSize(context)
-		b.Max.Y -= basicwidget.UnitSize(context)
-		b.Min.Y = b.Max.Y - basicwidget.UnitSize(context)
-		appender.AppendChildWidget(r.resetButtonWidget, b)
+		x := b.Min.X + basicwidget.UnitSize(context)
+		y := b.Max.Y - 2*basicwidget.UnitSize(context)
+		appender.AppendChildWidget(r.resetButtonWidget, x, y)
 	}
 
 	if r.incButtonWidget == nil {
@@ -58,11 +56,9 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	}
 	{
 		b := widget.Bounds()
-		b.Max.X -= basicwidget.UnitSize(context)
-		b.Min.X = b.Max.X - 6*basicwidget.UnitSize(context)
-		b.Max.Y -= basicwidget.UnitSize(context)
-		b.Min.Y = b.Max.Y - basicwidget.UnitSize(context)
-		appender.AppendChildWidget(r.incButtonWidget, b)
+		x := b.Max.X - 7*basicwidget.UnitSize(context)
+		y := b.Max.Y - 2*basicwidget.UnitSize(context)
+		appender.AppendChildWidget(r.incButtonWidget, x, y)
 	}
 
 	if r.decButtonWidget == nil {
@@ -72,11 +68,9 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	}
 	{
 		b := widget.Bounds()
-		b.Max.X -= int(7.5 * float64(basicwidget.UnitSize(context)))
-		b.Min.X = b.Max.X - 6*basicwidget.UnitSize(context)
-		b.Max.Y -= basicwidget.UnitSize(context)
-		b.Min.Y = b.Max.Y - basicwidget.UnitSize(context)
-		appender.AppendChildWidget(r.decButtonWidget, b)
+		x := b.Max.X - int(13.5*float64(basicwidget.UnitSize(context)))
+		y := b.Max.Y - 2*basicwidget.UnitSize(context)
+		appender.AppendChildWidget(r.decButtonWidget, x, y)
 	}
 }
 

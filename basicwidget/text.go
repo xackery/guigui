@@ -88,13 +88,13 @@ func (t *Text) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	b := widget.Bounds()
 	b.Min.X -= cursorWidth(context) / 2
 	b.Max.X += cursorWidth(context) / 2
-	appender.AppendChildWidget(t.cursorWidget, b)
+	appender.AppendChildWidgetWithBounds(t.cursorWidget, b)
 
 	if t.scrollOverlayWidget == nil {
 		t.scrollOverlayWidget = guigui.NewWidget(&ScrollOverlay{})
 		t.scrollOverlayWidget.Hide()
 	}
-	appender.AppendChildWidget(t.scrollOverlayWidget, widget.Bounds())
+	appender.AppendChildWidgetWithBounds(t.scrollOverlayWidget, widget.Bounds())
 }
 
 func (t *Text) SetSelectable(selectable bool) {

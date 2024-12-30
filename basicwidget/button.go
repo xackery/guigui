@@ -20,8 +20,6 @@ type Button struct {
 	widthMinusDefault  int
 	heightMinusDefault int
 	borderInvisible    bool
-
-	needsRedraw bool
 }
 
 type ButtonEventType int
@@ -43,7 +41,7 @@ func (b *Button) AppendChildWidgets(context *guigui.Context, widget *guigui.Widg
 	if b.mouseEventHandlerWidget == nil {
 		b.mouseEventHandlerWidget = guigui.NewWidget(&guigui.MouseEventHandler{})
 	}
-	appender.AppendChildWidget(b.mouseEventHandlerWidget, b.buttonBounds(context, widget))
+	appender.AppendChildWidgetWithBounds(b.mouseEventHandlerWidget, b.buttonBounds(context, widget))
 }
 
 func (b *Button) PropagateEvent(context *guigui.Context, widget *guigui.Widget, event guigui.Event) (guigui.Event, bool) {
@@ -67,14 +65,6 @@ func (b *Button) PropagateEvent(context *guigui.Context, widget *guigui.Widget, 
 	return ButtonEvent{
 		Type: typ,
 	}, true
-}
-
-func (b *Button) Update(context *guigui.Context, widget *guigui.Widget) error {
-	if b.needsRedraw {
-		widget.RequestRedraw()
-		b.needsRedraw = false
-	}
-	return nil
 }
 
 func (b *Button) CursorShape(context *guigui.Context, widget *guigui.Widget) (ebiten.CursorShapeType, bool) {
@@ -145,12 +135,8 @@ func defaultButtonSize(context *guigui.Context) (int, int) {
 
 func (b *Button) SetSize(context *guigui.Context, width, height int) {
 	dw, dh := defaultButtonSize(context)
-	if b.widthMinusDefault+dw == width && b.heightMinusDefault+dh == height {
-		return
-	}
 	b.widthMinusDefault = width - dw
 	b.heightMinusDefault = height - dh
-	b.needsRedraw = true
 }
 
 func (b *Button) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
@@ -189,7 +175,7 @@ func (t *TextButton) AppendChildWidgets(context *guigui.Context, widget *guigui.
 	if t.buttonWidget == nil {
 		t.buttonWidget = guigui.NewWidget(&t.button)
 	}
-	appender.AppendChildWidget(t.buttonWidget, bounds)
+	appender.AppendChildWidget(t.buttonWidget, bounds.Min.X, bounds.Min.Y)
 
 	if t.textWidget == nil {
 		t.text.SetHorizontalAlign(HorizontalAlignCenter)
@@ -202,7 +188,7 @@ func (t *TextButton) AppendChildWidgets(context *guigui.Context, widget *guigui.
 	} else if !t.buttonWidget.IsEnabled() {
 		bounds.Min.Y += int(1 * context.Scale())
 	}
-	appender.AppendChildWidget(t.textWidget, bounds)
+	appender.AppendChildWidgetWithBounds(t.textWidget, bounds)
 }
 
 func (t *TextButton) PropagateEvent(context *guigui.Context, widget *guigui.Widget, event guigui.Event) (guigui.Event, bool) {

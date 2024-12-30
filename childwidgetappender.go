@@ -10,7 +10,12 @@ type ChildWidgetAppender struct {
 	widget *Widget
 }
 
-func (c *ChildWidgetAppender) AppendChildWidget(widget *Widget, bounds image.Rectangle) {
+func (c *ChildWidgetAppender) AppendChildWidget(widget *Widget, x, y int) {
+	w, h := widget.Size(c.app.context)
+	c.AppendChildWidgetWithBounds(widget, image.Rect(x, y, x+w, y+h))
+}
+
+func (c *ChildWidgetAppender) AppendChildWidgetWithBounds(widget *Widget, bounds image.Rectangle) {
 	if _, ok := c.app.currentWidgets[widget]; ok {
 		panic("guigui: the widget is already in the widget tree")
 	}

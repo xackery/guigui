@@ -53,15 +53,15 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 
 	if r.textFieldWidget == nil {
 		var t basicwidget.TextField
+		w := widget.Bounds().Dx() - int(6.5*u)
+		t.SetSize(context, w, int(u))
 		r.textFieldWidget = guigui.NewWidget(&t)
 	}
 	{
 		b := widget.Bounds()
-		b.Min.X += int(0.5 * u)
-		b.Max.X -= int(6 * u)
-		b.Min.Y += int(0.5 * u)
-		b.Max.Y = b.Min.Y + int(u)
-		appender.AppendChildWidget(r.textFieldWidget, b)
+		x := b.Min.X + int(0.5*u)
+		y := b.Min.Y + int(0.5*u)
+		appender.AppendChildWidget(r.textFieldWidget, x, y)
 	}
 
 	if r.createButtonWidget == nil {
@@ -72,11 +72,9 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	}
 	{
 		b := widget.Bounds()
-		b.Max.X -= int(0.5 * u)
-		b.Min.X = b.Max.X - int(5*u)
-		b.Min.Y += int(0.5 * u)
-		b.Max.Y = b.Min.Y + int(u)
-		appender.AppendChildWidget(r.createButtonWidget, b)
+		x := b.Max.X - int(0.5*u) - int(5*u)
+		y := b.Min.Y + int(0.5*u)
+		appender.AppendChildWidget(r.createButtonWidget, x, y)
 	}
 
 	if r.tasksPanelWidget == nil {
@@ -117,7 +115,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	{
 		b := widget.Bounds()
 		b.Min.Y += int(2 * u)
-		appender.AppendChildWidget(r.tasksPanelWidget, b)
+		appender.AppendChildWidgetWithBounds(r.tasksPanelWidget, b)
 	}
 
 	// GC widgets
