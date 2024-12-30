@@ -252,7 +252,7 @@ func (t *Text) textBounds(context *guigui.Context, widget *guigui.Widget) image.
 		// TODO: What is the correct value?
 	case HorizontalAlignEnd:
 		b.Max.X += int(offsetX)
-		w, _ := text.Measure(t.field.Text(), t.face(context), t.lineHeight(context))
+		w, _ := text.Measure(t.textToDraw(), t.face(context), t.lineHeight(context))
 		b.Max.X += max(int(w)-b.Dx(), 0)
 	}
 
@@ -260,17 +260,16 @@ func (t *Text) textBounds(context *guigui.Context, widget *guigui.Widget) image.
 	if txt == "" {
 		txt = " "
 	}
+	th := t.textHeight(context, txt)
 	switch t.vAlign {
 	case VerticalAlignTop:
+		b.Max.Y = b.Min.Y + th
 	case VerticalAlignMiddle:
 		h := b.Dy()
-		th := t.textHeight(context, txt)
 		b.Min.Y += (h - th) / 2
 		b.Max.Y = b.Min.Y + th
 	case VerticalAlignBottom:
-		h := b.Dy()
-		th := t.textHeight(context, txt)
-		b.Min.Y = h - th
+		b.Min.Y = b.Max.Y - th
 	}
 
 	b.Min.X += int(offsetX)
