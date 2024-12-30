@@ -158,10 +158,11 @@ func (t *ToggleButton) isActive() bool {
 
 func (t *ToggleButton) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
 	cw, ch := t.Size(context, widget)
-	b := widget.Bounds()
-	b.Max.X = b.Min.X + cw
-	b.Max.Y = b.Min.Y + ch
-	return b
+	p := widget.Position()
+	return image.Rectangle{
+		Min: p,
+		Max: p.Add(image.Pt(cw, ch)),
+	}
 }
 
 func (t *ToggleButton) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {

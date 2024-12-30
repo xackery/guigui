@@ -54,15 +54,13 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 
 	if r.textFieldWidget == nil {
 		var t basicwidget.TextField
-		w := widget.Bounds().Dx() - int(6.5*u)
-		t.SetSize(context, w, int(u))
 		r.textFieldWidget = guigui.NewWidget(&t)
 	}
+	w := widget.Bounds().Dx() - int(6.5*u)
+	r.textFieldWidget.Behavior().(*basicwidget.TextField).SetSize(context, w, int(u))
 	{
-		b := widget.Bounds()
-		x := b.Min.X + int(0.5*u)
-		y := b.Min.Y + int(0.5*u)
-		appender.AppendChildWidget(r.textFieldWidget, image.Pt(x, y))
+		p := widget.Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
+		appender.AppendChildWidget(r.textFieldWidget, p)
 	}
 
 	if r.createButtonWidget == nil {

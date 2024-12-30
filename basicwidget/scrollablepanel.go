@@ -96,15 +96,13 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *gu
 }
 
 func (s *ScrollablePanel) Update(context *guigui.Context, widget *guigui.Widget) error {
-	b := widget.Bounds()
+	p := widget.Position()
 	var w, h int
 	for _, childWidget := range s.childWidgets {
 		bounds := childWidget.bounds
-		w = max(w, bounds.Max.X-b.Min.X+s.paddingX)
-		h = max(h, bounds.Max.Y-b.Min.Y+s.paddingY)
+		w = max(w, bounds.Max.X-p.X+s.paddingX)
+		h = max(h, bounds.Max.Y-p.Y+s.paddingY)
 	}
-	w = max(w, b.Dx())
-	h = max(h, b.Dy())
 	so := s.scollOverlayWidget.Behavior().(*ScrollOverlay)
 	so.SetContentSize(w, h)
 	return nil

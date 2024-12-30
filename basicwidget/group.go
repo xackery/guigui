@@ -120,8 +120,10 @@ func (g *Group) height(context *guigui.Context) int {
 }
 
 func (g *Group) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
-	bounds := widget.Bounds()
-	bounds.Max.X = bounds.Min.X + g.widthMinusDefault + defaultGroupWidth(context)
-	bounds.Max.Y = bounds.Min.Y + g.height(context)
-	return bounds
+	p := widget.Position()
+	w, h := g.Size(context, widget)
+	return image.Rectangle{
+		Min: p,
+		Max: p.Add(image.Pt(w, h)),
+	}
 }

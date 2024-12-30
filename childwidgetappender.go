@@ -11,6 +11,9 @@ type ChildWidgetAppender struct {
 }
 
 func (c *ChildWidgetAppender) AppendChildWidget(widget *Widget, position image.Point) {
+	widget.parent = c.widget
+
+	// Size might require the parent info.
 	w, h := widget.Size(c.app.context)
 	c.AppendChildWidgetWithBounds(widget, image.Rectangle{
 		Min: position,
@@ -26,6 +29,8 @@ func (c *ChildWidgetAppender) AppendChildWidgetWithBounds(widget *Widget, bounds
 		c.app.currentWidgets = map[*Widget]struct{}{}
 	}
 	c.app.currentWidgets[widget] = struct{}{}
+
+	widget.parent = c.widget
 
 	// Redraw if the child is a new one, or the bounds are changed.
 	if _, ok := c.app.prevWidgets[widget]; !ok {
@@ -44,7 +49,6 @@ func (c *ChildWidgetAppender) AppendChildWidgetWithBounds(widget *Widget, bounds
 		}
 	}
 
-	widget.parent = c.widget
 	widget.bounds = bounds
 	if widget.popup {
 		widget.visibleBounds = widget.bounds

@@ -123,10 +123,11 @@ func (b *Button) isActive() bool {
 
 func (b *Button) buttonBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
 	dw, dh := defaultButtonSize(context)
-	bounds := widget.Bounds()
-	bounds.Max.X = bounds.Min.X + b.widthMinusDefault + dw
-	bounds.Max.Y = bounds.Min.Y + b.heightMinusDefault + dh
-	return bounds
+	p := widget.Position()
+	return image.Rectangle{
+		Min: p,
+		Max: p.Add(image.Pt(b.widthMinusDefault+dw, b.heightMinusDefault+dh)),
+	}
 }
 
 func defaultButtonSize(context *guigui.Context) (int, int) {

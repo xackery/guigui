@@ -74,8 +74,9 @@ func (t *TextField) AppendChildWidgets(context *guigui.Context, widget *guigui.W
 		if t.focusWidget == nil {
 			t.focusWidget = guigui.NewPopupWidget(&textFieldFocus{})
 		}
-		bounds := t.textFieldBounds(context, widget).Inset(-int(3 * context.Scale()))
-		appender.AppendChildWidgetWithBounds(t.focusWidget, bounds)
+		w := textFieldFocusBorderWidth(context)
+		p := widget.Position().Add(image.Pt(-w, -w))
+		appender.AppendChildWidget(t.focusWidget, p)
 	}
 }
 
@@ -121,10 +122,11 @@ func defaultTextFieldSize(context *guigui.Context) (int, int) {
 
 func (t *TextField) textFieldBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
 	dw, dh := defaultTextFieldSize(context)
-	bounds := widget.Bounds()
-	bounds.Max.X = bounds.Min.X + t.widthMinusDefault + dw
-	bounds.Max.Y = bounds.Min.Y + t.heightMinusDefault + dh
-	return bounds
+	p := widget.Position()
+	return image.Rectangle{
+		Min: p,
+		Max: p.Add(image.Pt(t.widthMinusDefault+dw, t.heightMinusDefault+dh)),
+	}
 }
 
 func (t *TextField) SetSize(context *guigui.Context, width, height int) {
@@ -141,10 +143,26 @@ func (t *TextField) Size(context *guigui.Context, widget *guigui.Widget) (int, i
 	return t.widthMinusDefault + dw, dh
 }
 
+func textFieldFocusBorderWidth(context *guigui.Context) int {
+	return int(3 * context.Scale())
+}
+
 type textFieldFocus struct {
 	guigui.DefaultWidgetBehavior
 }
 
 func (t *textFieldFocus) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
-	DrawRoundedRectBorder(context, dst, widget.Bounds(), Color(context.ColorMode(), ColorTypeAccent, 0.8), int(4*context.Scale())+RoundedCornerRadius(context), float32(4*context.Scale()), RoundedRectBorderTypeRegular)
+	textFieldWidget := widget.Parent()
+	bounds := textFieldWidget.Behavior().(*TextField).textFieldBounds(context, textFieldWidget)
+	w := textFieldFocusBorderWidth(context)
+	bounds = bounds.Inset(-w)
+	DrawRoundedRectBorder(context, dst, bounds, Color(context.ColorMode(), ColorTypeAccent, 0.8), int(4*context.Scale())+RoundedCornerRadius(context), float32(4*context.Scale()), RoundedRectBorderTypeRegular)
+}
+
+func (t *textFieldFocus) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+	textFieldWidget := widget.Parent()
+	w, h := textFieldWidget.Behavior().(*TextField).Size(context, textFieldWidget)
+	w += 2 * textFieldFocusBorderWidth(context)
+	h += 2 * textFieldFocusBorderWidth(context)
+	return w, h
 }
