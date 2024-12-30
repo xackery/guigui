@@ -34,9 +34,12 @@ type ScrollablePanelChildWidgetAppender struct {
 	scrollablePanel *ScrollablePanel
 }
 
-func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget *guigui.Widget, x, y int) {
+func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget *guigui.Widget, position image.Point) {
 	w, h := widget.Size(s.context)
-	bounds := image.Rect(x, y, x+w, y+h)
+	bounds := image.Rectangle{
+		Min: position,
+		Max: position.Add(image.Point{w, h}),
+	}
 	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widgetWithBounds{
 		widget: widget,
 		bounds: bounds,

@@ -10,9 +10,12 @@ type ChildWidgetAppender struct {
 	widget *Widget
 }
 
-func (c *ChildWidgetAppender) AppendChildWidget(widget *Widget, x, y int) {
+func (c *ChildWidgetAppender) AppendChildWidget(widget *Widget, position image.Point) {
 	w, h := widget.Size(c.app.context)
-	c.AppendChildWidgetWithBounds(widget, image.Rect(x, y, x+w, y+h))
+	c.AppendChildWidgetWithBounds(widget, image.Rectangle{
+		Min: position,
+		Max: position.Add(image.Point{w, h}),
+	})
 }
 
 func (c *ChildWidgetAppender) AppendChildWidgetWithBounds(widget *Widget, bounds image.Rectangle) {

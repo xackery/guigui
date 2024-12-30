@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -46,7 +47,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		b := widget.Bounds()
 		x := b.Min.X + basicwidget.UnitSize(context)
 		y := b.Max.Y - 2*basicwidget.UnitSize(context)
-		appender.AppendChildWidget(r.resetButtonWidget, x, y)
+		appender.AppendChildWidget(r.resetButtonWidget, image.Pt(x, y))
 	}
 
 	if r.incButtonWidget == nil {
@@ -58,7 +59,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		b := widget.Bounds()
 		x := b.Max.X - 7*basicwidget.UnitSize(context)
 		y := b.Max.Y - 2*basicwidget.UnitSize(context)
-		appender.AppendChildWidget(r.incButtonWidget, x, y)
+		appender.AppendChildWidget(r.incButtonWidget, image.Pt(x, y))
 	}
 
 	if r.decButtonWidget == nil {
@@ -70,7 +71,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		b := widget.Bounds()
 		x := b.Max.X - int(13.5*float64(basicwidget.UnitSize(context)))
 		y := b.Max.Y - 2*basicwidget.UnitSize(context)
-		appender.AppendChildWidget(r.decButtonWidget, x, y)
+		appender.AppendChildWidget(r.decButtonWidget, image.Pt(x, y))
 	}
 }
 

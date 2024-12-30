@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -81,7 +82,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	{
 		x := widget.Bounds().Min.X + int(8.5*u)
 		y := widget.Bounds().Min.Y + int(0.5*u)
-		appender.AppendChildWidget(r.generalGroupWidget, x, y)
+		appender.AppendChildWidget(r.generalGroupWidget, image.Pt(x, y))
 	}
 }
 

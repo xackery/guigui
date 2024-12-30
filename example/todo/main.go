@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"os"
 	"slices"
 	"strings"
@@ -61,7 +62,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		b := widget.Bounds()
 		x := b.Min.X + int(0.5*u)
 		y := b.Min.Y + int(0.5*u)
-		appender.AppendChildWidget(r.textFieldWidget, x, y)
+		appender.AppendChildWidget(r.textFieldWidget, image.Pt(x, y))
 	}
 
 	if r.createButtonWidget == nil {
@@ -74,7 +75,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		b := widget.Bounds()
 		x := b.Max.X - int(0.5*u) - int(5*u)
 		y := b.Min.Y + int(0.5*u)
-		appender.AppendChildWidget(r.createButtonWidget, x, y)
+		appender.AppendChildWidget(r.createButtonWidget, image.Pt(x, y))
 	}
 
 	if r.tasksPanelWidget == nil {
@@ -105,9 +106,9 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 			if i > 0 {
 				y += int(u / 4)
 			}
-			childAppender.AppendChildWidget(r.taskWidgets[t.ID].doneButtonWidget, minX, y)
+			childAppender.AppendChildWidget(r.taskWidgets[t.ID].doneButtonWidget, image.Pt(minX, y))
 			_, textH := r.taskWidgets[t.ID].textWidget.Size(context)
-			childAppender.AppendChildWidget(r.taskWidgets[t.ID].textWidget, minX+int(3.5*u), y+int((u-float64(textH))/2))
+			childAppender.AppendChildWidget(r.taskWidgets[t.ID].textWidget, image.Pt(minX+int(3.5*u), y+int((u-float64(textH))/2)))
 			y += int(u)
 		}
 	})

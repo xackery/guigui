@@ -175,7 +175,7 @@ func (t *TextButton) AppendChildWidgets(context *guigui.Context, widget *guigui.
 	if t.buttonWidget == nil {
 		t.buttonWidget = guigui.NewWidget(&t.button)
 	}
-	appender.AppendChildWidget(t.buttonWidget, bounds.Min.X, bounds.Min.Y)
+	appender.AppendChildWidget(t.buttonWidget, bounds.Min)
 
 	if t.textWidget == nil {
 		t.text.SetHorizontalAlign(HorizontalAlignCenter)
