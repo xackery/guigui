@@ -890,7 +890,11 @@ func (t *textCursor) shouldRenderCursor(context *guigui.Context, textWidget *gui
 	if _, _, _, ok := text.cursorPosition(context, textWidget); !ok {
 		return false
 	}
-	if _, _, ok := text.selectionToDraw(textWidget); !ok {
+	s, e, ok := text.selectionToDraw(textWidget)
+	if !ok {
+		return false
+	}
+	if s != e {
 		return false
 	}
 	return true
