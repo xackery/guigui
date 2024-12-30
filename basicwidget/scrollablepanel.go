@@ -12,7 +12,7 @@ import (
 	"github.com/hajimehoshi/guigui"
 )
 
-type widgetWithBounds struct {
+type widgetWithPosition struct {
 	widget   *guigui.Widget
 	position image.Point
 }
@@ -21,7 +21,7 @@ type ScrollablePanel struct {
 	guigui.DefaultWidgetBehavior
 
 	setContentFunc     func(context *guigui.Context, widget *guigui.Widget, childAppender *ScrollablePanelChildWidgetAppender)
-	childWidgets       []widgetWithBounds
+	childWidgets       []widgetWithPosition
 	scollOverlayWidget *guigui.Widget
 	border             *guigui.Widget
 
@@ -34,7 +34,7 @@ type ScrollablePanelChildWidgetAppender struct {
 }
 
 func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget *guigui.Widget, x, y int) {
-	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widgetWithBounds{
+	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widgetWithPosition{
 		widget:   widget,
 		position: image.Pt(x, y),
 	})
