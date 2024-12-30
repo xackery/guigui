@@ -135,7 +135,10 @@ func (t *TextField) SetSize(context *guigui.Context, width, height int) {
 
 func (t *TextField) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
 	dw, dh := defaultTextFieldSize(context)
-	return t.widthMinusDefault + dw, t.heightMinusDefault + dh
+	if t.text.multiline {
+		return t.widthMinusDefault + dw, t.heightMinusDefault + dh
+	}
+	return t.widthMinusDefault + dw, dh
 }
 
 type textFieldFocus struct {
