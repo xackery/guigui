@@ -32,14 +32,9 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	u := float64(basicwidget.UnitSize(context))
 
 	if r.sideBarWidget == nil {
-		var s basicwidget.Sidebar
-		r.sideBarWidget = guigui.NewWidget(&s)
+		r.sideBarWidget = guigui.NewWidget(&Sidebar{})
 	}
-	{
-		_, h := widget.Size(context)
-		r.sideBarWidget.Behavior().(*basicwidget.Sidebar).SetSize(context, int(8*u), h)
-		appender.AppendChildWidget(r.sideBarWidget, widget.Position())
-	}
+	appender.AppendChildWidget(r.sideBarWidget, widget.Position())
 
 	if r.generalGroupWidget == nil {
 		r.generalGroupWidget = guigui.NewWidget(&r.generalGroup)

@@ -48,6 +48,10 @@ func isKeyRepeating(key ebiten.Key) bool {
 
 type TextFilter func(text string, start, end int) (string, int, int)
 
+func DefaultTextColor(context *guigui.Context) color.Color {
+	return Color(context.ColorMode(), ColorTypeBase, 0.1)
+}
+
 type Text struct {
 	guigui.DefaultWidgetBehavior
 
@@ -780,7 +784,7 @@ func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 	if t.color != nil {
 		clr = color.RGBAModel.Convert(t.color).(color.RGBA)
 	} else {
-		clr = color.RGBAModel.Convert(Color(context.ColorMode(), ColorTypeBase, 0.1)).(color.RGBA)
+		clr = color.RGBAModel.Convert(DefaultTextColor(context)).(color.RGBA)
 	}
 	if t.transparent > 0 {
 		opacity := 1 - t.transparent
