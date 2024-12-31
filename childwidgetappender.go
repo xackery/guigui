@@ -21,7 +21,7 @@ func (c *ChildWidgetAppender) AppendChildWidget(widget *Widget, position image.P
 	})
 }
 
-// Deperecated: Do not use this.
+// Deprecated: Do not use this.
 func (c *ChildWidgetAppender) AppendChildWidgetWithBounds(widget *Widget, bounds image.Rectangle) {
 	if _, ok := c.app.currentWidgets[widget]; ok {
 		panic("guigui: the widget is already in the widget tree")

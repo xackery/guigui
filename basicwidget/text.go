@@ -61,6 +61,10 @@ type Text struct {
 	scaleMinus1 float64
 	bold        bool
 
+	sizeSet bool
+	width   int
+	height  int
+
 	selectable           bool
 	editable             bool
 	multiline            bool
@@ -85,7 +89,7 @@ func (t *Text) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	if t.cursorWidget == nil {
 		t.cursorWidget = guigui.NewPopupWidget(&t.cursor)
 	}
-	b := widget.Bounds()
+	b := t.bounds(context, widget)
 	b.Min.X -= cursorWidth(context) / 2
 	b.Max.X += cursorWidth(context) / 2
 	appender.AppendChildWidgetWithBounds(t.cursorWidget, b)
@@ -242,9 +246,18 @@ func (t *Text) SetMultiline(multiline bool) {
 	t.needsRedraw = true
 }
 
+func (t *Text) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
+	p := widget.Position()
+	w, h := t.Size(context, widget)
+	return image.Rectangle{
+		Min: p,
+		Max: p.Add(image.Pt(w, h)),
+	}
+}
+
 func (t *Text) textBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
 	offsetX, offsetY := t.scrollOverlayWidget.Behavior().(*ScrollOverlay).Offset()
-	b := widget.Bounds()
+	b := t.bounds(context, widget)
 
 	switch t.hAlign {
 	case HorizontalAlignStart:
@@ -580,7 +593,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 }
 
 func (t *Text) adjustScrollOffset(context *guigui.Context, widget *guigui.Widget) {
-	t.updateContentSize(context, widget)
+	t.updateContentSize(context)
 
 	s, e, ok := t.selectionToDraw(widget)
 	if !ok {
@@ -590,22 +603,23 @@ func (t *Text) adjustScrollOffset(context *guigui.Context, widget *guigui.Widget
 
 	tb := t.textBounds(context, widget)
 	face := t.face(context)
+	bounds := t.bounds(context, widget)
 	if x, _, y, ok := textPosition(tb, text, e, face, t.lineHeight(context), t.hAlign, t.vAlign); ok {
 		var dx, dy float64
-		if max := float64(widget.Bounds().Max.X); x > max {
+		if max := float64(bounds.Max.X); x > max {
 			dx = max - x
 		}
-		if max := float64(widget.Bounds().Max.Y); y > max {
+		if max := float64(bounds.Max.Y); y > max {
 			dy = max - y
 		}
 		t.scrollOverlayWidget.Behavior().(*ScrollOverlay).SetOffsetByDelta(dx, dy)
 	}
 	if x, y, _, ok := textPosition(tb, text, s, face, t.lineHeight(context), t.hAlign, t.vAlign); ok {
 		var dx, dy float64
-		if min := float64(widget.Bounds().Min.X); x < min {
+		if min := float64(bounds.Min.X); x < min {
 			dx = min - x
 		}
-		if min := float64(widget.Bounds().Min.Y); y < min {
+		if min := float64(bounds.Min.Y); y < min {
 			dy = min - y
 		}
 		t.scrollOverlayWidget.Behavior().(*ScrollOverlay).SetOffsetByDelta(dx, dy)
@@ -694,8 +708,8 @@ func (t *Text) applyFilter() {
 	}
 }
 
-func (t *Text) updateContentSize(context *guigui.Context, widget *guigui.Widget) {
-	w, h := t.Size(context, widget)
+func (t *Text) updateContentSize(context *guigui.Context) {
+	w, h := t.TextSize(context)
 	t.scrollOverlayWidget.Behavior().(*ScrollOverlay).SetContentSize(w, h)
 }
 
@@ -781,6 +795,13 @@ func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 }
 
 func (t *Text) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+	if t.sizeSet {
+		return t.width, t.height
+	}
+	return t.TextSize(context)
+}
+
+func (t *Text) TextSize(context *guigui.Context) (int, int) {
 	w, _ := text.Measure(t.textToDraw(), t.face(context), t.lineHeight(context))
 	w *= t.scaleMinus1 + 1
 	h := t.textHeight(context, t.textToDraw())
@@ -793,6 +814,16 @@ func (t *Text) textHeight(context *guigui.Context, str string) int {
 	}
 	// The text is already shifted by (lineHeight - (m.HAscent + m.Descent)) / 2.
 	return int(t.lineHeight(context) * float64(strings.Count(str, "\n")+1))
+}
+
+func (t *Text) SetSize(width, height int) {
+	t.sizeSet = true
+	t.width = width
+	t.height = height
+}
+
+func (t *Text) ResetSize() {
+	t.sizeSet = false
 }
 
 func (t *Text) CursorShape(context *guigui.Context, widget *guigui.Widget) (ebiten.CursorShapeType, bool) {

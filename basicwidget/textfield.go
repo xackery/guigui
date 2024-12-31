@@ -61,14 +61,15 @@ func (t *TextField) AppendChildWidgets(context *guigui.Context, widget *guigui.W
 		t.text.SetEditable(true)
 		t.textWidget = guigui.NewWidget(&t.text)
 	}
-	bounds := t.bounds(context, widget)
-	bounds.Min.X += UnitSize(context) / 2
-	bounds.Max.X -= UnitSize(context) / 2
+	b := t.bounds(context, widget)
+	b.Min.X += UnitSize(context) / 2
+	b.Max.X -= UnitSize(context) / 2
+	t.text.SetSize(b.Dx(), b.Dy())
 	// TODO: Consider multiline.
 	if !t.text.IsMultiline() {
 		t.text.SetVerticalAlign(VerticalAlignMiddle)
 	}
-	appender.AppendChildWidgetWithBounds(t.textWidget, bounds)
+	appender.AppendChildWidget(t.textWidget, b.Min)
 
 	if widget.HasFocusedChildWidget() {
 		if t.focusWidget == nil {

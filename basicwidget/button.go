@@ -188,7 +188,8 @@ func (t *TextButton) AppendChildWidgets(context *guigui.Context, widget *guigui.
 	} else if !t.buttonWidget.IsEnabled() {
 		bounds.Min.Y += int(1 * context.Scale())
 	}
-	appender.AppendChildWidgetWithBounds(t.textWidget, bounds)
+	t.textWidget.Behavior().(*Text).SetSize(bounds.Dx(), bounds.Dy())
+	appender.AppendChildWidget(t.textWidget, bounds.Min)
 }
 
 func (t *TextButton) PropagateEvent(context *guigui.Context, widget *guigui.Widget, event guigui.Event) (guigui.Event, bool) {
@@ -216,11 +217,3 @@ func (t *TextButton) Size(context *guigui.Context, widget *guigui.Widget) (int, 
 func (t *TextButton) SetSize(context *guigui.Context, width, height int) {
 	t.button.SetSize(context, width, height)
 }
-
-/*func (t *TextButton) MinimumWidth(scale float64) int {
-	return t.label.Width(scale) + 4*t.button.settings.SmallUnitSize(scale)
-}
-
-func (t *TextButton) MinimumHeight(scale float64) int {
-	return t.label.Height(scale)
-}*/
