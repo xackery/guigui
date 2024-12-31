@@ -122,11 +122,11 @@ func defaultTextFieldSize(context *guigui.Context) (int, int) {
 }
 
 func (t *TextField) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
-	dw, dh := defaultTextFieldSize(context)
+	w, h := t.Size(context, widget)
 	p := widget.Position()
 	return image.Rectangle{
 		Min: p,
-		Max: p.Add(image.Pt(t.widthMinusDefault+dw, t.heightMinusDefault+dh)),
+		Max: p.Add(image.Pt(w, h)),
 	}
 }
 
