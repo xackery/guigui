@@ -107,7 +107,10 @@ func Run(root *Widget, options *RunOptions) error {
 	if options.AppScale > 0 {
 		a.context.appScaleMinus1 = options.AppScale - 1
 	}
-	return ebiten.RunGame(a)
+	eop := &ebiten.RunGameOptions{
+		ColorSpace: ebiten.ColorSpaceSRGB,
+	}
+	return ebiten.RunGameWithOptions(a, eop)
 }
 
 func (a app) bounds() image.Rectangle {
