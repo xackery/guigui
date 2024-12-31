@@ -11,18 +11,6 @@ type ChildWidgetAppender struct {
 }
 
 func (c *ChildWidgetAppender) AppendChildWidget(widget *Widget, position image.Point) {
-	widget.parent = c.widget
-
-	// Size might require the parent info.
-	w, h := widget.Size(c.app.context)
-	c.AppendChildWidgetWithBounds(widget, image.Rectangle{
-		Min: position,
-		Max: position.Add(image.Point{w, h}),
-	})
-}
-
-// Deprecated: Do not use this.
-func (c *ChildWidgetAppender) AppendChildWidgetWithBounds(widget *Widget, bounds image.Rectangle) {
 	if _, ok := c.app.currentWidgets[widget]; ok {
 		panic("guigui: the widget is already in the widget tree")
 	}
@@ -31,9 +19,14 @@ func (c *ChildWidgetAppender) AppendChildWidgetWithBounds(widget *Widget, bounds
 	}
 	c.app.currentWidgets[widget] = struct{}{}
 
-	widget.parent = c.widget
-
 	// Redraw if the child is a new one, or the bounds are changed.
+	// Size might require the parent info, so set this earlier.
+	widget.parent = c.widget
+	w, h := widget.Size(c.app.context)
+	bounds := image.Rectangle{
+		Min: position,
+		Max: position.Add(image.Point{w, h}),
+	}
 	if _, ok := c.app.prevWidgets[widget]; !ok {
 		if widget.popup {
 			c.app.requestRedraw(bounds)

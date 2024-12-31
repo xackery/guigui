@@ -89,10 +89,9 @@ func (t *Text) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	if t.cursorWidget == nil {
 		t.cursorWidget = guigui.NewPopupWidget(&t.cursor)
 	}
-	b := t.bounds(context, widget)
-	b.Min.X -= cursorWidth(context) / 2
-	b.Max.X += cursorWidth(context) / 2
-	appender.AppendChildWidgetWithBounds(t.cursorWidget, b)
+	p := widget.Position()
+	p.X -= cursorWidth(context)
+	appender.AppendChildWidget(t.cursorWidget, p)
 
 	if t.scrollOverlayWidget == nil {
 		t.scrollOverlayWidget = guigui.NewWidget(&ScrollOverlay{})
