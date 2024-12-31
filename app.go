@@ -115,7 +115,7 @@ func (a app) bounds() image.Rectangle {
 }
 
 func (a *app) Update() error {
-	a.root.bounds = a.bounds()
+	a.root.position = image.Point{}
 	a.root.visibleBounds = a.bounds()
 
 	a.context.setDeviceScale(ebiten.Monitor().DeviceScaleFactor())
@@ -228,7 +228,7 @@ func (a *app) appendChildWidgets() {
 	// If the previous children are not in the current children, redraw the region.
 	for w := range a.prevWidgets {
 		if _, ok := a.currentWidgets[w]; !ok {
-			a.requestRedraw(w.bounds)
+			a.requestRedraw(w.bounds())
 		}
 	}
 

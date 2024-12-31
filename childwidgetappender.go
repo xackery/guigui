@@ -33,21 +33,21 @@ func (c *ChildWidgetAppender) AppendChildWidget(widget *Widget, position image.P
 		} else {
 			c.app.requestRedraw(bounds.Intersect(c.widget.visibleBounds))
 		}
-	} else if !widget.bounds.Eq(bounds) {
+	} else if !widget.bounds().Eq(bounds) {
 		if widget.popup {
 			c.app.requestRedraw(bounds)
-			c.app.requestRedraw(widget.bounds)
+			c.app.requestRedraw(widget.bounds())
 		} else {
 			c.app.requestRedraw(bounds.Intersect(c.widget.visibleBounds))
-			c.app.requestRedraw(widget.bounds.Intersect(c.widget.visibleBounds))
+			c.app.requestRedraw(widget.bounds().Intersect(c.widget.visibleBounds))
 		}
 	}
 
-	widget.bounds = bounds
+	widget.position = position
 	if widget.popup {
-		widget.visibleBounds = widget.bounds
+		widget.visibleBounds = widget.bounds()
 	} else {
-		widget.visibleBounds = c.widget.visibleBounds.Intersect(widget.bounds)
+		widget.visibleBounds = c.widget.visibleBounds.Intersect(widget.bounds())
 	}
 
 	c.widget.children = append(c.widget.children, widget)

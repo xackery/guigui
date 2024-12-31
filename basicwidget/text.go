@@ -61,9 +61,10 @@ type Text struct {
 	scaleMinus1 float64
 	bold        bool
 
-	sizeSet bool
-	width   int
-	height  int
+	widthSet  bool
+	width     int
+	heightSet bool
+	height    int
 
 	selectable           bool
 	editable             bool
@@ -794,10 +795,17 @@ func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 }
 
 func (t *Text) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
-	if t.sizeSet {
-		return t.width, t.height
+	w, h := t.width, t.height
+	if !t.widthSet || !t.heightSet {
+		tw, th := t.TextSize(context)
+		if !t.widthSet {
+			w = tw
+		}
+		if !t.heightSet {
+			h = th
+		}
 	}
-	return t.TextSize(context)
+	return w, h
 }
 
 func (t *Text) TextSize(context *guigui.Context) (int, int) {
@@ -816,13 +824,25 @@ func (t *Text) textHeight(context *guigui.Context, str string) int {
 }
 
 func (t *Text) SetSize(width, height int) {
-	t.sizeSet = true
+	t.widthSet = true
+	t.heightSet = true
 	t.width = width
 	t.height = height
 }
 
+func (t *Text) SetWidth(width int) {
+	t.widthSet = true
+	t.width = width
+}
+
+func (t *Text) SetHeight(height int) {
+	t.heightSet = true
+	t.height = height
+}
+
 func (t *Text) ResetSize() {
-	t.sizeSet = false
+	t.widthSet = false
+	t.heightSet = false
 }
 
 func (t *Text) CursorShape(context *guigui.Context, widget *guigui.Widget) (ebiten.CursorShapeType, bool) {

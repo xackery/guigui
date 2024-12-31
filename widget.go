@@ -16,7 +16,7 @@ type Widget struct {
 
 	behavior      WidgetBehavior
 	popup         bool
-	bounds        image.Rectangle
+	position      image.Point
 	visibleBounds image.Rectangle
 
 	parent   *Widget
@@ -57,12 +57,15 @@ func (w *Widget) Parent() *Widget {
 }
 
 func (w *Widget) Position() image.Point {
-	return w.bounds.Min
+	return w.position
 }
 
-// Deprecated: Do not use this.
-func (w *Widget) Bounds() image.Rectangle {
-	return w.bounds
+func (w *Widget) bounds() image.Rectangle {
+	width, height := w.Size(w.app().context)
+	return image.Rectangle{
+		Min: w.position,
+		Max: w.position.Add(image.Point{width, height}),
+	}
 }
 
 func (w *Widget) VisibleBounds() image.Rectangle {

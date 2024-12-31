@@ -68,7 +68,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		t.SetText("(TODO)")
 		r.localeSelectorWidget = guigui.NewWidget(&t)
 	}
-	r.generalGroup.SetWidth(context, widget.Bounds().Dx()-int(9*u))
+	w, _ := widget.Size(context)
+	r.generalGroup.SetWidth(context, w-int(9*u))
 	r.generalGroup.SetItems([]*basicwidget.GroupItem{
 		{
 			PrimaryWidget:   r.colorModeToggleLabelWidget,

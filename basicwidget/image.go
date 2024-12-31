@@ -14,6 +14,9 @@ type Image struct {
 
 	image *ebiten.Image
 
+	widthMinusDefault  int
+	heightMinusDefault int
+
 	needsRedraw bool
 }
 
@@ -30,10 +33,12 @@ func (i *Image) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten
 		return
 	}
 
-	imgScale := min(float64(widget.Bounds().Dx())/float64(i.image.Bounds().Dx()), float64(widget.Bounds().Dy())/float64(i.image.Bounds().Dy()))
+	p := widget.Position()
+	w, h := widget.Size(context)
+	imgScale := min(float64(w)/float64(i.image.Bounds().Dx()), float64(h)/float64(i.image.Bounds().Dy()))
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(imgScale, imgScale)
-	op.GeoM.Translate(float64(widget.Bounds().Min.X), float64(widget.Bounds().Min.Y))
+	op.GeoM.Translate(float64(p.X), float64(p.Y))
 	if !widget.IsEnabled() {
 		// TODO: Reduce the saturation?
 		op.ColorScale.ScaleAlpha(0.25)
@@ -53,4 +58,19 @@ func (i *Image) SetImage(image *ebiten.Image) {
 	}
 	i.image = image
 	i.needsRedraw = true
+}
+
+func defaultImageSize(context *guigui.Context) (int, int) {
+	return 6 * UnitSize(context), 6 * UnitSize(context)
+}
+
+func (i *Image) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+	dw, dh := defaultImageSize(context)
+	return i.widthMinusDefault + dw, i.heightMinusDefault + dh
+}
+
+func (i *Image) SetSize(context *guigui.Context, width, height int) {
+	dw, dh := defaultImageSize(context)
+	i.widthMinusDefault = width - dw
+	i.heightMinusDefault = height - dh
 }

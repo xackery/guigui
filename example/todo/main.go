@@ -56,7 +56,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		var t basicwidget.TextField
 		r.textFieldWidget = guigui.NewWidget(&t)
 	}
-	w := widget.Bounds().Dx() - int(6.5*u)
+	width, _ := widget.Size(context)
+	w := width - int(6.5*u)
 	r.textFieldWidget.Behavior().(*basicwidget.TextField).SetSize(context, w, int(u))
 	{
 		p := widget.Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
@@ -70,10 +71,11 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		r.createButtonWidget = guigui.NewWidget(&b)
 	}
 	{
-		b := widget.Bounds()
-		x := b.Max.X - int(0.5*u) - int(5*u)
-		y := b.Min.Y + int(0.5*u)
-		appender.AppendChildWidget(r.createButtonWidget, image.Pt(x, y))
+		p := widget.Position()
+		w, _ := widget.Size(context)
+		p.X += w - int(0.5*u) - int(5*u)
+		p.Y += int(0.5 * u)
+		appender.AppendChildWidget(r.createButtonWidget, p)
 	}
 
 	if r.tasksPanelWidget == nil {
@@ -84,9 +86,9 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	w, h := widget.Size(context)
 	tasksSP.SetSize(context, w, h-int(2*u))
 	tasksSP.SetContent(func(context *guigui.Context, widget *guigui.Widget, childAppender *basicwidget.ScrollablePanelChildWidgetAppender) {
-		bounds := widget.Bounds()
-		minX := bounds.Min.X + int(0.5*u)
-		y := bounds.Min.Y
+		p := widget.Position()
+		minX := p.X + int(0.5*u)
+		y := p.Y
 		for i, t := range r.tasks {
 			if _, ok := r.taskWidgets[t.ID]; !ok {
 				var b basicwidget.TextButton
@@ -107,8 +109,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 				y += int(u / 4)
 			}
 			childAppender.AppendChildWidget(r.taskWidgets[t.ID].doneButtonWidget, image.Pt(minX, y))
-			_, textH := r.taskWidgets[t.ID].textWidget.Size(context)
-			childAppender.AppendChildWidget(r.taskWidgets[t.ID].textWidget, image.Pt(minX+int(3.5*u), y+int((u-float64(textH))/2)))
+			r.taskWidgets[t.ID].textWidget.Behavior().(*basicwidget.Text).SetSize(w-int(4.5*u), int(u))
+			childAppender.AppendChildWidget(r.taskWidgets[t.ID].textWidget, image.Pt(minX+int(3.5*u), y))
 			y += int(u)
 		}
 	})
