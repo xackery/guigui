@@ -161,8 +161,7 @@ func (t *textFieldFocus) Draw(context *guigui.Context, widget *guigui.Widget, ds
 }
 
 func (t *textFieldFocus) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
-	textFieldWidget := widget.Parent()
-	w, h := textFieldWidget.Behavior().(*TextField).Size(context, textFieldWidget)
+	w, h := widget.Parent().Size(context)
 	w += 2 * textFieldFocusBorderWidth(context)
 	h += 2 * textFieldFocusBorderWidth(context)
 	return w, h

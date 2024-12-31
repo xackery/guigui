@@ -47,7 +47,7 @@ type app struct {
 	invalidated                image.Rectangle
 	invalidatedRegionsForDebug []invalidatedRegionsForDebugItem
 
-	prevWidgets    map[*Widget]struct{}
+	prevWidgets    map[*Widget]image.Rectangle
 	currentWidgets map[*Widget]struct{}
 
 	screenWidth  float64
@@ -219,19 +219,23 @@ const (
 func (a *app) appendChildWidgets() {
 	for w := range a.currentWidgets {
 		if a.prevWidgets == nil {
-			a.prevWidgets = map[*Widget]struct{}{}
+			a.prevWidgets = map[*Widget]image.Rectangle{}
 		}
+		a.prevWidgets[w] = w.bounds()
+		// Do not reset parent here, as bounds might require parent info.
+	}
+	for w := range a.currentWidgets {
 		w.parent = nil
-		a.prevWidgets[w] = struct{}{}
 	}
 	clear(a.currentWidgets)
 
 	a.doAppendChildWidgets(a.root)
 
 	// If the previous children are not in the current children, redraw the region.
-	for w := range a.prevWidgets {
+	for w, bounds := range a.prevWidgets {
 		if _, ok := a.currentWidgets[w]; !ok {
-			a.requestRedraw(w.bounds())
+			// Do not use w.bounds() as w.parent might be nil.
+			a.requestRedraw(bounds)
 		}
 	}
 
