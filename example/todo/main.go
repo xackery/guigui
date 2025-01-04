@@ -67,7 +67,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	if r.createButtonWidget == nil {
 		var b basicwidget.TextButton
 		b.SetText("Create")
-		b.SetSize(context, int(5*u), int(u))
+		b.SetWidth(int(5 * u))
 		r.createButtonWidget = guigui.NewWidget(&b)
 	}
 	{
@@ -93,7 +93,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 			if _, ok := r.taskWidgets[t.ID]; !ok {
 				var b basicwidget.TextButton
 				b.SetText("Done")
-				b.SetSize(context, int(3*u), int(u))
+				b.SetWidth(int(3 * u))
 				var text basicwidget.Text
 				text.SetText(t.Text)
 				text.SetVerticalAlign(basicwidget.VerticalAlignMiddle)

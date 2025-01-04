@@ -155,6 +155,9 @@ type TextButton struct {
 
 	textColor color.Color
 
+	width    int
+	widthSet bool
+
 	needsRedraw bool
 }
 
@@ -171,9 +174,12 @@ func (t *TextButton) SetTextColor(clr color.Color) {
 }
 
 func (t *TextButton) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+	w, h := widget.Size(context)
+
 	if t.buttonWidget == nil {
 		t.buttonWidget = guigui.NewWidget(&t.button)
 	}
+	t.buttonWidget.Behavior().(*Button).SetSize(context, w, h)
 	appender.AppendChildWidget(t.buttonWidget, widget.Position())
 
 	if t.textWidget == nil {
@@ -181,15 +187,15 @@ func (t *TextButton) AppendChildWidgets(context *guigui.Context, widget *guigui.
 		t.text.SetVerticalAlign(VerticalAlignMiddle)
 		t.textWidget = guigui.NewWidget(&t.text)
 	}
-	bounds := t.button.bounds(context, widget)
+	p := widget.Position()
 	if t.button.isActive() {
 		// As the text is centered, shift it down by double sizes of the stroke width.
-		bounds.Min.Y += int(2 * context.Scale())
+		p.Y += int(2 * context.Scale())
 	} else if !t.buttonWidget.IsEnabled() {
-		bounds.Min.Y += int(1 * context.Scale())
+		p.Y += int(1 * context.Scale())
 	}
-	t.textWidget.Behavior().(*Text).SetSize(bounds.Dx(), bounds.Dy())
-	appender.AppendChildWidget(t.textWidget, bounds.Min)
+	t.textWidget.Behavior().(*Text).SetSize(w, h)
+	appender.AppendChildWidget(t.textWidget, p)
 }
 
 func (t *TextButton) PropagateEvent(context *guigui.Context, widget *guigui.Widget, event guigui.Event) (guigui.Event, bool) {
@@ -211,9 +217,20 @@ func (t *TextButton) Update(context *guigui.Context, widget *guigui.Widget) erro
 }
 
 func (t *TextButton) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
-	return t.button.Size(context, widget)
+	_, dh := defaultButtonSize(context)
+	if t.widthSet {
+		return t.width, dh
+	}
+	tw, _ := t.text.TextSize(context)
+	return tw + UnitSize(context), dh
 }
 
-func (t *TextButton) SetSize(context *guigui.Context, width, height int) {
-	t.button.SetSize(context, width, height)
+func (t *TextButton) SetWidth(width int) {
+	t.width = width
+	t.widthSet = true
+}
+
+func (t *TextButton) ResetWidth() {
+	t.width = 0
+	t.widthSet = false
 }

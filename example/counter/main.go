@@ -42,6 +42,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	if r.resetButtonWidget == nil {
 		var b basicwidget.TextButton
 		b.SetText("Reset")
+		b.SetWidth(6 * basicwidget.UnitSize(context))
 		r.resetButtonWidget = guigui.NewWidget(&b)
 	}
 	{
@@ -55,6 +56,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	if r.incButtonWidget == nil {
 		var b basicwidget.TextButton
 		b.SetText("Increment")
+		b.SetWidth(6 * basicwidget.UnitSize(context))
 		r.incButtonWidget = guigui.NewWidget(&b)
 	}
 	{
@@ -68,6 +70,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	if r.decButtonWidget == nil {
 		var b basicwidget.TextButton
 		b.SetText("Decrement")
+		b.SetWidth(6 * basicwidget.UnitSize(context))
 		r.decButtonWidget = guigui.NewWidget(&b)
 	}
 	{
