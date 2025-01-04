@@ -53,18 +53,25 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, widget *guigui.Wid
 	list := s.listWidget.Behavior().(*basicwidget.List)
 	list.SetStyle(basicwidget.ListStyleSidebar)
 	var items []basicwidget.ListItem
-	for i, w := range s.listItemWidgets {
+	for _, w := range s.listItemWidgets {
 		items = append(items, basicwidget.ListItem{
 			Content:    w,
 			Selectable: true,
 		})
+	}
+	list.SetItems(items)
+}
+
+func (s *Sidebar) Update(context *guigui.Context, widget *guigui.Widget) error {
+	list := s.listWidget.Behavior().(*basicwidget.List)
+	for i, w := range s.listItemWidgets {
 		if list.SelectedItemIndex() == i {
 			w.Behavior().(*basicwidget.Text).SetColor(basicwidget.Color(context.ColorMode(), basicwidget.ColorTypeBase, 1))
 		} else {
 			w.Behavior().(*basicwidget.Text).SetColor(basicwidget.DefaultTextColor(context))
 		}
 	}
-	list.SetItems(items)
+	return nil
 }
 
 func (s *Sidebar) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
