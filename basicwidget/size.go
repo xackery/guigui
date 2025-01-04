@@ -20,5 +20,5 @@ func UnitSize(context *guigui.Context) int {
 }
 
 func RoundedCornerRadius(context *guigui.Context) int {
-	return int(baseUnitSize * context.Scale() / 3)
+	return int(baseUnitSize * context.Scale() / 4)
 }

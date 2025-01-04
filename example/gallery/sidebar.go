@@ -13,7 +13,7 @@ type Sidebar struct {
 
 	sidebarWidget   *guigui.Widget
 	listWidget      *guigui.Widget
-	listItemWidgets []*guigui.Widget
+	listItemWidgets []basicwidget.ListItem
 }
 
 func sidebarWidth(context *guigui.Context) int {
@@ -37,42 +37,43 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, widget *guigui.Wid
 	})
 	appender.AppendChildWidget(s.sidebarWidget, widget.Position())
 
+	list := s.listWidget.Behavior().(*basicwidget.List)
+	list.SetStyle(basicwidget.ListStyleSidebar)
 	if len(s.listItemWidgets) == 0 {
 		{
 			var t basicwidget.Text
 			t.SetText("Settings")
 			t.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
-			s.listItemWidgets = append(s.listItemWidgets, guigui.NewWidget(&t))
+			t.SetSize(list.ItemWidth(context, s.listWidget), basicwidget.UnitSize(context))
+			s.listItemWidgets = append(s.listItemWidgets, basicwidget.ListItem{
+				Content:    guigui.NewWidget(&t),
+				Selectable: true,
+				Tag:        "settings",
+			})
 		}
 		{
 			var t basicwidget.Text
-			t.SetText("Buttons")
+			t.SetText("Basic")
 			t.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
-			s.listItemWidgets = append(s.listItemWidgets, guigui.NewWidget(&t))
+			t.SetSize(list.ItemWidth(context, s.listWidget), basicwidget.UnitSize(context))
+			s.listItemWidgets = append(s.listItemWidgets, basicwidget.ListItem{
+				Content:    guigui.NewWidget(&t),
+				Selectable: true,
+				Tag:        "basic",
+			})
 		}
 	}
-
-	list := s.listWidget.Behavior().(*basicwidget.List)
-	list.SetStyle(basicwidget.ListStyleSidebar)
-	var items []basicwidget.ListItem
-	for _, w := range s.listItemWidgets {
-		t := w.Behavior().(*basicwidget.Text)
-		t.SetSize(list.ItemWidth(context, s.listWidget), basicwidget.UnitSize(context))
-		items = append(items, basicwidget.ListItem{
-			Content:    w,
-			Selectable: true,
-		})
-	}
-	list.SetItems(items)
+	list.SetItems(s.listItemWidgets)
 }
 
 func (s *Sidebar) Update(context *guigui.Context, widget *guigui.Widget) error {
 	list := s.listWidget.Behavior().(*basicwidget.List)
 	for i, w := range s.listItemWidgets {
+		t := w.Content.Behavior().(*basicwidget.Text)
 		if list.SelectedItemIndex() == i {
-			w.Behavior().(*basicwidget.Text).SetColor(basicwidget.DefaultActiveListItemTextColor(context))
+			t.SetColor(basicwidget.DefaultActiveListItemTextColor(context))
 		} else {
-			w.Behavior().(*basicwidget.Text).SetColor(basicwidget.DefaultTextColor(context))
+			t.SetColor(basicwidget.DefaultTextColor(context))
 		}
 	}
 	return nil
@@ -81,4 +82,16 @@ func (s *Sidebar) Update(context *guigui.Context, widget *guigui.Widget) error {
 func (s *Sidebar) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
 	_, h := widget.Parent().Size(context)
 	return sidebarWidth(context), h
+}
+
+func (s *Sidebar) SelectedItemTag() string {
+	if s.listWidget == nil {
+		return ""
+	}
+	list := s.listWidget.Behavior().(*basicwidget.List)
+	item, ok := list.SelectedItem()
+	if !ok {
+		return ""
+	}
+	return item.Tag.(string)
 }

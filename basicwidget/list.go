@@ -453,7 +453,7 @@ func (l *List) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 		r.Min.X -= RoundedCornerRadius(context)
 		r.Max.X += RoundedCornerRadius(context)
 		if r.Overlaps(widget.VisibleBounds()) {
-			DrawRoundedRect(context, dst, r, clr, RoundedCornerRadius(context)/2)
+			DrawRoundedRect(context, dst, r, clr, RoundedCornerRadius(context))
 		}
 	}
 
@@ -462,7 +462,7 @@ func (l *List) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 		r.Min.X -= RoundedCornerRadius(context)
 		r.Max.X += RoundedCornerRadius(context)
 		if r.Overlaps(widget.VisibleBounds()) {
-			DrawRoundedRect(context, dst, r, Color(context.ColorMode(), ColorTypeBase, 0.9), RoundedCornerRadius(context)/2)
+			DrawRoundedRect(context, dst, r, Color(context.ColorMode(), ColorTypeBase, 0.9), RoundedCornerRadius(context))
 		}
 	}
 

@@ -5,7 +5,6 @@ package main
 
 import (
 	"fmt"
-	"image"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -17,76 +16,37 @@ import (
 type Root struct {
 	guigui.RootWidgetBehavior
 
-	sideBarWidget *guigui.Widget
-
-	// General
-	generalGroup               basicwidget.Group
-	generalGroupWidget         *guigui.Widget
-	colorModeToggleLabelWidget *guigui.Widget
-	colorModeToggleWidget      *guigui.Widget
-	localeLabelWidget          *guigui.Widget
-	localeSelectorWidget       *guigui.Widget
+	sidebarWidget  *guigui.Widget
+	settingsWidget *guigui.Widget
+	basicWidget    *guigui.Widget
 }
 
 func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	u := float64(basicwidget.UnitSize(context))
-
-	if r.sideBarWidget == nil {
-		r.sideBarWidget = guigui.NewWidget(&Sidebar{})
+	if r.sidebarWidget == nil {
+		r.sidebarWidget = guigui.NewWidget(&Sidebar{})
 	}
-	appender.AppendChildWidget(r.sideBarWidget, widget.Position())
+	appender.AppendChildWidget(r.sidebarWidget, widget.Position())
 
-	if r.generalGroupWidget == nil {
-		r.generalGroupWidget = guigui.NewWidget(&r.generalGroup)
-	}
+	sw, _ := r.sidebarWidget.Size(context)
+	p := widget.Position()
+	p.X += sw
 
-	if r.colorModeToggleLabelWidget == nil {
-		var t basicwidget.Text
-		t.SetText("Color Mode")
-		r.colorModeToggleLabelWidget = guigui.NewWidget(&t)
-	}
-	if r.colorModeToggleWidget == nil {
-		var t basicwidget.ToggleButton
-		if context.ColorMode() == guigui.ColorModeDark {
-			t.SetValue(true)
+	sidebar := r.sidebarWidget.Behavior().(*Sidebar)
+	switch sidebar.SelectedItemTag() {
+	case "settings":
+		if r.settingsWidget == nil {
+			r.settingsWidget = guigui.NewWidget(&Settings{})
 		}
-		r.colorModeToggleWidget = guigui.NewWidget(&t)
-	}
-	if r.localeLabelWidget == nil {
-		var t basicwidget.Text
-		t.SetText("Locale")
-		r.localeLabelWidget = guigui.NewWidget(&t)
-	}
-	if r.localeSelectorWidget == nil {
-		// TODO: Make this a selector
-		var t basicwidget.Text
-		t.SetText("(TODO)")
-		r.localeSelectorWidget = guigui.NewWidget(&t)
-	}
-	w, _ := widget.Size(context)
-	r.generalGroup.SetWidth(context, w-int(9*u))
-	r.generalGroup.SetItems([]*basicwidget.GroupItem{
-		{
-			PrimaryWidget:   r.colorModeToggleLabelWidget,
-			SecondaryWidget: r.colorModeToggleWidget,
-		},
-		{
-			PrimaryWidget:   r.localeLabelWidget,
-			SecondaryWidget: r.localeSelectorWidget,
-		},
-	})
-	{
-		p := widget.Position().Add(image.Pt(int(8.5*u), int(0.5*u)))
-		appender.AppendChildWidget(r.generalGroupWidget, p)
+		appender.AppendChildWidget(r.settingsWidget, p)
+	case "basic":
+		if r.basicWidget == nil {
+			r.basicWidget = guigui.NewWidget(&Basic{})
+		}
+		appender.AppendChildWidget(r.basicWidget, p)
 	}
 }
 
 func (r *Root) Update(context *guigui.Context, widget *guigui.Widget) error {
-	if r.colorModeToggleWidget.Behavior().(*basicwidget.ToggleButton).Value() {
-		context.SetColorMode(guigui.ColorModeDark)
-	} else {
-		context.SetColorMode(guigui.ColorModeLight)
-	}
 	return nil
 }
 
