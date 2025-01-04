@@ -25,6 +25,10 @@ type Group struct {
 	widthMinusDefault int
 }
 
+func groupItemPadding(context *guigui.Context) (int, int) {
+	return UnitSize(context) / 2, UnitSize(context) / 2
+}
+
 func (g *Group) SetItems(items []*GroupItem) {
 	g.items = slices.Delete(g.items, 0, len(g.items))
 	g.items = append(g.items, items...)
@@ -44,6 +48,8 @@ func (g *Group) AppendChildWidgets(context *guigui.Context, widget *guigui.Widge
 }
 
 func (g *Group) itemBounds(context *guigui.Context, widget *guigui.Widget, childIndex int) image.Rectangle {
+	paddingX, paddingY := groupItemPadding(context)
+
 	var y int
 	for i, item := range g.items {
 		if i > childIndex {
@@ -60,13 +66,13 @@ func (g *Group) itemBounds(context *guigui.Context, widget *guigui.Widget, child
 		h := max(kh, vh, int(LineHeight(context)))
 		if i == childIndex {
 			bounds := g.bounds(context, widget)
-			bounds.Min.X += UnitSize(context) / 2
-			bounds.Max.X -= UnitSize(context) / 2
-			bounds.Min.Y += y + UnitSize(context)/2
+			bounds.Min.X += paddingX
+			bounds.Max.X -= paddingX
+			bounds.Min.Y += y + paddingY
 			bounds.Max.Y = bounds.Min.Y + h
 			return bounds
 		}
-		y += h + UnitSize(context)
+		y += h + 2*paddingY
 	}
 
 	return image.Rectangle{}
@@ -78,11 +84,12 @@ func (g *Group) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten
 	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.925), RoundedCornerRadius(context))
 
 	if len(g.items) > 0 {
+		paddingX, paddingY := groupItemPadding(context)
 		for i := range g.items[:len(g.items)-1] {
 			b := g.itemBounds(context, widget, i)
-			x0 := float32(bounds.Min.X + UnitSize(context)/2)
-			x1 := float32(bounds.Max.X - UnitSize(context)/2)
-			y := float32(b.Max.Y) + float32(UnitSize(context))/2
+			x0 := float32(bounds.Min.X + paddingX)
+			x1 := float32(bounds.Max.X - paddingX)
+			y := float32(b.Max.Y) + float32(paddingY)
 			width := 1 * float32(context.Scale())
 			clr := Color(context.ColorMode(), ColorTypeBase, 0.875)
 			vector.StrokeLine(dst, x0, y, x1, y, width, clr, false)
@@ -105,6 +112,8 @@ func defaultGroupWidth(context *guigui.Context) int {
 }
 
 func (g *Group) height(context *guigui.Context) int {
+	_, paddingY := groupItemPadding(context)
+
 	var y int
 	for _, item := range g.items {
 		if (item.PrimaryWidget == nil || !item.PrimaryWidget.IsVisible()) &&
@@ -114,7 +123,7 @@ func (g *Group) height(context *guigui.Context) int {
 		_, kh := item.PrimaryWidget.Size(context)
 		_, vh := item.SecondaryWidget.Size(context)
 		h := max(kh, vh, int(LineHeight(context)))
-		y += h + UnitSize(context)
+		y += h + 2*paddingY
 	}
 	return y
 }
