@@ -261,23 +261,15 @@ func (t *Text) bounds(context *guigui.Context, widget *guigui.Widget) image.Rect
 
 func (t *Text) textBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
 	offsetX, offsetY := t.scrollOverlayWidget.Behavior().(*ScrollOverlay).Offset()
+
 	b := t.bounds(context, widget)
 
-	switch t.hAlign {
-	case HorizontalAlignStart:
-	case HorizontalAlignCenter:
-		// TODO: What is the correct value?
-	case HorizontalAlignEnd:
-		b.Max.X += int(offsetX)
-		w, _ := text.Measure(t.textToDraw(), t.face(context), t.lineHeight(context))
-		b.Max.X += max(int(w)-b.Dx(), 0)
+	tw, _ := text.Measure(t.textToDraw(), t.face(context), t.lineHeight(context))
+	if b.Dx() < int(tw) {
+		b.Max.X = b.Min.X + int(tw)
 	}
 
-	txt := t.textToDraw()
-	if txt == "" {
-		txt = " "
-	}
-	th := t.textHeight(context, txt)
+	th := t.textHeight(context, t.textToDraw())
 	switch t.vAlign {
 	case VerticalAlignTop:
 		b.Max.Y = b.Min.Y + th
@@ -289,8 +281,7 @@ func (t *Text) textBounds(context *guigui.Context, widget *guigui.Widget) image.
 		b.Min.Y = b.Max.Y - th
 	}
 
-	b.Min.X += int(offsetX)
-	b.Min.Y += int(offsetY)
+	b = b.Add(image.Pt(int(offsetX), int(offsetY)))
 	return b
 }
 
@@ -599,7 +590,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 func (t *Text) adjustScrollOffset(context *guigui.Context, widget *guigui.Widget) {
 	t.updateContentSize(context)
 
-	s, e, ok := t.selectionToDraw(widget)
+	start, end, ok := t.selectionToDraw(widget)
 	if !ok {
 		return
 	}
@@ -608,7 +599,7 @@ func (t *Text) adjustScrollOffset(context *guigui.Context, widget *guigui.Widget
 	tb := t.textBounds(context, widget)
 	face := t.face(context)
 	bounds := t.bounds(context, widget)
-	if x, _, y, ok := textPosition(tb, text, e, face, t.lineHeight(context), t.hAlign, t.vAlign); ok {
+	if x, _, y, ok := textPosition(tb, text, end, face, t.lineHeight(context), t.hAlign, t.vAlign); ok {
 		var dx, dy float64
 		if max := float64(bounds.Max.X); x > max {
 			dx = max - x
@@ -618,7 +609,7 @@ func (t *Text) adjustScrollOffset(context *guigui.Context, widget *guigui.Widget
 		}
 		t.scrollOverlayWidget.Behavior().(*ScrollOverlay).SetOffsetByDelta(dx, dy)
 	}
-	if x, y, _, ok := textPosition(tb, text, s, face, t.lineHeight(context), t.hAlign, t.vAlign); ok {
+	if x, y, _, ok := textPosition(tb, text, start, face, t.lineHeight(context), t.hAlign, t.vAlign); ok {
 		var dx, dy float64
 		if min := float64(bounds.Min.X); x < min {
 			dx = min - x
@@ -820,9 +811,6 @@ func (t *Text) TextSize(context *guigui.Context) (int, int) {
 }
 
 func (t *Text) textHeight(context *guigui.Context, str string) int {
-	if str == "" {
-		return 0
-	}
 	// The text is already shifted by (lineHeight - (m.HAscent + m.Descent)) / 2.
 	return int(t.lineHeight(context) * float64(strings.Count(str, "\n")+1))
 }

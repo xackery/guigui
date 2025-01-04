@@ -145,10 +145,6 @@ func textPosition(textBounds image.Rectangle, str string, index int, face text.F
 		return 0, 0, 0, false
 	}
 
-	// If the string is empty, add a dummy character to get the correct y position.
-	if str == "" {
-		str = " "
-	}
 	y := float64(textBounds.Min.Y)
 
 	lines := strings.Split(str, "\n")

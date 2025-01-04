@@ -13,23 +13,46 @@ import (
 type Basic struct {
 	guigui.DefaultWidgetBehavior
 
-	groupWidget       *guigui.Widget
-	buttonLabelWidget *guigui.Widget
-	buttonWidget      *guigui.Widget
+	groupWidget             *guigui.Widget
+	textButtonLabelWidget   *guigui.Widget
+	textButtonWidget        *guigui.Widget
+	toggleButtonLabelWidget *guigui.Widget
+	toggleButtonWidget      *guigui.Widget
+	textFieldLabelWidget    *guigui.Widget
+	textFieldWidget         *guigui.Widget
 }
 
 func (b *Basic) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
 	u := float64(basicwidget.UnitSize(context))
 
-	if b.buttonLabelWidget == nil {
+	if b.textButtonLabelWidget == nil {
 		var t basicwidget.Text
 		t.SetText("Text Button")
-		b.buttonLabelWidget = guigui.NewWidget(&t)
+		b.textButtonLabelWidget = guigui.NewWidget(&t)
 	}
-	if b.buttonWidget == nil {
+	if b.textButtonWidget == nil {
 		var button basicwidget.TextButton
 		button.SetText("Click me!")
-		b.buttonWidget = guigui.NewWidget(&button)
+		b.textButtonWidget = guigui.NewWidget(&button)
+	}
+	if b.toggleButtonLabelWidget == nil {
+		var t basicwidget.Text
+		t.SetText("Toggle Button")
+		b.toggleButtonLabelWidget = guigui.NewWidget(&t)
+	}
+	if b.toggleButtonWidget == nil {
+		var button basicwidget.ToggleButton
+		b.toggleButtonWidget = guigui.NewWidget(&button)
+	}
+	if b.textFieldLabelWidget == nil {
+		var t basicwidget.Text
+		t.SetText("Text Field")
+		b.textFieldLabelWidget = guigui.NewWidget(&t)
+	}
+	if b.textFieldWidget == nil {
+		var t basicwidget.TextField
+		t.SetHorizontalAlign(basicwidget.HorizontalAlignEnd)
+		b.textFieldWidget = guigui.NewWidget(&t)
 	}
 
 	if b.groupWidget == nil {
@@ -40,8 +63,16 @@ func (b *Basic) AppendChildWidgets(context *guigui.Context, widget *guigui.Widge
 	group.SetWidth(context, w-int(1*u))
 	group.SetItems([]*basicwidget.GroupItem{
 		{
-			PrimaryWidget:   b.buttonLabelWidget,
-			SecondaryWidget: b.buttonWidget,
+			PrimaryWidget:   b.textButtonLabelWidget,
+			SecondaryWidget: b.textButtonWidget,
+		},
+		{
+			PrimaryWidget:   b.toggleButtonLabelWidget,
+			SecondaryWidget: b.toggleButtonWidget,
+		},
+		{
+			PrimaryWidget:   b.textFieldLabelWidget,
+			SecondaryWidget: b.textFieldWidget,
 		},
 	})
 	{

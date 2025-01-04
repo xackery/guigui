@@ -113,7 +113,7 @@ func (t *TextField) Update(context *guigui.Context, widget *guigui.Widget) error
 func (t *TextField) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
 	bounds := t.bounds(context, widget)
 	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.85), RoundedCornerRadius(context))
-	DrawRoundedRectBorder(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.8), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeInset)
+	DrawRoundedRectBorder(context, dst, bounds, Color2(context.ColorMode(), ColorTypeBase, 0.8, 0.1), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeInset)
 }
 
 func defaultTextFieldSize(context *guigui.Context) (int, int) {
