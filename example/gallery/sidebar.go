@@ -41,11 +41,13 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, widget *guigui.Wid
 		{
 			var t basicwidget.Text
 			t.SetText("Settings")
+			t.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
 			s.listItemWidgets = append(s.listItemWidgets, guigui.NewWidget(&t))
 		}
 		{
 			var t basicwidget.Text
 			t.SetText("Buttons")
+			t.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
 			s.listItemWidgets = append(s.listItemWidgets, guigui.NewWidget(&t))
 		}
 	}
@@ -54,6 +56,8 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, widget *guigui.Wid
 	list.SetStyle(basicwidget.ListStyleSidebar)
 	var items []basicwidget.ListItem
 	for _, w := range s.listItemWidgets {
+		t := w.Behavior().(*basicwidget.Text)
+		t.SetSize(list.ItemWidth(context, s.listWidget), basicwidget.UnitSize(context))
 		items = append(items, basicwidget.ListItem{
 			Content:    w,
 			Selectable: true,
@@ -66,7 +70,7 @@ func (s *Sidebar) Update(context *guigui.Context, widget *guigui.Widget) error {
 	list := s.listWidget.Behavior().(*basicwidget.List)
 	for i, w := range s.listItemWidgets {
 		if list.SelectedItemIndex() == i {
-			w.Behavior().(*basicwidget.Text).SetColor(basicwidget.Color(context.ColorMode(), basicwidget.ColorTypeBase, 1))
+			w.Behavior().(*basicwidget.Text).SetColor(basicwidget.DefaultActiveListItemTextColor(context))
 		} else {
 			w.Behavior().(*basicwidget.Text).SetColor(basicwidget.DefaultTextColor(context))
 		}

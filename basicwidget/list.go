@@ -33,6 +33,10 @@ type ListItem struct {
 	Tag        any
 }
 
+func DefaultActiveListItemTextColor(context *guigui.Context) color.Color {
+	return Color2(context.ColorMode(), ColorTypeBase, 1, 1)
+}
+
 type List struct {
 	guigui.DefaultWidgetBehavior
 
@@ -70,6 +74,10 @@ type List struct {
 	startPressingIndex: -1,
 }*/
 
+func listItemPadding(context *guigui.Context) int {
+	return UnitSize(context) / 4
+}
+
 func (l *List) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
 	if l.style != ListStyleSidebar {
 		if l.listFrameWidget == nil {
@@ -79,7 +87,7 @@ func (l *List) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	}
 
 	p := widget.Position()
-	p.X += 2 * RoundedCornerRadius(context)
+	p.X += RoundedCornerRadius(context) + listItemPadding(context)
 	p.Y += RoundedCornerRadius(context)
 	for _, item := range l.items {
 		/*r := l.list.itemRect(args, l.index)
@@ -344,6 +352,13 @@ func (l *List) Update(context *guigui.Context, widget *guigui.Widget) error {
 	return nil
 }
 
+func (l *List) ItemWidth(context *guigui.Context, widget *guigui.Widget) int {
+	w, _ := widget.Size(context)
+	w -= 2 * RoundedCornerRadius(context)
+	w -= 2 * listItemPadding(context)
+	return w
+}
+
 func (l *List) ContentHeight(context *guigui.Context) int {
 	var h int
 	h += RoundedCornerRadius(context)
@@ -375,8 +390,9 @@ func (l *List) itemRect(context *guigui.Context, widget *guigui.Widget, index in
 		Min: p,
 		Max: p.Add(image.Pt(w, h)),
 	}
-	b.Min.X += 2 * RoundedCornerRadius(context)
-	b.Max.X -= 2 * RoundedCornerRadius(context)
+	padding := listItemPadding(context)
+	b.Min.X += RoundedCornerRadius(context) + padding
+	b.Max.X -= RoundedCornerRadius(context) + padding
 	b.Min.Y += l.itemYFromIndex(context, index)
 	b.Min.Y += int(offsetY)
 	_, ih := l.items[index].Content.Size(context)
