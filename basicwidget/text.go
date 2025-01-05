@@ -293,7 +293,11 @@ func (t *Text) face(context *guigui.Context) text.Face {
 	}
 	locales := append([]language.Tag(nil), t.locales...)
 	locales = context.AppendLocales(locales)
-	return fontFace(size, weight, locales)
+	var liga bool
+	if !t.selectable && !t.editable {
+		liga = true
+	}
+	return fontFace(size, weight, liga, locales)
 }
 
 func (t *Text) lineHeight(context *guigui.Context) float64 {

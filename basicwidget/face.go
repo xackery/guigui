@@ -72,21 +72,23 @@ var (
 )
 
 type faceCacheKey struct {
-	size    float64
-	weight  text.Weight
-	locales string
+	size     float64
+	weight   text.Weight
+	ligature bool
+	locales  string
 }
 
-func fontFace(size float64, weight text.Weight, locales []language.Tag) text.Face {
+func fontFace(size float64, weight text.Weight, ligature bool, locales []language.Tag) text.Face {
 	var localeStrs []string
 	for _, l := range locales {
 		localeStrs = append(localeStrs, l.String())
 	}
 
 	key := faceCacheKey{
-		size:    size,
-		weight:  weight,
-		locales: strings.Join(localeStrs, ","),
+		size:     size,
+		weight:   weight,
+		ligature: ligature,
+		locales:  strings.Join(localeStrs, ","),
 	}
 	if f, ok := faceCache[key]; ok {
 		return f
@@ -129,6 +131,9 @@ func fontFace(size float64, weight text.Weight, locales []language.Tag) text.Fac
 			Language: lang,
 		}
 		f.SetVariation(text.MustParseTag("wght"), float32(weight))
+		if !ligature {
+			f.SetFeature(text.MustParseTag("liga"), 0)
+		}
 		fs = append(fs, f)
 	}
 	mf, err := text.NewMultiFace(fs...)
