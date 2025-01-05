@@ -81,7 +81,6 @@ type Text struct {
 
 	filter TextFilter
 
-	cursor              textCursor
 	cursorWidget        *guigui.Widget
 	scrollOverlayWidget *guigui.Widget
 
@@ -92,10 +91,10 @@ type Text struct {
 
 func (t *Text) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
 	if t.cursorWidget == nil {
-		t.cursorWidget = guigui.NewPopupWidget(&t.cursor)
+		t.cursorWidget = guigui.NewPopupWidget(&textCursor{})
 	}
 	p := widget.Position()
-	p.X -= cursorWidth(context) / 2
+	p.X -= cursorWidth(context)
 	appender.AppendChildWidget(t.cursorWidget, p)
 
 	if t.scrollOverlayWidget == nil {
@@ -675,7 +674,7 @@ func (t *Text) compositionSelectionToDraw(widget *guigui.Widget) (uStart, cStart
 func (t *Text) Update(context *guigui.Context, widget *guigui.Widget) error {
 	if !t.prevFocused && widget.IsFocused() {
 		t.field.Focus()
-		t.cursor.resetCounter()
+		t.cursorWidget.Behavior().(*textCursor).resetCounter()
 		start, end := t.field.Selection()
 		if start < 0 || end < 0 {
 			t.selectAll()
@@ -957,5 +956,5 @@ func (t *textCursor) Draw(context *guigui.Context, widget *guigui.Widget, dst *e
 
 func (t *textCursor) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
 	w, h := widget.Parent().Size(context)
-	return w + cursorWidth(context), h
+	return w + 2*cursorWidth(context), h
 }
