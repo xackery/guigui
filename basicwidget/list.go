@@ -163,11 +163,10 @@ func (l *List) SetSelectedItemIndex(index int) {
 	if index < 0 || index >= len(l.items) {
 		index = -1
 	}
-	if l.SelectedItemIndex() == index {
-		return
+	if l.SelectedItemIndex() != index {
+		l.selectedItemIndexPlus1 = index + 1
+		guigui.RequestRedraw(l)
 	}
-	l.selectedItemIndexPlus1 = index + 1
-	guigui.RequestRedraw(l)
 	if l.onItemSelected != nil {
 		l.onItemSelected(index)
 	}

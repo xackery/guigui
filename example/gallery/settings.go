@@ -14,30 +14,35 @@ import (
 type Settings struct {
 	guigui.DefaultWidget
 
-	group               basicwidget.Group
-	colorModeToggleText basicwidget.Text
-	colorModeToggle     basicwidget.ToggleButton
-	localeText          basicwidget.Text
-	localeSelector      basicwidget.Text
+	group                 basicwidget.Group
+	colorModeText         basicwidget.Text
+	colorModeDropdownList basicwidget.DropdownList
+	localeText            basicwidget.Text
+	localeSelector        basicwidget.Text
 
 	initOnce sync.Once
 }
 
 func (s *Settings) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	s.colorModeText.SetText("Color Mode")
+	s.colorModeDropdownList.SetItemsByStrings([]string{"Light", "Dark"})
+	s.colorModeDropdownList.SetOnValueChanged(func(index int) {
+		switch index {
+		case 0:
+			context.SetColorMode(guigui.ColorModeLight)
+		case 1:
+			context.SetColorMode(guigui.ColorModeDark)
+		}
+	})
 	s.initOnce.Do(func() {
-		if context.ColorMode() == guigui.ColorModeDark {
-			s.colorModeToggle.SetValue(true)
+		switch context.ColorMode() {
+		case guigui.ColorModeLight:
+			s.colorModeDropdownList.SetSelectedItemIndex(0)
+		case guigui.ColorModeDark:
+			s.colorModeDropdownList.SetSelectedItemIndex(1)
 		}
 	})
 
-	s.colorModeToggleText.SetText("Color Mode")
-	s.colorModeToggle.SetOnValueChanged(func(value bool) {
-		if value {
-			context.SetColorMode(guigui.ColorModeDark)
-		} else {
-			context.SetColorMode(guigui.ColorModeLight)
-		}
-	})
 	s.localeText.SetText("Locale")
 	// TODO: Make this a selector
 	s.localeSelector.SetText("(TODO)")
@@ -47,8 +52,8 @@ func (s *Settings) Layout(context *guigui.Context, appender *guigui.ChildWidgetA
 	s.group.SetWidth(context, w-int(1*u))
 	s.group.SetItems([]*basicwidget.GroupItem{
 		{
-			PrimaryWidget:   &s.colorModeToggleText,
-			SecondaryWidget: &s.colorModeToggle,
+			PrimaryWidget:   &s.colorModeText,
+			SecondaryWidget: &s.colorModeDropdownList,
 		},
 		{
 			PrimaryWidget:   &s.localeText,

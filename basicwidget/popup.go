@@ -75,6 +75,10 @@ func (p *Popup) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppe
 }
 
 func (p *Popup) HandleInput(context *guigui.Context) guigui.HandleInputResult {
+	if p.showing || p.hiding {
+		return guigui.AbortHandlingInput()
+	}
+
 	// As this editor is a modal dialog, do not let other widgets to handle inputs.
 	if image.Pt(ebiten.CursorPosition()).In(guigui.VisibleBounds(p)) {
 		if p.closeByClickingOutside {

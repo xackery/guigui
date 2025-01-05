@@ -22,6 +22,11 @@ func (p *PopupMenu) SetOnClosed(f func(index int)) {
 	p.onClosed = f
 }
 
+func (p *PopupMenu) IsPopup() bool {
+	// ??
+	return true
+}
+
 func (p *PopupMenu) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	p.popup.SetContent(func(context *guigui.Context, childAppender *ContainerChildWidgetAppender) {
 		p.textList.SetStyle(ListStyleMenu)
