@@ -92,21 +92,21 @@ func (t *ToggleButton) Draw(context *guigui.Context, widget *guigui.Widget, dst 
 	cm := context.ColorMode()
 	backgroundColor := Color(context.ColorMode(), ColorTypeBase, 0.8)
 	thumbColor := Color2(cm, ColorTypeBase, 1, 0.6)
-	borderColor := Color2(cm, ColorTypeBase, 0.7, 0.3)
+	borderColor := Color2(cm, ColorTypeBase, 0.7, 0)
 	if t.isActive() {
 		thumbColor = Color2(cm, ColorTypeBase, 0.95, 0.55)
-		borderColor = Color2(cm, ColorTypeBase, 0.7, 0.3)
+		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
 	} else if t.mouseEventHandler().IsHovering() && t.mouseEventHandlerWidget.IsEnabled() {
 		thumbColor = Color2(cm, ColorTypeBase, 0.975, 0.575)
-		borderColor = Color2(cm, ColorTypeBase, 0.7, 0.3)
+		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
 	} else if !widget.IsEnabled() {
 		thumbColor = Color2(cm, ColorTypeBase, 0.95, 0.55)
-		borderColor = Color2(cm, ColorTypeBase, 0.8, 0.4)
+		borderColor = Color2(cm, ColorTypeBase, 0.8, 0.1)
 	}
 
 	// Background
 	bgColorOff := backgroundColor
-	bgColorOn := Color(context.ColorMode(), ColorTypeAccent, 0.6)
+	bgColorOn := Color(context.ColorMode(), ColorTypeAccent, 0.5)
 	var bgColor color.Color
 	if t.value {
 		bgColor = mixColor(bgColorOff, bgColorOn, rate)
