@@ -88,13 +88,14 @@ func (t *TextListItem) selectable() bool {
 }*/
 
 func (t *TextList) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	if t.listWidget == nil {
-		t.listWidget = guigui.NewWidget(&List{})
-	}
+	_ = t.list()
 	appender.AppendChildWidget(t.listWidget, widget.Position())
 }
 
 func (t *TextList) list() *List {
+	if t.listWidget == nil {
+		t.listWidget = guigui.NewWidget(&List{})
+	}
 	return t.listWidget.Behavior().(*List)
 }
 
@@ -148,12 +149,16 @@ func (t *TextList) Tag(index int) any {
 func (t *TextList) newTextListItem(item TextListItem) ListItem {
 	if item.Border {
 		return ListItem{
-			Content:    newTextListBorderItem(t.settings),
+			Content:    guigui.NewWidget(&textListBorderItem{}),
 			Selectable: false,
 		}
 	}
+	textItem := &textListTextItem{
+		textList:     t,
+		textListItem: item,
+	}
 	return ListItem{
-		Content:    newTextListTextItem(t.settings, t, item),
+		Content:    guigui.NewWidget(textItem),
 		Selectable: item.selectable(),
 		Wide:       item.Header,
 		Draggable:  item.Draggable,
@@ -174,9 +179,6 @@ func (t *TextList) SetStyle(style ListStyle) {
 
 func (t *TextList) SetItemString(str string, index int) {
 	t.textListItems[index].Text = str
-	if item, ok := t.textListItems[index].listItem.Content.Behavior().(*textListTextItem); ok {
-		item.label.SetText(str)
-	}
 }
 
 func (t *TextList) AppendItem(item TextListItem) {
@@ -206,13 +208,15 @@ func (t *TextList) Update(context *guigui.Context, widget *guigui.Widget) error 
 		if !ok {
 			continue
 		}
-		item.label.SetBold(item.textListItem.Header)
-		if t.listWidget.IsFocused() && t.list().SelectedItemIndex() == i || (t.list().IsHoveringVisible() && t.list().HoveredItemIndex() == i) && li.listItem.Selectable {
-			item.label.SetColor(LabelColorActive)
+		text := item.textWidget.Behavior().(*Text)
+		text.SetBold(item.textListItem.Header)
+		if widget.HasFocusedChildWidget() && t.list().SelectedItemIndex() == i ||
+			(t.list().IsHoveringVisible() && t.list().HoveredItemIndex() == i) && li.listItem.Selectable {
+			text.SetColor(DefaultActiveListItemTextColor(context))
 		} else if !li.listItem.Selectable && !item.textListItem.Header {
-			item.label.SetColor(LabelColorDisabled)
+			text.SetColor(DefaultDisabledListItemTextColor(context))
 		} else {
-			item.label.SetColor(li.Color)
+			text.SetColor(li.Color)
 		}
 	}
 	return nil
@@ -222,11 +226,7 @@ func (t *TextList) Size(context *guigui.Context, widget *guigui.Widget) (int, in
 	return t.list().Size(context, widget)
 }
 
-func (t *TextList) SetSize(context *guigui.Context, width, height int) {
-	t.list().SetSize(context, width, height)
-}
-
-func (t *TextList) MinimumWidth(scale float64) int {
+/*func (t *TextList) MinimumWidth(scale float64) int {
 	var w int
 	for _, item := range t.textListItems {
 		if ww, ok := item.listItem.WidgetWithHeight.(view.WidgetWithWidth); ok {
@@ -238,7 +238,7 @@ func (t *TextList) MinimumWidth(scale float64) int {
 
 func (t *TextList) ContentHeight(context *guigui.Context) int {
 	return t.list().ContentHeight(context)
-}
+}*/
 
 type textListTextItem struct {
 	guigui.DefaultWidgetBehavior
@@ -252,7 +252,6 @@ type textListTextItem struct {
 	t := &textListTextItem{
 		textList:     textList,
 		textListItem: textListItem,
-		settings:     settings,
 		label:        NewLabel(settings),
 	}
 	t.label.SetText(t.labelText())
@@ -273,48 +272,58 @@ func (t *textListTextItem) AppendChildWidgets(context *guigui.Context, widget *g
 	if t.textWidget == nil {
 		t.textWidget = guigui.NewWidget(&Text{})
 	}
-	appender.AppendChildWidget(t.textWidget, widget.Position())
+	text := t.textWidget.Behavior().(*Text)
+	p := widget.Position()
+	if t.textListItem.Header {
+		p.X += UnitSize(context) / 2
+		w, h := widget.Size(context)
+		text.SetSize(w-UnitSize(context), h)
+	}
+	text.SetText(t.text())
+	text.SetVerticalAlign(VerticalAlignMiddle)
+	appender.AppendChildWidget(t.textWidget, p)
 }
 
-func (t *textListTextItem) labelText() string {
+func (t *textListTextItem) text() string {
 	if t.textListItem.DummyText != "" {
 		return t.textListItem.DummyText
 	}
 	return t.textListItem.Text
 }
 
-func (t *textListTextItem) Draw(args view.WidgetArgs, dst *ebiten.Image) {
+func (t *textListTextItem) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
 	if !t.textListItem.Header {
 		return
 	}
-	bounds := args.Bounds
-	bounds.Min.Y += t.settings.SmallUnitSize(args.Scale)
-	bounds.Max.Y -= t.settings.SmallUnitSize(args.Scale)
-	DrawRoundedRect(dst, bounds, t.settings.Theme().HeaderBackgroundColor, t.settings.SmallUnitSize(args.Scale)/2, args.Scale)
-}
-
-func (t *textListTextItem) Width(scale float64) int {
-	return t.label.Width(scale)
-}
-
-func (t *textListTextItem) Height(scale float64) int {
-	if t.textListItem.Header {
-		return t.settings.UnitSize(scale) + 2*t.settings.SmallUnitSize(scale)
+	p := widget.Position()
+	w, h := widget.Size(context)
+	bounds := image.Rectangle{
+		Min: p,
+		Max: p.Add(image.Pt(w, h)),
 	}
-	return t.settings.UnitSize(scale)
+	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.6), RoundedCornerRadius(context))
+}
+
+func (t *textListTextItem) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+	w, _ := widget.Parent().Size(context)
+	return w, int(LineHeight(context))
 }
 
 func (t *textListTextItem) index() int {
 	for i, li := range t.textList.textListItems {
-		if li.listItem.WidgetWithHeight == t {
+		tt, ok := li.listItem.Content.Behavior().(*textListTextItem)
+		if !ok {
+			continue
+		}
+		if tt == t {
 			return i
 		}
 	}
 	return -1
 }
 
-func (t *textListTextItem) edit(widget *guigui.Widget, from int) {
-	widget.Hide()
+/*func (t *textListTextItem) edit(from int) {
+	t.label.Hide()
 	t0 := t.textListItem.Text[:from]
 	var l0 *Label
 	if t0 != "" {
@@ -335,7 +344,7 @@ func (t *textListTextItem) edit(widget *guigui.Widget, from int) {
 				l0.RemoveSelf()
 			}
 			tf.RemoveSelf()
-			widget.Show()
+			t.label.Show()
 
 			if t.textList.callback != nil && t.textList.callback.OnItemEditEnded != nil {
 				t.textList.callback.OnItemEditEnded(t.index(), t0+value)
@@ -352,21 +361,24 @@ func (t *textListTextItem) edit(widget *guigui.Widget, from int) {
 		return bounds
 	}))
 	tf.SelectAll()
-	widget.Focus()
-}
+	tf.Focus()
+}*/
 
 type textListBorderItem struct {
 	guigui.DefaultWidgetBehavior
 }
 
 func (t *textListBorderItem) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
-	x0 := float32(args.Bounds.Min.X)
-	x1 := float32(args.Bounds.Max.X)
-	y := float32(args.Bounds.Min.Y+args.Bounds.Max.Y) / 2
-	width := float32(1 * args.Scale)
-	vector.StrokeLine(dst, x0, y, x1, y, width, t.settings.Theme().SecondaryBackgroundColor, false)
+	p := widget.Position()
+	w, h := widget.Size(context)
+	x0 := float32(p.X)
+	x1 := float32(p.X + w)
+	y := float32(p.Y) + float32(h)/2
+	width := float32(1 * context.Scale())
+	vector.StrokeLine(dst, x0, y, x1, y, width, Color(context.ColorMode(), ColorTypeBase, 0.8), false)
 }
 
-func (t *textListBorderItem) Height(scale float64) int {
-	return 2 * t.settings.SmallUnitSize(scale)
+func (t *textListBorderItem) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+	w, _ := widget.Parent().Size(context)
+	return w, UnitSize(context) / 2
 }

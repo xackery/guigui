@@ -62,6 +62,17 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, widget *guigui.Wid
 				Tag:        "basic",
 			})
 		}
+		{
+			var t basicwidget.Text
+			t.SetText("Lists")
+			t.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
+			t.SetSize(list.ItemWidth(context, s.listWidget), basicwidget.UnitSize(context))
+			s.listItemWidgets = append(s.listItemWidgets, basicwidget.ListItem{
+				Content:    guigui.NewWidget(&t),
+				Selectable: true,
+				Tag:        "lists",
+			})
+		}
 	}
 	list.SetItems(s.listItemWidgets)
 }

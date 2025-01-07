@@ -20,6 +20,7 @@ type Root struct {
 	sidebarWidget  *guigui.Widget
 	settingsWidget *guigui.Widget
 	basicWidget    *guigui.Widget
+	listsWidget    *guigui.Widget
 }
 
 func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
@@ -44,6 +45,11 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 			r.basicWidget = guigui.NewWidget(&Basic{})
 		}
 		appender.AppendChildWidget(r.basicWidget, p)
+	case "lists":
+		if r.listsWidget == nil {
+			r.listsWidget = guigui.NewWidget(&Lists{})
+		}
+		appender.AppendChildWidget(r.listsWidget, p)
 	}
 }
 

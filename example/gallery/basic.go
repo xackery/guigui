@@ -23,8 +23,6 @@ type Basic struct {
 }
 
 func (b *Basic) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	u := float64(basicwidget.UnitSize(context))
-
 	if b.textButtonLabelWidget == nil {
 		var t basicwidget.Text
 		t.SetText("Text Button")
@@ -58,6 +56,7 @@ func (b *Basic) AppendChildWidgets(context *guigui.Context, widget *guigui.Widge
 	if b.groupWidget == nil {
 		b.groupWidget = guigui.NewWidget(&basicwidget.Group{})
 	}
+	u := float64(basicwidget.UnitSize(context))
 	group := b.groupWidget.Behavior().(*basicwidget.Group)
 	w, _ := widget.Size(context)
 	group.SetWidth(context, w-int(1*u))

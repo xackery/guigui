@@ -37,6 +37,10 @@ func DefaultActiveListItemTextColor(context *guigui.Context) color.Color {
 	return Color2(context.ColorMode(), ColorTypeBase, 1, 1)
 }
 
+func DefaultDisabledListItemTextColor(context *guigui.Context) color.Color {
+	return Color(context.ColorMode(), ColorTypeBase, 0.5)
+}
+
 type List struct {
 	guigui.DefaultWidgetBehavior
 
@@ -86,9 +90,14 @@ func (l *List) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		appender.AppendChildWidget(l.listFrameWidget, widget.Position())
 	}
 
+	if l.scrollOverlayWidget == nil {
+		l.scrollOverlayWidget = guigui.NewWidget(&ScrollOverlay{})
+	}
+
+	_, offsetY := l.scrollOverlayWidget.Behavior().(*ScrollOverlay).Offset()
 	p := widget.Position()
 	p.X += RoundedCornerRadius(context) + listItemPadding(context)
-	p.Y += RoundedCornerRadius(context)
+	p.Y += RoundedCornerRadius(context) + int(offsetY)
 	for _, item := range l.items {
 		/*r := l.list.itemRect(args, l.index)
 		if l.list.items[l.index].Wide {
@@ -101,9 +110,6 @@ func (l *List) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		p.Y += h
 	}
 
-	if l.scrollOverlayWidget == nil {
-		l.scrollOverlayWidget = guigui.NewWidget(&ScrollOverlay{})
-	}
 	appender.AppendChildWidget(l.scrollOverlayWidget, widget.Position())
 
 	if l.dragDropOverlayWidget == nil {
@@ -525,7 +531,7 @@ func (l *listFrame) Draw(context *guigui.Context, widget *guigui.Widget, dst *eb
 		Min: p,
 		Max: p.Add(image.Pt(w, h)),
 	}
-	clr := Color(context.ColorMode(), ColorTypeBase, 0.85)
+	clr := Color2(context.ColorMode(), ColorTypeBase, 0.7, 0)
 	borderWidth := float32(1 * context.Scale())
 	DrawRoundedRectBorder(context, dst, bounds, clr, RoundedCornerRadius(context), borderWidth, border)
 }
