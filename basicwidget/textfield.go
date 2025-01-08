@@ -81,7 +81,7 @@ func (t *TextField) HandleInput(context *guigui.Context, widget *guigui.Widget) 
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			context.WidgetFromBehavior(&t.text).Focus()
 			t.text.selectAll()
-			return guigui.HandleInputByWidget(widget)
+			return guigui.HandleInputByWidget(t)
 		}
 	}
 	return guigui.HandleInputResult{}

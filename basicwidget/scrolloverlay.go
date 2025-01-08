@@ -140,7 +140,7 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context, widget *guigui.Widg
 			s.draggingStartOffsetY = s.offsetY
 		}
 		if s.draggingX || s.draggingY {
-			return guigui.HandleInputByWidget(widget)
+			return guigui.HandleInputByWidget(s)
 		}
 	}
 
@@ -180,7 +180,7 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context, widget *guigui.Widg
 				widget.RequestRedraw()
 			}
 		}
-		return guigui.HandleInputByWidget(widget)
+		return guigui.HandleInputByWidget(s)
 	}
 
 	if (s.draggingX || s.draggingY) && !ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
@@ -204,7 +204,7 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context, widget *guigui.Widg
 				OffsetY: s.offsetY,
 			})
 			widget.RequestRedraw()
-			return guigui.HandleInputByWidget(widget)
+			return guigui.HandleInputByWidget(s)
 		}
 		return guigui.HandleInputResult{}
 	}

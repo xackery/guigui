@@ -235,7 +235,7 @@ func (l *List) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 			l.dropDstIndex = i
 			widget.RequestRedraw()
 		}
-		return guigui.HandleInputByWidget(widget)
+		return guigui.HandleInputByWidget(l)
 	}
 
 	// Process dropping.
@@ -254,7 +254,7 @@ func (l *List) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 	}
 
 	if dropped {
-		return guigui.HandleInputByWidget(widget)
+		return guigui.HandleInputByWidget(l)
 	}
 
 	if x, y := ebiten.CursorPosition(); image.Pt(x, y).In(widget.VisibleBounds()) {
@@ -280,7 +280,7 @@ func (l *List) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 			switch {
 			case left || right:
 				if !l.items[index].Selectable {
-					return guigui.HandleInputByWidget(widget)
+					return guigui.HandleInputByWidget(l)
 				}
 
 				wasFocused := widget.IsFocused()
@@ -317,7 +317,7 @@ func (l *List) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 				l.startPressingLeft = false
 			}
 
-			return guigui.HandleInputByWidget(widget)
+			return guigui.HandleInputByWidget(l)
 		}
 		l.dropSrcIndex = -1
 		l.pressStartX = 0

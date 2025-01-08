@@ -315,7 +315,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 			t.dragging = false
 			t.selectionDragStart = -1
 		}
-		return guigui.HandleInputByWidget(widget)
+		return guigui.HandleInputByWidget(t)
 	}
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
@@ -327,7 +327,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 			if start, end := t.field.Selection(); start != idx || end != idx {
 				t.setTextAndSelection(t.field.Text(), idx, idx, -1)
 			}
-			return guigui.HandleInputByWidget(widget)
+			return guigui.HandleInputByWidget(t)
 		}
 		widget.Blur()
 	}
@@ -358,7 +358,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 	if processed {
 		widget.RequestRedraw()
 		t.adjustScrollOffset(context)
-		return guigui.HandleInputByWidget(widget)
+		return guigui.HandleInputByWidget(t)
 	}
 
 	// Do not accept key inputs when compositing.

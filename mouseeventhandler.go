@@ -47,7 +47,7 @@ func (m *MouseEventHandler) HandleInput(context *Context, widget *Widget) Handle
 			m.setPressing(true, widget)
 		}
 		widget.Focus()
-		return HandleInputByWidget(widget)
+		return HandleInputByWidget(m)
 	}
 
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) && m.pressing {
@@ -56,7 +56,7 @@ func (m *MouseEventHandler) HandleInput(context *Context, widget *Widget) Handle
 			return HandleInputResult{}
 		}
 		if widget.IsEnabled() {
-			return HandleInputByWidget(widget)
+			return HandleInputByWidget(m)
 		}
 	}
 

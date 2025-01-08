@@ -28,9 +28,9 @@ type HandleInputResult struct {
 	aborted bool
 }
 
-func HandleInputByWidget(widget *Widget) HandleInputResult {
+func HandleInputByWidget(widgetBehavior WidgetBehavior) HandleInputResult {
 	return HandleInputResult{
-		widget: widget,
+		widget: widgetFromBehavior(widgetBehavior),
 	}
 }
 
