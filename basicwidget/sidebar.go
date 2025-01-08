@@ -14,31 +14,25 @@ import (
 type Sidebar struct {
 	guigui.DefaultWidgetBehavior
 
-	scrollablePanelWidget *guigui.Widget
+	scrollablePanel ScrollablePanel
 
 	widthMinusDefault  int
 	heightMinusDefault int
 }
 
 func (s *Sidebar) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	if s.scrollablePanelWidget == nil {
-		s.scrollablePanelWidget = guigui.NewWidget(&ScrollablePanel{})
-	}
-	w, h := s.Size(context, widget)
-	s.scrollablePanelWidget.Behavior().(*ScrollablePanel).SetSize(context, w, h)
-	appender.AppendChildWidget(s.scrollablePanelWidget, widget.Position())
+	w, h := s.Size(context)
+	s.scrollablePanel.SetSize(context, w, h)
+	appender.AppendChildWidget(&s.scrollablePanel, widget.Position())
 }
 
 func (s *Sidebar) SetContent(context *guigui.Context, f func(context *guigui.Context, widget *guigui.Widget, childAppender *ScrollablePanelChildWidgetAppender)) {
-	if s.scrollablePanelWidget == nil {
-		s.scrollablePanelWidget = guigui.NewWidget(&ScrollablePanel{})
-	}
-	s.scrollablePanelWidget.Behavior().(*ScrollablePanel).SetContent(f)
+	s.scrollablePanel.SetContent(f)
 }
 
 func (s *Sidebar) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
 	dst.Fill(Color(context.ColorMode(), ColorTypeBase, 0.875))
-	b := s.bounds(context, widget)
+	b := s.bounds(context)
 	b.Min.X = b.Max.X - int(1*context.Scale())
 	dst.SubImage(b).(*ebiten.Image).Fill(Color(context.ColorMode(), ColorTypeBase, 0.85))
 }
@@ -47,7 +41,7 @@ func defaultSidebarWidth(context *guigui.Context) (int, int) {
 	return 6 * UnitSize(context), 6 * UnitSize(context)
 }
 
-func (s *Sidebar) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+func (s *Sidebar) Size(context *guigui.Context) (int, int) {
 	dw, dh := defaultSidebarWidth(context)
 	return s.widthMinusDefault + dw, s.heightMinusDefault + dh
 }
@@ -58,9 +52,9 @@ func (s *Sidebar) SetSize(context *guigui.Context, width, height int) {
 	s.heightMinusDefault = height - dh
 }
 
-func (s *Sidebar) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
-	p := widget.Position()
-	w, h := s.Size(context, widget)
+func (s *Sidebar) bounds(context *guigui.Context) image.Rectangle {
+	p := context.WidgetFromBehavior(s).Position()
+	w, h := s.Size(context)
 	return image.Rectangle{
 		Min: p,
 		Max: p.Add(image.Pt(w, h)),

@@ -14,9 +14,8 @@ import (
 type TextField struct {
 	guigui.DefaultWidgetBehavior
 
-	text        Text
-	textWidget  *guigui.Widget
-	focusWidget *guigui.Widget
+	text  Text
+	focus textFieldFocus
 
 	widthMinusDefault  int
 	heightMinusDefault int
@@ -57,11 +56,8 @@ func (t *TextField) SelectAll() {
 }
 
 func (t *TextField) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	if t.textWidget == nil {
-		t.text.SetEditable(true)
-		t.textWidget = guigui.NewWidget(&t.text)
-	}
-	b := t.bounds(context, widget)
+	t.text.SetEditable(true)
+	b := t.bounds(context)
 	b.Min.X += UnitSize(context) / 2
 	b.Max.X -= UnitSize(context) / 2
 	t.text.SetSize(b.Dx(), b.Dy())
@@ -69,15 +65,12 @@ func (t *TextField) AppendChildWidgets(context *guigui.Context, widget *guigui.W
 	if !t.text.IsMultiline() {
 		t.text.SetVerticalAlign(VerticalAlignMiddle)
 	}
-	appender.AppendChildWidget(t.textWidget, b.Min)
+	appender.AppendChildWidget(&t.text, b.Min)
 
 	if widget.HasFocusedChildWidget() {
-		if t.focusWidget == nil {
-			t.focusWidget = guigui.NewPopupWidget(&textFieldFocus{})
-		}
 		w := textFieldFocusBorderWidth(context)
 		p := widget.Position().Add(image.Pt(-w, -w))
-		appender.AppendChildWidget(t.focusWidget, p)
+		appender.AppendChildWidget(&t.focus, p)
 	}
 }
 
@@ -86,7 +79,7 @@ func (t *TextField) HandleInput(context *guigui.Context, widget *guigui.Widget) 
 	t.hovering = image.Pt(x, y).In(widget.VisibleBounds())
 	if t.hovering {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-			t.textWidget.Focus()
+			context.WidgetFromBehavior(&t.text).Focus()
 			t.text.selectAll()
 			return guigui.HandleInputByWidget(widget)
 		}
@@ -104,14 +97,14 @@ func (t *TextField) Update(context *guigui.Context, widget *guigui.Widget) error
 		widget.RequestRedraw()
 	}
 	if widget.IsFocused() {
-		t.textWidget.Focus()
+		context.WidgetFromBehavior(&t.text).Focus()
 		widget.RequestRedraw()
 	}
 	return nil
 }
 
 func (t *TextField) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
-	bounds := t.bounds(context, widget)
+	bounds := t.bounds(context)
 	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.85), RoundedCornerRadius(context))
 	DrawRoundedRectBorder(context, dst, bounds, Color2(context.ColorMode(), ColorTypeBase, 0.7, 0), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeInset)
 }
@@ -121,9 +114,9 @@ func defaultTextFieldSize(context *guigui.Context) (int, int) {
 	return 6 * UnitSize(context), UnitSize(context)
 }
 
-func (t *TextField) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
-	w, h := t.Size(context, widget)
-	p := widget.Position()
+func (t *TextField) bounds(context *guigui.Context) image.Rectangle {
+	w, h := t.Size(context)
+	p := context.WidgetFromBehavior(t).Position()
 	return image.Rectangle{
 		Min: p,
 		Max: p.Add(image.Pt(w, h)),
@@ -136,7 +129,7 @@ func (t *TextField) SetSize(context *guigui.Context, width, height int) {
 	t.heightMinusDefault = height - dh
 }
 
-func (t *TextField) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+func (t *TextField) Size(context *guigui.Context) (int, int) {
 	dw, dh := defaultTextFieldSize(context)
 	if t.text.multiline {
 		return t.widthMinusDefault + dw, t.heightMinusDefault + dh
@@ -153,15 +146,19 @@ type textFieldFocus struct {
 }
 
 func (t *textFieldFocus) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
-	textFieldWidget := widget.Parent()
-	bounds := textFieldWidget.Behavior().(*TextField).bounds(context, textFieldWidget)
+	textField := context.WidgetFromBehavior(t).Parent().Behavior().(*TextField)
+	bounds := textField.bounds(context)
 	w := textFieldFocusBorderWidth(context)
 	bounds = bounds.Inset(-w)
 	DrawRoundedRectBorder(context, dst, bounds, Color(context.ColorMode(), ColorTypeAccent, 0.8), int(4*context.Scale())+RoundedCornerRadius(context), float32(4*context.Scale()), RoundedRectBorderTypeRegular)
 }
 
-func (t *textFieldFocus) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
-	w, h := widget.Parent().Size(context)
+func (t *textFieldFocus) IsPopup() bool {
+	return true
+}
+
+func (t *textFieldFocus) Size(context *guigui.Context) (int, int) {
+	w, h := context.WidgetFromBehavior(t).Parent().Size(context)
 	w += 2 * textFieldFocusBorderWidth(context)
 	h += 2 * textFieldFocusBorderWidth(context)
 	return w, h

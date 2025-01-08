@@ -15,7 +15,7 @@ import (
 type Button struct {
 	guigui.DefaultWidgetBehavior
 
-	mouseEventHandlerWidget *guigui.Widget
+	mouseEventHandler guigui.MouseEventHandler
 
 	widthMinusDefault  int
 	heightMinusDefault int
@@ -33,15 +33,8 @@ type ButtonEvent struct {
 	Type ButtonEventType
 }
 
-func (b *Button) mouseEventHandler() *guigui.MouseEventHandler {
-	return b.mouseEventHandlerWidget.Behavior().(*guigui.MouseEventHandler)
-}
-
 func (b *Button) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	if b.mouseEventHandlerWidget == nil {
-		b.mouseEventHandlerWidget = guigui.NewWidget(&guigui.MouseEventHandler{})
-	}
-	appender.AppendChildWidget(b.mouseEventHandlerWidget, widget.Position())
+	appender.AppendChildWidget(&b.mouseEventHandler, widget.Position())
 }
 
 func (b *Button) PropagateEvent(context *guigui.Context, widget *guigui.Widget, event guigui.Event) (guigui.Event, bool) {
@@ -68,7 +61,7 @@ func (b *Button) PropagateEvent(context *guigui.Context, widget *guigui.Widget, 
 }
 
 func (b *Button) CursorShape(context *guigui.Context, widget *guigui.Widget) (ebiten.CursorShapeType, bool) {
-	if widget.IsEnabled() && b.mouseEventHandler().IsHovering() {
+	if widget.IsEnabled() && b.mouseEventHandler.IsHovering() {
 		return ebiten.CursorShapePointer, true
 	}
 	return 0, true
@@ -81,10 +74,10 @@ func (b *Button) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebite
 	cm := context.ColorMode()
 	backgroundColor := Color2(cm, ColorTypeBase, 1, 0.3)
 	borderColor := Color2(cm, ColorTypeBase, 0.7, 0)
-	if b.isActive() {
+	if b.isActive(context) {
 		backgroundColor = Color2(cm, ColorTypeBase, 0.95, 0.25)
 		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
-	} else if b.mouseEventHandler().IsHovering() && b.mouseEventHandlerWidget.IsEnabled() {
+	} else if b.mouseEventHandler.IsHovering() && context.WidgetFromBehavior(&b.mouseEventHandler).IsEnabled() {
 		backgroundColor = Color2(cm, ColorTypeBase, 0.975, 0.275)
 		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
 	} else if !widget.IsEnabled() {
@@ -95,17 +88,17 @@ func (b *Button) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebite
 	bounds := b.bounds(context, widget)
 	r := min(RoundedCornerRadius(context), bounds.Dx()/4, bounds.Dy()/4)
 	border := !b.borderInvisible
-	if b.mouseEventHandler().IsHovering() && b.mouseEventHandlerWidget.IsEnabled() {
+	if b.mouseEventHandler.IsHovering() && context.WidgetFromBehavior(&b.mouseEventHandler).IsEnabled() {
 		border = true
 	}
-	if border || b.isActive() {
+	if border || b.isActive(context) {
 		bounds := bounds.Inset(int(1 * context.Scale()))
 		DrawRoundedRect(context, dst, bounds, backgroundColor, r)
 	}
 
 	if border {
 		borderType := RoundedRectBorderTypeOutset
-		if b.isActive() {
+		if b.isActive(context) {
 			borderType = RoundedRectBorderTypeInset
 		} else if !widget.IsEnabled() {
 			borderType = RoundedRectBorderTypeRegular
@@ -114,11 +107,8 @@ func (b *Button) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebite
 	}
 }
 
-func (b *Button) isActive() bool {
-	if b.mouseEventHandlerWidget == nil {
-		return false
-	}
-	return b.mouseEventHandlerWidget.IsEnabled() && b.mouseEventHandler().IsHovering() && b.mouseEventHandler().IsPressing()
+func (b *Button) isActive(context *guigui.Context) bool {
+	return context.WidgetFromBehavior(&b.mouseEventHandler).IsEnabled() && b.mouseEventHandler.IsHovering() && b.mouseEventHandler.IsPressing()
 }
 
 func (b *Button) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
@@ -140,7 +130,7 @@ func (b *Button) SetSize(context *guigui.Context, width, height int) {
 	b.heightMinusDefault = height - dh
 }
 
-func (b *Button) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+func (b *Button) Size(context *guigui.Context) (int, int) {
 	dw, dh := defaultButtonSize(context)
 	return b.widthMinusDefault + dw, b.heightMinusDefault + dh
 }
@@ -148,10 +138,8 @@ func (b *Button) Size(context *guigui.Context, widget *guigui.Widget) (int, int)
 type TextButton struct {
 	guigui.DefaultWidgetBehavior
 
-	button       Button
-	buttonWidget *guigui.Widget
-	text         Text
-	textWidget   *guigui.Widget
+	button Button
+	text   Text
 
 	textColor color.Color
 
@@ -176,26 +164,20 @@ func (t *TextButton) SetTextColor(clr color.Color) {
 func (t *TextButton) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
 	w, h := widget.Size(context)
 
-	if t.buttonWidget == nil {
-		t.buttonWidget = guigui.NewWidget(&t.button)
-	}
-	t.buttonWidget.Behavior().(*Button).SetSize(context, w, h)
-	appender.AppendChildWidget(t.buttonWidget, widget.Position())
+	t.button.SetSize(context, w, h)
+	appender.AppendChildWidget(&t.button, widget.Position())
 
-	if t.textWidget == nil {
-		t.text.SetHorizontalAlign(HorizontalAlignCenter)
-		t.text.SetVerticalAlign(VerticalAlignMiddle)
-		t.textWidget = guigui.NewWidget(&t.text)
-	}
+	t.text.SetHorizontalAlign(HorizontalAlignCenter)
+	t.text.SetVerticalAlign(VerticalAlignMiddle)
 	p := widget.Position()
-	if t.button.isActive() {
+	if t.button.isActive(context) {
 		// As the text is centered, shift it down by double sizes of the stroke width.
 		p.Y += int(2 * context.Scale())
-	} else if !t.buttonWidget.IsEnabled() {
+	} else if !context.WidgetFromBehavior(&t.button).IsEnabled() {
 		p.Y += int(1 * context.Scale())
 	}
-	t.textWidget.Behavior().(*Text).SetSize(w, h)
-	appender.AppendChildWidget(t.textWidget, p)
+	t.text.SetSize(w, h)
+	appender.AppendChildWidget(&t.text, p)
 }
 
 func (t *TextButton) PropagateEvent(context *guigui.Context, widget *guigui.Widget, event guigui.Event) (guigui.Event, bool) {
@@ -208,7 +190,7 @@ func (t *TextButton) Update(context *guigui.Context, widget *guigui.Widget) erro
 		t.needsRedraw = false
 	}
 
-	if !t.buttonWidget.IsEnabled() {
+	if !context.WidgetFromBehavior(&t.button).IsEnabled() {
 		t.text.SetColor(Color(context.ColorMode(), ColorTypeBase, 0.5))
 	} else {
 		t.text.SetColor(t.textColor)
@@ -216,7 +198,7 @@ func (t *TextButton) Update(context *guigui.Context, widget *guigui.Widget) erro
 	return nil
 }
 
-func (t *TextButton) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+func (t *TextButton) Size(context *guigui.Context) (int, int) {
 	_, dh := defaultButtonSize(context)
 	if t.widthSet {
 		return t.width, dh

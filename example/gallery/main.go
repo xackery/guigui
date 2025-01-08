@@ -17,39 +17,26 @@ import (
 type Root struct {
 	guigui.RootWidgetBehavior
 
-	sidebarWidget  *guigui.Widget
-	settingsWidget *guigui.Widget
-	basicWidget    *guigui.Widget
-	listsWidget    *guigui.Widget
+	sidebar  Sidebar
+	settings Settings
+	basic    Basic
+	lists    Lists
 }
 
 func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	if r.sidebarWidget == nil {
-		r.sidebarWidget = guigui.NewWidget(&Sidebar{})
-	}
-	appender.AppendChildWidget(r.sidebarWidget, widget.Position())
+	appender.AppendChildWidget(&r.sidebar, widget.Position())
 
-	sw, _ := r.sidebarWidget.Size(context)
+	sw, _ := r.sidebar.Size(context)
 	p := widget.Position()
 	p.X += sw
 
-	sidebar := r.sidebarWidget.Behavior().(*Sidebar)
-	switch sidebar.SelectedItemTag() {
+	switch r.sidebar.SelectedItemTag() {
 	case "settings":
-		if r.settingsWidget == nil {
-			r.settingsWidget = guigui.NewWidget(&Settings{})
-		}
-		appender.AppendChildWidget(r.settingsWidget, p)
+		appender.AppendChildWidget(&r.settings, p)
 	case "basic":
-		if r.basicWidget == nil {
-			r.basicWidget = guigui.NewWidget(&Basic{})
-		}
-		appender.AppendChildWidget(r.basicWidget, p)
+		appender.AppendChildWidget(&r.basic, p)
 	case "lists":
-		if r.listsWidget == nil {
-			r.listsWidget = guigui.NewWidget(&Lists{})
-		}
-		appender.AppendChildWidget(r.listsWidget, p)
+		appender.AppendChildWidget(&r.lists, p)
 	}
 }
 
@@ -65,7 +52,7 @@ func main() {
 	op := &guigui.RunOptions{
 		Title: "Component Gallery",
 	}
-	if err := guigui.Run(guigui.NewWidget(&Root{}), op); err != nil {
+	if err := guigui.Run(&Root{}, op); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

@@ -71,7 +71,7 @@ type RunOptions struct {
 	AppScale        float64
 }
 
-func Run(root *Widget, options *RunOptions) error {
+func Run(root WidgetBehavior, options *RunOptions) error {
 	if options == nil {
 		options = &RunOptions{}
 	}
@@ -98,7 +98,7 @@ func Run(root *Widget, options *RunOptions) error {
 	ebiten.SetWindowSizeLimits(minW, minH, maxW, maxH)
 
 	a := &app{
-		root: root,
+		root: widgetFromBehavior(root),
 	}
 	a.root.app_ = a
 	a.context = &Context{

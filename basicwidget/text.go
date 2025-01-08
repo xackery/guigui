@@ -81,8 +81,8 @@ type Text struct {
 
 	filter TextFilter
 
-	cursorWidget        *guigui.Widget
-	scrollOverlayWidget *guigui.Widget
+	cursor        textCursor
+	scrollOverlay ScrollOverlay
 
 	temporaryClipboard string
 
@@ -90,18 +90,12 @@ type Text struct {
 }
 
 func (t *Text) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	if t.cursorWidget == nil {
-		t.cursorWidget = guigui.NewPopupWidget(&textCursor{})
-	}
 	p := widget.Position()
 	p.X -= cursorWidth(context)
-	appender.AppendChildWidget(t.cursorWidget, p)
+	appender.AppendChildWidget(&t.cursor, p)
 
-	if t.scrollOverlayWidget == nil {
-		t.scrollOverlayWidget = guigui.NewWidget(&ScrollOverlay{})
-		t.scrollOverlayWidget.Hide()
-	}
-	appender.AppendChildWidget(t.scrollOverlayWidget, widget.Position())
+	context.WidgetFromBehavior(&t.scrollOverlay).Hide()
+	appender.AppendChildWidget(&t.scrollOverlay, widget.Position())
 }
 
 func (t *Text) SetSelectable(selectable bool) {
@@ -224,15 +218,11 @@ func (t *Text) SetEditable(editable bool) {
 	t.needsRedraw = true
 }
 
-func (t *Text) SetScrollable(scrollable bool) {
-	if t.scrollOverlayWidget == nil {
-		t.scrollOverlayWidget = guigui.NewWidget(&ScrollOverlay{})
-		t.scrollOverlayWidget.Hide()
-	}
+func (t *Text) SetScrollable(context *guigui.Context, scrollable bool) {
 	if scrollable {
-		t.scrollOverlayWidget.Show()
+		context.WidgetFromBehavior(&t.scrollOverlay).Show()
 	} else {
-		t.scrollOverlayWidget.Hide()
+		context.WidgetFromBehavior(&t.scrollOverlay).Hide()
 	}
 }
 
@@ -249,9 +239,9 @@ func (t *Text) SetMultiline(multiline bool) {
 	t.needsRedraw = true
 }
 
-func (t *Text) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
-	p := widget.Position()
-	w, h := t.Size(context, widget)
+func (t *Text) bounds(context *guigui.Context) image.Rectangle {
+	p := context.WidgetFromBehavior(t).Position()
+	w, h := t.Size(context)
 	return image.Rectangle{
 		Min: p,
 		Max: p.Add(image.Pt(w, h)),
@@ -259,9 +249,9 @@ func (t *Text) bounds(context *guigui.Context, widget *guigui.Widget) image.Rect
 }
 
 func (t *Text) textBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
-	offsetX, offsetY := t.scrollOverlayWidget.Behavior().(*ScrollOverlay).Offset()
+	offsetX, offsetY := t.scrollOverlay.Offset()
 
-	b := t.bounds(context, widget)
+	b := t.bounds(context)
 
 	tw, _ := text.Measure(t.textToDraw(), t.face(context), t.lineHeight(context))
 	if b.Dx() < int(tw) {
@@ -601,7 +591,7 @@ func (t *Text) adjustScrollOffset(context *guigui.Context, widget *guigui.Widget
 
 	tb := t.textBounds(context, widget)
 	face := t.face(context)
-	bounds := t.bounds(context, widget)
+	bounds := t.bounds(context)
 	if x, _, y, ok := textPosition(tb, text, end, face, t.lineHeight(context), t.hAlign, t.vAlign); ok {
 		var dx, dy float64
 		if max := float64(bounds.Max.X); x > max {
@@ -610,7 +600,7 @@ func (t *Text) adjustScrollOffset(context *guigui.Context, widget *guigui.Widget
 		if max := float64(bounds.Max.Y); y > max {
 			dy = max - y
 		}
-		t.scrollOverlayWidget.Behavior().(*ScrollOverlay).SetOffsetByDelta(dx, dy)
+		t.scrollOverlay.SetOffsetByDelta(dx, dy)
 	}
 	if x, y, _, ok := textPosition(tb, text, start, face, t.lineHeight(context), t.hAlign, t.vAlign); ok {
 		var dx, dy float64
@@ -620,7 +610,7 @@ func (t *Text) adjustScrollOffset(context *guigui.Context, widget *guigui.Widget
 		if min := float64(bounds.Min.Y); y < min {
 			dy = min - y
 		}
-		t.scrollOverlayWidget.Behavior().(*ScrollOverlay).SetOffsetByDelta(dx, dy)
+		t.scrollOverlay.SetOffsetByDelta(dx, dy)
 	}
 }
 
@@ -674,7 +664,7 @@ func (t *Text) compositionSelectionToDraw(widget *guigui.Widget) (uStart, cStart
 func (t *Text) Update(context *guigui.Context, widget *guigui.Widget) error {
 	if !t.prevFocused && widget.IsFocused() {
 		t.field.Focus()
-		t.cursorWidget.Behavior().(*textCursor).resetCounter()
+		t.cursor.resetCounter()
 		start, end := t.field.Selection()
 		if start < 0 || end < 0 {
 			t.selectAll()
@@ -708,7 +698,7 @@ func (t *Text) applyFilter() {
 
 func (t *Text) updateContentSize(context *guigui.Context) {
 	w, h := t.TextSize(context)
-	t.scrollOverlayWidget.Behavior().(*ScrollOverlay).SetContentSize(w, h)
+	t.scrollOverlay.SetContentSize(w, h)
 }
 
 func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
@@ -792,7 +782,7 @@ func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 	drawText(textBounds, dst, text, face, t.lineHeight(context), t.hAlign, t.vAlign, clr)
 }
 
-func (t *Text) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+func (t *Text) Size(context *guigui.Context) (int, int) {
 	w, h := t.width, t.height
 	if !t.widthSet || !t.heightSet {
 		tw, th := t.TextSize(context)
@@ -954,7 +944,11 @@ func (t *textCursor) Draw(context *guigui.Context, widget *guigui.Widget, dst *e
 	vector.DrawFilledRect(dst, float32(b.Min.X), float32(b.Min.Y), float32(b.Dx()), float32(b.Dy()), Color(context.ColorMode(), ColorTypeAccent, 0.4), false)
 }
 
-func (t *textCursor) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
-	w, h := widget.Parent().Size(context)
+func (t *textCursor) IsPopup() bool {
+	return true
+}
+
+func (t *textCursor) Size(context *guigui.Context) (int, int) {
+	w, h := context.WidgetFromBehavior(t).Parent().Size(context)
 	return w + 2*cursorWidth(context), h
 }

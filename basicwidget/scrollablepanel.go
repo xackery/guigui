@@ -14,7 +14,7 @@ import (
 )
 
 type widgetWithBounds struct {
-	widget   *guigui.Widget
+	widget   guigui.WidgetBehavior
 	position image.Point
 }
 
@@ -28,10 +28,10 @@ func (w *widgetWithBounds) bounds(context *guigui.Context) image.Rectangle {
 type ScrollablePanel struct {
 	guigui.DefaultWidgetBehavior
 
-	setContentFunc     func(context *guigui.Context, widget *guigui.Widget, childAppender *ScrollablePanelChildWidgetAppender)
-	childWidgets       []widgetWithBounds
-	scollOverlayWidget *guigui.Widget
-	border             *guigui.Widget
+	setContentFunc func(context *guigui.Context, widget *guigui.Widget, childAppender *ScrollablePanelChildWidgetAppender)
+	childWidgets   []widgetWithBounds
+	scollOverlay   ScrollOverlay
+	border         scrollablePanelBorder
 
 	paddingX           int
 	paddingY           int
@@ -44,7 +44,7 @@ type ScrollablePanelChildWidgetAppender struct {
 	scrollablePanel *ScrollablePanel
 }
 
-func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget *guigui.Widget, position image.Point) {
+func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget guigui.WidgetBehavior, position image.Point) {
 	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widgetWithBounds{
 		widget:   widget,
 		position: position,
@@ -53,7 +53,6 @@ func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget *guigui.Wi
 
 func (s *ScrollablePanel) SetContent(f func(context *guigui.Context, widget *guigui.Widget, childAppender *ScrollablePanelChildWidgetAppender)) {
 	s.setContentFunc = f
-
 }
 
 func (s *ScrollablePanel) SetPadding(paddingX, paddingY int) {
@@ -70,27 +69,17 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *gu
 		})
 	}
 
-	if s.scollOverlayWidget == nil {
-		var so ScrollOverlay
-		s.scollOverlayWidget = guigui.NewWidget(&so)
-	}
-
-	offsetX, offsetY := s.scollOverlayWidget.Behavior().(*ScrollOverlay).Offset()
+	offsetX, offsetY := s.scollOverlay.Offset()
 	for _, childWidget := range s.childWidgets {
 		p := childWidget.position
 		p = p.Add(image.Pt(int(offsetX), int(offsetY)))
 		appender.AppendChildWidget(childWidget.widget, p)
 	}
 
-	appender.AppendChildWidget(s.scollOverlayWidget, widget.Position())
+	appender.AppendChildWidget(&s.scollOverlay, widget.Position())
 
-	if s.border == nil {
-		b := scrollablePanelBorder{
-			scrollOverlay: s.scollOverlayWidget.Behavior().(*ScrollOverlay),
-		}
-		s.border = guigui.NewWidget(&b)
-	}
-	appender.AppendChildWidget(s.border, widget.Position())
+	s.border.scrollOverlay = &s.scollOverlay
+	appender.AppendChildWidget(&s.border, widget.Position())
 }
 
 func (s *ScrollablePanel) Update(context *guigui.Context, widget *guigui.Widget) error {
@@ -101,8 +90,7 @@ func (s *ScrollablePanel) Update(context *guigui.Context, widget *guigui.Widget)
 		w = max(w, b.Max.X-p.X+s.paddingX)
 		h = max(h, b.Max.Y-p.Y+s.paddingY)
 	}
-	so := s.scollOverlayWidget.Behavior().(*ScrollOverlay)
-	so.SetContentSize(w, h)
+	s.scollOverlay.SetContentSize(w, h)
 	return nil
 }
 
@@ -110,7 +98,7 @@ func defaultScrollablePanelSize(context *guigui.Context) (int, int) {
 	return 6 * UnitSize(context), 6 * UnitSize(context)
 }
 
-func (s *ScrollablePanel) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+func (s *ScrollablePanel) Size(context *guigui.Context) (int, int) {
 	dw, dh := defaultScrollablePanelSize(context)
 	return s.widthMinusDefault + dw, s.heightMinusDefault + dh
 }
@@ -130,7 +118,7 @@ type scrollablePanelBorder struct {
 func (s *scrollablePanelBorder) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
 	// Render borders.
 	strokeWidth := float32(1 * context.Scale())
-	bounds := s.bounds(context, widget)
+	bounds := s.bounds(context)
 	x0 := float32(bounds.Min.X)
 	x1 := float32(bounds.Max.X)
 	y0 := float32(bounds.Min.Y)
@@ -144,13 +132,13 @@ func (s *scrollablePanelBorder) Draw(context *guigui.Context, widget *guigui.Wid
 	}
 }
 
-func (s *scrollablePanelBorder) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
-	return widget.Parent().Size(context)
+func (s *scrollablePanelBorder) Size(context *guigui.Context) (int, int) {
+	return context.WidgetFromBehavior(s).Parent().Size(context)
 }
 
-func (s *scrollablePanelBorder) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
-	p := widget.Position()
-	w, h := s.Size(context, widget)
+func (s *scrollablePanelBorder) bounds(context *guigui.Context) image.Rectangle {
+	p := context.WidgetFromBehavior(s).Position()
+	w, h := s.Size(context)
 	return image.Rectangle{
 		Min: p,
 		Max: p.Add(image.Pt(w, h)),

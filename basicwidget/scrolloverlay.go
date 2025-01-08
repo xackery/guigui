@@ -162,7 +162,7 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context, widget *guigui.Widg
 			prevOffsetY := s.offsetY
 
 			w, h := widget.Size(context)
-			barWidth, barHeight := s.barSize(context, widget)
+			barWidth, barHeight := s.barSize(context)
 			if s.draggingX && barWidth > 0 && s.contentWidth-w > 0 {
 				offsetPerPixel := float64(s.contentWidth-w) / (float64(w) - barWidth)
 				s.offsetX = s.draggingStartOffsetX + float64(-dx)*offsetPerPixel
@@ -226,7 +226,7 @@ func (s *ScrollOverlay) Offset() (float64, float64) {
 }
 
 func (s *ScrollOverlay) adjustOffset(context *guigui.Context, widget *guigui.Widget) {
-	bounds := s.bounds(context, widget)
+	bounds := s.bounds(context)
 
 	// Adjust offsets.
 	if s.offsetX > 0 {
@@ -261,7 +261,7 @@ func (s *ScrollOverlay) isBarVisible(context *guigui.Context, widget *guigui.Wid
 		return true
 	}
 
-	bounds := s.bounds(context, widget)
+	bounds := s.bounds(context)
 	if s.contentWidth > bounds.Dx() && bounds.Max.Y-UnitSize(context) <= s.lastCursorY {
 		return true
 	}
@@ -343,13 +343,13 @@ func (s *ScrollOverlay) Draw(context *guigui.Context, widget *guigui.Widget, dst
 	}
 }
 
-func (s *ScrollOverlay) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
-	return widget.Parent().Size(context)
+func (s *ScrollOverlay) Size(context *guigui.Context) (int, int) {
+	return context.WidgetFromBehavior(s).Parent().Size(context)
 }
 
-func (s *ScrollOverlay) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
-	p := widget.Position()
-	w, h := s.Size(context, widget)
+func (s *ScrollOverlay) bounds(context *guigui.Context) image.Rectangle {
+	p := context.WidgetFromBehavior(s).Position()
+	w, h := s.Size(context)
 	return image.Rectangle{
 		Min: p,
 		Max: p.Add(image.Pt(w, h)),
@@ -361,8 +361,8 @@ func (s *ScrollOverlay) barWidth(scale float64) float64 {
 	return scrollBarStrokeWidthInDIP * scale
 }
 
-func (s *ScrollOverlay) barSize(context *guigui.Context, widget *guigui.Widget) (float64, float64) {
-	bounds := s.bounds(context, widget)
+func (s *ScrollOverlay) barSize(context *guigui.Context) (float64, float64) {
+	bounds := s.bounds(context)
 
 	var w, h float64
 	if s.contentWidth > bounds.Dx() {
@@ -381,10 +381,10 @@ func (s *ScrollOverlay) barSize(context *guigui.Context, widget *guigui.Widget) 
 }
 
 func (s *ScrollOverlay) barBounds(context *guigui.Context, widget *guigui.Widget) (image.Rectangle, image.Rectangle) {
-	bounds := s.bounds(context, widget)
+	bounds := s.bounds(context)
 
 	offsetX, offsetY := s.Offset()
-	barWidth, barHeight := s.barSize(context, widget)
+	barWidth, barHeight := s.barSize(context)
 
 	padding := 4 * context.Scale()
 

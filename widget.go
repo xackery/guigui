@@ -15,7 +15,6 @@ type Widget struct {
 	app_ *app
 
 	behavior      WidgetBehavior
-	popup         bool
 	position      image.Point
 	visibleBounds image.Rectangle
 
@@ -33,23 +32,6 @@ type Widget struct {
 	eventQueue EventQueue
 
 	offscreen *ebiten.Image
-}
-
-func NewWidget(behavior WidgetBehavior) *Widget {
-	return &Widget{
-		behavior: behavior,
-	}
-}
-
-func NewPopupWidget(behavior WidgetBehavior) *Widget {
-	return &Widget{
-		behavior: behavior,
-		popup:    true,
-	}
-}
-
-func (w *Widget) Behavior() WidgetBehavior {
-	return w.behavior
 }
 
 func (w *Widget) Parent() *Widget {
@@ -259,7 +241,7 @@ func (w *Widget) RequestRedraw() {
 }
 
 func (w *Widget) requestRedrawIfPopup() {
-	if w.popup {
+	if w.behavior.IsPopup() {
 		w.requestRedraw(w.visibleBounds)
 	}
 	for _, child := range w.children {
@@ -307,6 +289,10 @@ func (w *Widget) ensureOffscreen(bounds image.Rectangle) *ebiten.Image {
 	return w.offscreen.SubImage(bounds).(*ebiten.Image)
 }
 
+func (w *Widget) Behavior() WidgetBehavior {
+	return w.behavior
+}
+
 func (w *Widget) Size(context *Context) (int, int) {
-	return w.behavior.Size(context, w)
+	return w.behavior.Size(context)
 }

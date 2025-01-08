@@ -16,86 +16,71 @@ import (
 type Root struct {
 	guigui.RootWidgetBehavior
 
-	resetButtonWidget *guigui.Widget
-	incButtonWidget   *guigui.Widget
-	decButtonWidget   *guigui.Widget
-	counterTextWidget *guigui.Widget
+	resetButton basicwidget.TextButton
+	incButton   basicwidget.TextButton
+	decButton   basicwidget.TextButton
+	counterText basicwidget.Text
 
 	counter int
 }
 
 func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	if r.counterTextWidget == nil {
-		r.counterTextWidget = guigui.NewWidget(&basicwidget.Text{})
-	}
 	{
 		w, h := widget.Size(context)
 		w -= 2 * basicwidget.UnitSize(context)
 		h -= 4 * basicwidget.UnitSize(context)
-		r.counterTextWidget.Behavior().(*basicwidget.Text).SetSize(w, h)
+		r.counterText.SetSize(w, h)
 		p := widget.Position()
 		p.X += basicwidget.UnitSize(context)
 		p.Y += basicwidget.UnitSize(context)
-		appender.AppendChildWidget(r.counterTextWidget, p)
+		appender.AppendChildWidget(&r.counterText, p)
 	}
 
-	if r.resetButtonWidget == nil {
-		var b basicwidget.TextButton
-		b.SetText("Reset")
-		b.SetWidth(6 * basicwidget.UnitSize(context))
-		r.resetButtonWidget = guigui.NewWidget(&b)
-	}
+	r.resetButton.SetText("Reset")
+	r.resetButton.SetWidth(6 * basicwidget.UnitSize(context))
 	{
 		p := widget.Position()
 		_, h := widget.Size(context)
 		p.X += basicwidget.UnitSize(context)
 		p.Y += h - 2*basicwidget.UnitSize(context)
-		appender.AppendChildWidget(r.resetButtonWidget, p)
+		appender.AppendChildWidget(&r.resetButton, p)
 	}
 
-	if r.incButtonWidget == nil {
-		var b basicwidget.TextButton
-		b.SetText("Increment")
-		b.SetWidth(6 * basicwidget.UnitSize(context))
-		r.incButtonWidget = guigui.NewWidget(&b)
-	}
+	r.incButton.SetText("Increment")
+	r.incButton.SetWidth(6 * basicwidget.UnitSize(context))
 	{
 		p := widget.Position()
 		w, h := widget.Size(context)
 		p.X += w - 7*basicwidget.UnitSize(context)
 		p.Y += h - 2*basicwidget.UnitSize(context)
-		appender.AppendChildWidget(r.incButtonWidget, p)
+		appender.AppendChildWidget(&r.incButton, p)
 	}
 
-	if r.decButtonWidget == nil {
-		var b basicwidget.TextButton
-		b.SetText("Decrement")
-		b.SetWidth(6 * basicwidget.UnitSize(context))
-		r.decButtonWidget = guigui.NewWidget(&b)
-	}
+	r.decButton.SetText("Decrement")
+	r.decButton.SetWidth(6 * basicwidget.UnitSize(context))
 	{
 		p := widget.Position()
 		w, h := widget.Size(context)
 		p.X += w - int(13.5*float64(basicwidget.UnitSize(context)))
 		p.Y += h - 2*basicwidget.UnitSize(context)
-		appender.AppendChildWidget(r.decButtonWidget, p)
+		appender.AppendChildWidget(&r.decButton, p)
 	}
 }
 
 func (r *Root) Update(context *guigui.Context, widget *guigui.Widget) error {
-	for e := range r.incButtonWidget.DequeueEvents() {
+	for e := range context.WidgetFromBehavior(&r.incButton).DequeueEvents() {
 		args := e.(basicwidget.ButtonEvent)
 		if args.Type == basicwidget.ButtonEventTypeUp {
 			r.counter++
 		}
 	}
-	for e := range r.decButtonWidget.DequeueEvents() {
+	for e := range context.WidgetFromBehavior(&r.decButton).DequeueEvents() {
 		args := e.(basicwidget.ButtonEvent)
 		if args.Type == basicwidget.ButtonEventTypeUp {
 			r.counter--
 		}
 	}
-	for e := range r.resetButtonWidget.DequeueEvents() {
+	for e := range context.WidgetFromBehavior(&r.resetButton).DequeueEvents() {
 		args := e.(basicwidget.ButtonEvent)
 		if args.Type == basicwidget.ButtonEventTypeUp {
 			r.counter = 0
@@ -103,17 +88,16 @@ func (r *Root) Update(context *guigui.Context, widget *guigui.Widget) error {
 	}
 
 	if r.counter == 0 {
-		r.resetButtonWidget.Disable()
+		context.WidgetFromBehavior(&r.resetButton).Disable()
 	} else {
-		r.resetButtonWidget.Enable()
+		context.WidgetFromBehavior(&r.resetButton).Enable()
 	}
-	t := r.counterTextWidget.Behavior().(*basicwidget.Text)
-	t.SetSelectable(true)
-	t.SetBold(true)
-	t.SetHorizontalAlign(basicwidget.HorizontalAlignCenter)
-	t.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
-	t.SetScale(4)
-	t.SetText(fmt.Sprintf("%d", r.counter))
+	r.counterText.SetSelectable(true)
+	r.counterText.SetBold(true)
+	r.counterText.SetHorizontalAlign(basicwidget.HorizontalAlignCenter)
+	r.counterText.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
+	r.counterText.SetScale(4)
+	r.counterText.SetText(fmt.Sprintf("%d", r.counter))
 
 	return nil
 }
@@ -128,7 +112,7 @@ func main() {
 		WindowMinWidth:  640,
 		WindowMinHeight: 480,
 	}
-	if err := guigui.Run(guigui.NewWidget(&Root{}), op); err != nil {
+	if err := guigui.Run(&Root{}, op); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

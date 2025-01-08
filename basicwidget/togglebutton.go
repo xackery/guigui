@@ -19,7 +19,7 @@ type ToggleButtonEvent struct {
 type ToggleButton struct {
 	guigui.DefaultWidgetBehavior
 
-	mouseEventHandlerWidget *guigui.Widget
+	mouseEventHandler guigui.MouseEventHandler
 
 	value        bool
 	onceRendered bool
@@ -50,14 +50,11 @@ func toggleButtonMaxCount() int {
 }
 
 func (t *ToggleButton) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	if t.mouseEventHandlerWidget == nil {
-		t.mouseEventHandlerWidget = guigui.NewWidget(&guigui.MouseEventHandler{})
-	}
-	appender.AppendChildWidget(t.mouseEventHandlerWidget, widget.Position())
+	appender.AppendChildWidget(&t.mouseEventHandler, widget.Position())
 }
 
 func (t *ToggleButton) Update(context *guigui.Context, widget *guigui.Widget) error {
-	for e := range t.mouseEventHandlerWidget.DequeueEvents() {
+	for e := range context.WidgetFromBehavior(&t.mouseEventHandler).DequeueEvents() {
 		switch e := e.(type) {
 		case guigui.MouseEvent:
 			if e.Type == guigui.MouseEventTypeUp {
@@ -78,7 +75,7 @@ func (t *ToggleButton) Update(context *guigui.Context, widget *guigui.Widget) er
 }
 
 func (t *ToggleButton) CursorShape(context *guigui.Context, widget *guigui.Widget) (ebiten.CursorShapeType, bool) {
-	if widget.IsEnabled() && t.mouseEventHandler().IsHovering() {
+	if widget.IsEnabled() && t.mouseEventHandler.IsHovering() {
 		return ebiten.CursorShapePointer, true
 	}
 	return 0, true
@@ -87,16 +84,16 @@ func (t *ToggleButton) CursorShape(context *guigui.Context, widget *guigui.Widge
 func (t *ToggleButton) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
 	rate := 1 - float64(t.count)/float64(toggleButtonMaxCount())
 
-	bounds := t.bounds(context, widget)
+	bounds := t.bounds(context)
 
 	cm := context.ColorMode()
 	backgroundColor := Color(context.ColorMode(), ColorTypeBase, 0.8)
 	thumbColor := Color2(cm, ColorTypeBase, 1, 0.6)
 	borderColor := Color2(cm, ColorTypeBase, 0.7, 0)
-	if t.isActive() {
+	if t.isActive(context) {
 		thumbColor = Color2(cm, ColorTypeBase, 0.95, 0.55)
 		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
-	} else if t.mouseEventHandler().IsHovering() && t.mouseEventHandlerWidget.IsEnabled() {
+	} else if t.mouseEventHandler.IsHovering() && context.WidgetFromBehavior(&t.mouseEventHandler).IsEnabled() {
 		thumbColor = Color2(cm, ColorTypeBase, 0.975, 0.575)
 		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
 	} else if !widget.IsEnabled() {
@@ -142,29 +139,19 @@ func (t *ToggleButton) Draw(context *guigui.Context, widget *guigui.Widget, dst 
 	t.onceRendered = true
 }
 
-func (t *ToggleButton) mouseEventHandler() *guigui.MouseEventHandler {
-	if t.mouseEventHandlerWidget == nil {
-		return nil
-	}
-	return t.mouseEventHandlerWidget.Behavior().(*guigui.MouseEventHandler)
+func (t *ToggleButton) isActive(context *guigui.Context) bool {
+	return context.WidgetFromBehavior(t).IsEnabled() && t.mouseEventHandler.IsHovering() && t.mouseEventHandler.IsPressing()
 }
 
-func (t *ToggleButton) isActive() bool {
-	if t.mouseEventHandlerWidget == nil {
-		return false
-	}
-	return t.mouseEventHandlerWidget.IsEnabled() && t.mouseEventHandler().IsHovering() && t.mouseEventHandler().IsPressing()
-}
-
-func (t *ToggleButton) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
-	cw, ch := t.Size(context, widget)
-	p := widget.Position()
+func (t *ToggleButton) bounds(context *guigui.Context) image.Rectangle {
+	cw, ch := t.Size(context)
+	p := context.WidgetFromBehavior(t).Position()
 	return image.Rectangle{
 		Min: p,
 		Max: p.Add(image.Pt(cw, ch)),
 	}
 }
 
-func (t *ToggleButton) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+func (t *ToggleButton) Size(context *guigui.Context) (int, int) {
 	return int(LineHeight(context) * 1.75), int(LineHeight(context))
 }

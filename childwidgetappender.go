@@ -10,7 +10,8 @@ type ChildWidgetAppender struct {
 	widget *Widget
 }
 
-func (c *ChildWidgetAppender) AppendChildWidget(widget *Widget, position image.Point) {
+func (c *ChildWidgetAppender) AppendChildWidget(widgetBehavior WidgetBehavior, position image.Point) {
+	widget := widgetFromBehavior(widgetBehavior)
 	if _, ok := c.app.currentWidgets[widget]; ok {
 		panic("guigui: the widget is already in the widget tree")
 	}
@@ -28,13 +29,13 @@ func (c *ChildWidgetAppender) AppendChildWidget(widget *Widget, position image.P
 		Max: position.Add(image.Point{w, h}),
 	}
 	if _, ok := c.app.prevWidgets[widget]; !ok {
-		if widget.popup {
+		if widget.behavior.IsPopup() {
 			c.app.requestRedraw(bounds)
 		} else {
 			c.app.requestRedraw(bounds.Intersect(c.widget.visibleBounds))
 		}
 	} else if !widget.bounds().Eq(bounds) {
-		if widget.popup {
+		if widget.behavior.IsPopup() {
 			c.app.requestRedraw(bounds)
 			c.app.requestRedraw(widget.bounds())
 		} else {
@@ -44,7 +45,7 @@ func (c *ChildWidgetAppender) AppendChildWidget(widget *Widget, position image.P
 	}
 
 	widget.position = position
-	if widget.popup {
+	if widget.behavior.IsPopup() {
 		widget.visibleBounds = widget.bounds()
 	} else {
 		widget.visibleBounds = c.widget.visibleBounds.Intersect(widget.bounds())

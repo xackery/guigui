@@ -17,7 +17,7 @@ import (
 type TextList struct {
 	guigui.DefaultWidgetBehavior
 
-	listWidget    *guigui.Widget
+	list          List
 	textListItems []TextListItem
 }
 
@@ -88,26 +88,18 @@ func (t *TextListItem) selectable() bool {
 }*/
 
 func (t *TextList) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	_ = t.list()
-	appender.AppendChildWidget(t.listWidget, widget.Position())
-}
-
-func (t *TextList) list() *List {
-	if t.listWidget == nil {
-		t.listWidget = guigui.NewWidget(&List{})
-	}
-	return t.listWidget.Behavior().(*List)
+	appender.AppendChildWidget(&t.list, widget.Position())
 }
 
 func (t *TextList) SelectedItemIndex() int {
-	return t.list().SelectedItemIndex()
+	return t.list.SelectedItemIndex()
 }
 
 func (t *TextList) SelectedItem() (TextListItem, bool) {
-	if t.list().SelectedItemIndex() < 0 || t.list().SelectedItemIndex() >= len(t.textListItems) {
+	if t.list.SelectedItemIndex() < 0 || t.list.SelectedItemIndex() >= len(t.textListItems) {
 		return TextListItem{}, false
 	}
-	return t.textListItems[t.list().SelectedItemIndex()], true
+	return t.textListItems[t.list.SelectedItemIndex()], true
 }
 
 func (t *TextList) ItemAt(index int) (TextListItem, bool) {
@@ -135,7 +127,7 @@ func (t *TextList) SetItems(items []TextListItem) {
 		t.textListItems[i].listItem = li
 		listItems[i] = li
 	}
-	t.list().SetItems(listItems)
+	t.list.SetItems(listItems)
 }
 
 func (t *TextList) ItemsCount() int {
@@ -149,7 +141,7 @@ func (t *TextList) Tag(index int) any {
 func (t *TextList) newTextListItem(item TextListItem) ListItem {
 	if item.Border {
 		return ListItem{
-			Content:    guigui.NewWidget(&textListBorderItem{}),
+			Content:    &textListBorderItem{},
 			Selectable: false,
 		}
 	}
@@ -158,7 +150,7 @@ func (t *TextList) newTextListItem(item TextListItem) ListItem {
 		textListItem: item,
 	}
 	return ListItem{
-		Content:    guigui.NewWidget(textItem),
+		Content:    textItem,
 		Selectable: item.selectable(),
 		Wide:       item.Header,
 		Draggable:  item.Draggable,
@@ -166,15 +158,15 @@ func (t *TextList) newTextListItem(item TextListItem) ListItem {
 }
 
 func (t *TextList) SetSelectedItemIndex(index int) {
-	t.list().SetSelectedItemIndex(index)
+	t.list.SetSelectedItemIndex(index)
 }
 
 func (t *TextList) JumpToItemIndex(index int) {
-	t.list().JumpToItemIndex(index)
+	t.list.JumpToItemIndex(index)
 }
 
 func (t *TextList) SetStyle(style ListStyle) {
-	t.list().SetStyle(style)
+	t.list.SetStyle(style)
 }
 
 func (t *TextList) SetItemString(str string, index int) {
@@ -189,41 +181,40 @@ func (t *TextList) AddItem(item TextListItem, index int) {
 	t.textListItems = slices.Insert(t.textListItems, index, item)
 	li := t.newTextListItem(item)
 	t.textListItems[index].listItem = li
-	t.list().AddItem(li, index)
+	t.list.AddItem(li, index)
 }
 
 func (t *TextList) RemoveItem(index int) {
 	t.textListItems = slices.Delete(t.textListItems, index, index+1)
-	t.list().RemoveItem(index)
+	t.list.RemoveItem(index)
 }
 
 func (t *TextList) MoveItem(from, to int) {
 	moveItemInSlice(t.textListItems, from, 1, to)
-	t.list().MoveItem(from, to)
+	t.list.MoveItem(from, to)
 }
 
 func (t *TextList) Update(context *guigui.Context, widget *guigui.Widget) error {
 	for i, li := range t.textListItems {
-		item, ok := li.listItem.Content.Behavior().(*textListTextItem)
+		item, ok := li.listItem.Content.(*textListTextItem)
 		if !ok {
 			continue
 		}
-		text := item.textWidget.Behavior().(*Text)
-		text.SetBold(item.textListItem.Header)
-		if widget.HasFocusedChildWidget() && t.list().SelectedItemIndex() == i ||
-			(t.list().IsHoveringVisible() && t.list().HoveredItemIndex() == i) && li.listItem.Selectable {
-			text.SetColor(DefaultActiveListItemTextColor(context))
+		item.text.SetBold(item.textListItem.Header)
+		if context.WidgetFromBehavior(t).HasFocusedChildWidget() && t.list.SelectedItemIndex() == i ||
+			(t.list.IsHoveringVisible() && t.list.HoveredItemIndex() == i) && li.listItem.Selectable {
+			item.text.SetColor(DefaultActiveListItemTextColor(context))
 		} else if !li.listItem.Selectable && !item.textListItem.Header {
-			text.SetColor(DefaultDisabledListItemTextColor(context))
+			item.text.SetColor(DefaultDisabledListItemTextColor(context))
 		} else {
-			text.SetColor(li.Color)
+			item.text.SetColor(li.Color)
 		}
 	}
 	return nil
 }
 
-func (t *TextList) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
-	return t.list().Size(context, widget)
+func (t *TextList) Size(context *guigui.Context) (int, int) {
+	return t.list.Size(context)
 }
 
 /*func (t *TextList) MinimumWidth(scale float64) int {
@@ -245,7 +236,7 @@ type textListTextItem struct {
 
 	textList     *TextList
 	textListItem TextListItem
-	textWidget   *guigui.Widget
+	text         Text
 }
 
 /*func newTextListTextItem(settings *model.Settings, textList *TextList, textListItem TextListItem) *textListTextItem {
@@ -269,22 +260,18 @@ type textListTextItem struct {
 }*/
 
 func (t *textListTextItem) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	if t.textWidget == nil {
-		t.textWidget = guigui.NewWidget(&Text{})
-	}
-	text := t.textWidget.Behavior().(*Text)
 	p := widget.Position()
 	if t.textListItem.Header {
 		p.X += UnitSize(context) / 2
 		w, h := widget.Size(context)
-		text.SetSize(w-UnitSize(context), h)
+		t.text.SetSize(w-UnitSize(context), h)
 	}
-	text.SetText(t.text())
-	text.SetVerticalAlign(VerticalAlignMiddle)
-	appender.AppendChildWidget(t.textWidget, p)
+	t.text.SetText(t.textString())
+	t.text.SetVerticalAlign(VerticalAlignMiddle)
+	appender.AppendChildWidget(&t.text, p)
 }
 
-func (t *textListTextItem) text() string {
+func (t *textListTextItem) textString() string {
 	if t.textListItem.DummyText != "" {
 		return t.textListItem.DummyText
 	}
@@ -304,14 +291,14 @@ func (t *textListTextItem) Draw(context *guigui.Context, widget *guigui.Widget, 
 	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.6), RoundedCornerRadius(context))
 }
 
-func (t *textListTextItem) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
-	w, _ := widget.Parent().Size(context)
+func (t *textListTextItem) Size(context *guigui.Context) (int, int) {
+	w, _ := context.WidgetFromBehavior(t).Parent().Size(context)
 	return w, int(LineHeight(context))
 }
 
 func (t *textListTextItem) index() int {
 	for i, li := range t.textList.textListItems {
-		tt, ok := li.listItem.Content.Behavior().(*textListTextItem)
+		tt, ok := li.listItem.Content.(*textListTextItem)
 		if !ok {
 			continue
 		}
@@ -378,7 +365,7 @@ func (t *textListBorderItem) Draw(context *guigui.Context, widget *guigui.Widget
 	vector.StrokeLine(dst, x0, y, x1, y, width, Color(context.ColorMode(), ColorTypeBase, 0.8), false)
 }
 
-func (t *textListBorderItem) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
-	w, _ := widget.Parent().Size(context)
+func (t *textListBorderItem) Size(context *guigui.Context) (int, int) {
+	w, _ := context.WidgetFromBehavior(t).Parent().Size(context)
 	return w, UnitSize(context) / 2
 }

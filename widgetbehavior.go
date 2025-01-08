@@ -13,9 +13,10 @@ type WidgetBehavior interface {
 	Update(context *Context, widget *Widget) error
 	CursorShape(context *Context, widget *Widget) (ebiten.CursorShapeType, bool)
 	Draw(context *Context, widget *Widget, dst *ebiten.Image)
-	Size(context *Context, widget *Widget) (int, int)
+	IsPopup() bool
+	Size(context *Context) (int, int)
 
-	private()
+	internalWidget() *Widget
 }
 
 type EventPropagator interface {
@@ -43,39 +44,47 @@ func (r *HandleInputResult) ShouldRaise() bool {
 	return r.widget != nil || r.aborted
 }
 
+// TODO: Add more Widget functions.
 type DefaultWidgetBehavior struct {
+	widget Widget
 }
 
-func (DefaultWidgetBehavior) AppendChildWidgets(context *Context, widget *Widget, appender *ChildWidgetAppender) {
+func (*DefaultWidgetBehavior) AppendChildWidgets(context *Context, widget *Widget, appender *ChildWidgetAppender) {
 }
 
-func (DefaultWidgetBehavior) HandleInput(context *Context, widget *Widget) HandleInputResult {
+func (*DefaultWidgetBehavior) HandleInput(context *Context, widget *Widget) HandleInputResult {
 	return HandleInputResult{}
 }
 
-func (DefaultWidgetBehavior) Update(context *Context, widget *Widget) error {
+func (*DefaultWidgetBehavior) Update(context *Context, widget *Widget) error {
 	return nil
 }
 
-func (DefaultWidgetBehavior) CursorShape(context *Context, widget *Widget) (ebiten.CursorShapeType, bool) {
+func (*DefaultWidgetBehavior) CursorShape(context *Context, widget *Widget) (ebiten.CursorShapeType, bool) {
 	return 0, false
 }
 
-func (DefaultWidgetBehavior) Draw(context *Context, widget *Widget, dst *ebiten.Image) {
+func (*DefaultWidgetBehavior) Draw(context *Context, widget *Widget, dst *ebiten.Image) {
 }
 
-func (DefaultWidgetBehavior) Size(context *Context, widget *Widget) (int, int) {
+func (*DefaultWidgetBehavior) IsPopup() bool {
+	return false
+}
+
+func (*DefaultWidgetBehavior) Size(context *Context) (int, int) {
 	return int(16 * context.Scale()), int(16 * context.Scale())
 }
 
-func (DefaultWidgetBehavior) private() {
+func (d *DefaultWidgetBehavior) internalWidget() *Widget {
+	// d.widget.behavior cannot be set here.
+	return &d.widget
 }
 
 type RootWidgetBehavior struct {
 	DefaultWidgetBehavior
 }
 
-func (RootWidgetBehavior) Size(context *Context, widget *Widget) (int, int) {
+func (RootWidgetBehavior) Size(context *Context) (int, int) {
 	bounds := context.app.bounds()
 	return bounds.Dx(), bounds.Dy()
 }

@@ -13,8 +13,8 @@ import (
 )
 
 type GroupItem struct {
-	PrimaryWidget   *guigui.Widget
-	SecondaryWidget *guigui.Widget
+	PrimaryWidget   guigui.WidgetBehavior
+	SecondaryWidget guigui.WidgetBehavior
 }
 
 type Group struct {
@@ -58,14 +58,14 @@ func (g *Group) itemBounds(context *guigui.Context, widget *guigui.Widget, child
 		if item.PrimaryWidget == nil && item.SecondaryWidget == nil {
 			continue
 		}
-		if !item.SecondaryWidget.IsVisible() {
+		if !context.WidgetFromBehavior(item.SecondaryWidget).IsVisible() {
 			continue
 		}
 		_, kh := item.PrimaryWidget.Size(context)
 		_, vh := item.SecondaryWidget.Size(context)
 		h := max(kh, vh, int(LineHeight(context)))
 		if i == childIndex {
-			bounds := g.bounds(context, widget)
+			bounds := g.bounds(context)
 			bounds.Min.X += paddingX
 			bounds.Max.X -= paddingX
 			bounds.Min.Y += y + paddingY
@@ -79,7 +79,7 @@ func (g *Group) itemBounds(context *guigui.Context, widget *guigui.Widget, child
 }
 
 func (g *Group) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
-	bounds := g.bounds(context, widget)
+	bounds := g.bounds(context)
 	bounds.Max.Y = bounds.Min.Y + g.height(context)
 	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.925), RoundedCornerRadius(context))
 
@@ -103,7 +103,7 @@ func (g *Group) SetWidth(context *guigui.Context, width int) {
 	g.widthMinusDefault = width - defaultGroupWidth(context)
 }
 
-func (g *Group) Size(context *guigui.Context, widget *guigui.Widget) (int, int) {
+func (g *Group) Size(context *guigui.Context) (int, int) {
 	return g.widthMinusDefault + defaultGroupWidth(context), g.height(context)
 }
 
@@ -116,8 +116,8 @@ func (g *Group) height(context *guigui.Context) int {
 
 	var y int
 	for _, item := range g.items {
-		if (item.PrimaryWidget == nil || !item.PrimaryWidget.IsVisible()) &&
-			(item.SecondaryWidget == nil || !item.SecondaryWidget.IsVisible()) {
+		if (item.PrimaryWidget == nil || !context.WidgetFromBehavior(item.PrimaryWidget).IsVisible()) &&
+			(item.SecondaryWidget == nil || !context.WidgetFromBehavior(item.SecondaryWidget).IsVisible()) {
 			continue
 		}
 		_, kh := item.PrimaryWidget.Size(context)
@@ -128,9 +128,9 @@ func (g *Group) height(context *guigui.Context) int {
 	return y
 }
 
-func (g *Group) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
-	p := widget.Position()
-	w, h := g.Size(context, widget)
+func (g *Group) bounds(context *guigui.Context) image.Rectangle {
+	p := context.WidgetFromBehavior(g).Position()
+	w, h := g.Size(context)
 	return image.Rectangle{
 		Min: p,
 		Max: p.Add(image.Pt(w, h)),
