@@ -395,7 +395,7 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget *Widget) {
 		dst = widget.ensureOffscreen(dst.Bounds())
 		dst.Clear()
 	}
-	widget.behavior.Draw(a.context, widget, dst.SubImage(widget.visibleBounds).(*ebiten.Image))
+	widget.behavior.Draw(a.context, dst.SubImage(widget.visibleBounds).(*ebiten.Image))
 
 	for _, child := range widget.children {
 		a.doDrawWidget(dst, child)

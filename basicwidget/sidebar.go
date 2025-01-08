@@ -30,7 +30,7 @@ func (s *Sidebar) SetContent(context *guigui.Context, f func(context *guigui.Con
 	s.scrollablePanel.SetContent(f)
 }
 
-func (s *Sidebar) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
+func (s *Sidebar) Draw(context *guigui.Context, dst *ebiten.Image) {
 	dst.Fill(Color(context.ColorMode(), ColorTypeBase, 0.875))
 	b := s.bounds(context)
 	b.Min.X = b.Max.X - int(1*context.Scale())

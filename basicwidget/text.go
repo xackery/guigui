@@ -248,7 +248,7 @@ func (t *Text) bounds(context *guigui.Context) image.Rectangle {
 	}
 }
 
-func (t *Text) textBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
+func (t *Text) textBounds(context *guigui.Context) image.Rectangle {
 	offsetX, offsetY := t.scrollOverlay.Offset()
 
 	b := t.bounds(context)
@@ -298,7 +298,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 		return guigui.HandleInputResult{}
 	}
 
-	textBounds := t.textBounds(context, widget)
+	textBounds := t.textBounds(context)
 
 	face := t.face(context)
 	x, y := ebiten.CursorPosition()
@@ -583,13 +583,13 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 func (t *Text) adjustScrollOffset(context *guigui.Context, widget *guigui.Widget) {
 	t.updateContentSize(context)
 
-	start, end, ok := t.selectionToDraw(widget)
+	start, end, ok := t.selectionToDraw(context)
 	if !ok {
 		return
 	}
 	text := t.textToDraw()
 
-	tb := t.textBounds(context, widget)
+	tb := t.textBounds(context)
 	face := t.face(context)
 	bounds := t.bounds(context)
 	if x, _, y, ok := textPosition(tb, text, end, face, t.lineHeight(context), t.hAlign, t.vAlign); ok {
@@ -618,12 +618,12 @@ func (t *Text) textToDraw() string {
 	return t.field.TextForRendering()
 }
 
-func (t *Text) selectionToDraw(widget *guigui.Widget) (start, end int, ok bool) {
+func (t *Text) selectionToDraw(context *guigui.Context) (start, end int, ok bool) {
 	s, e := t.field.Selection()
 	if !t.editable {
 		return s, e, true
 	}
-	if !widget.IsFocused() {
+	if !context.WidgetFromBehavior(t).IsFocused() {
 		return s, e, true
 	}
 	cs, ce, ok := t.field.CompositionSelection()
@@ -639,11 +639,11 @@ func (t *Text) selectionToDraw(widget *guigui.Widget) (start, end int, ok bool) 
 	return 0, 0, false
 }
 
-func (t *Text) compositionSelectionToDraw(widget *guigui.Widget) (uStart, cStart, cEnd, uEnd int, ok bool) {
+func (t *Text) compositionSelectionToDraw(context *guigui.Context) (uStart, cStart, cEnd, uEnd int, ok bool) {
 	if !t.editable {
 		return 0, 0, 0, 0, false
 	}
-	if !widget.IsFocused() {
+	if !context.WidgetFromBehavior(t).IsFocused() {
 		return 0, 0, 0, 0, false
 	}
 	s, _ := t.field.Selection()
@@ -701,16 +701,16 @@ func (t *Text) updateContentSize(context *guigui.Context) {
 	t.scrollOverlay.SetContentSize(w, h)
 }
 
-func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
-	textBounds := t.textBounds(context, widget)
-	if !textBounds.Overlaps(widget.VisibleBounds()) {
+func (t *Text) Draw(context *guigui.Context, dst *ebiten.Image) {
+	textBounds := t.textBounds(context)
+	if !textBounds.Overlaps(context.WidgetFromBehavior(t).VisibleBounds()) {
 		return
 	}
 
 	text := t.textToDraw()
 	face := t.face(context)
 
-	if start, end, ok := t.selectionToDraw(widget); ok {
+	if start, end, ok := t.selectionToDraw(context); ok {
 		var tailIndices []int
 		for i, r := range text[start:end] {
 			if r != '\n' {
@@ -735,7 +735,7 @@ func (t *Text) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.
 		}
 	}
 
-	if uStart, cStart, cEnd, uEnd, ok := t.compositionSelectionToDraw(widget); ok {
+	if uStart, cStart, cEnd, uEnd, ok := t.compositionSelectionToDraw(context); ok {
 		// Assume that the composition is always in the same line.
 		if strings.Contains(text[uStart:uEnd], "\n") {
 			slog.Error("composition text must not contain '\\n'")
@@ -852,12 +852,12 @@ func (t *Text) cursorPosition(context *guigui.Context, widget *guigui.Widget) (x
 		return 0, 0, 0, false
 	}
 
-	textBounds := t.textBounds(context, widget)
+	textBounds := t.textBounds(context)
 	if !textBounds.Overlaps(widget.VisibleBounds()) {
 		return 0, 0, 0, false
 	}
 
-	_, e, ok := t.selectionToDraw(widget)
+	_, e, ok := t.selectionToDraw(context)
 	if !ok {
 		return 0, 0, 0, false
 	}
@@ -925,7 +925,7 @@ func (t *textCursor) shouldRenderCursor(context *guigui.Context, textWidget *gui
 	if _, _, _, ok := text.cursorPosition(context, textWidget); !ok {
 		return false
 	}
-	s, e, ok := text.selectionToDraw(textWidget)
+	s, e, ok := text.selectionToDraw(context)
 	if !ok {
 		return false
 	}
@@ -935,8 +935,8 @@ func (t *textCursor) shouldRenderCursor(context *guigui.Context, textWidget *gui
 	return true
 }
 
-func (t *textCursor) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
-	textWidget := widget.Parent()
+func (t *textCursor) Draw(context *guigui.Context, dst *ebiten.Image) {
+	textWidget := context.WidgetFromBehavior(t).Parent()
 	if !t.shouldRenderCursor(context, textWidget) {
 		return
 	}

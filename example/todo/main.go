@@ -165,7 +165,7 @@ func (r *Root) tryCreateTask() {
 	}
 }
 
-func (r *Root) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
+func (r *Root) Draw(context *guigui.Context, dst *ebiten.Image) {
 	basicwidget.FillBackground(dst, context)
 }
 

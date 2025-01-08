@@ -81,7 +81,7 @@ func (t *ToggleButton) CursorShape(context *guigui.Context) (ebiten.CursorShapeT
 	return 0, true
 }
 
-func (t *ToggleButton) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
+func (t *ToggleButton) Draw(context *guigui.Context, dst *ebiten.Image) {
 	rate := 1 - float64(t.count)/float64(toggleButtonMaxCount())
 
 	bounds := t.bounds(context)
@@ -96,7 +96,7 @@ func (t *ToggleButton) Draw(context *guigui.Context, widget *guigui.Widget, dst 
 	} else if t.mouseEventHandler.IsHovering() && context.WidgetFromBehavior(&t.mouseEventHandler).IsEnabled() {
 		thumbColor = Color2(cm, ColorTypeBase, 0.975, 0.575)
 		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
-	} else if !widget.IsEnabled() {
+	} else if !context.WidgetFromBehavior(t).IsEnabled() {
 		thumbColor = Color2(cm, ColorTypeBase, 0.95, 0.55)
 		borderColor = Color2(cm, ColorTypeBase, 0.8, 0.1)
 	}

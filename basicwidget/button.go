@@ -67,7 +67,7 @@ func (b *Button) CursorShape(context *guigui.Context) (ebiten.CursorShapeType, b
 	return 0, true
 }
 
-func (b *Button) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
+func (b *Button) Draw(context *guigui.Context, dst *ebiten.Image) {
 	// TODO: In the dark theme, the color should be different.
 	// At least, shadow should be darker.
 	// See macOS's buttons.
@@ -80,12 +80,12 @@ func (b *Button) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebite
 	} else if b.mouseEventHandler.IsHovering() && context.WidgetFromBehavior(&b.mouseEventHandler).IsEnabled() {
 		backgroundColor = Color2(cm, ColorTypeBase, 0.975, 0.275)
 		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
-	} else if !widget.IsEnabled() {
+	} else if !context.WidgetFromBehavior(b).IsEnabled() {
 		backgroundColor = Color2(cm, ColorTypeBase, 0.95, 0.25)
 		borderColor = Color2(cm, ColorTypeBase, 0.8, 0.1)
 	}
 
-	bounds := b.bounds(context, widget)
+	bounds := b.bounds(context)
 	r := min(RoundedCornerRadius(context), bounds.Dx()/4, bounds.Dy()/4)
 	border := !b.borderInvisible
 	if b.mouseEventHandler.IsHovering() && context.WidgetFromBehavior(&b.mouseEventHandler).IsEnabled() {
@@ -100,7 +100,7 @@ func (b *Button) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebite
 		borderType := RoundedRectBorderTypeOutset
 		if b.isActive(context) {
 			borderType = RoundedRectBorderTypeInset
-		} else if !widget.IsEnabled() {
+		} else if !context.WidgetFromBehavior(b).IsEnabled() {
 			borderType = RoundedRectBorderTypeRegular
 		}
 		DrawRoundedRectBorder(context, dst, bounds, borderColor, r, float32(1*context.Scale()), borderType)
@@ -111,9 +111,9 @@ func (b *Button) isActive(context *guigui.Context) bool {
 	return context.WidgetFromBehavior(&b.mouseEventHandler).IsEnabled() && b.mouseEventHandler.IsHovering() && b.mouseEventHandler.IsPressing()
 }
 
-func (b *Button) bounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
+func (b *Button) bounds(context *guigui.Context) image.Rectangle {
 	dw, dh := defaultButtonSize(context)
-	p := widget.Position()
+	p := context.WidgetFromBehavior(b).Position()
 	return image.Rectangle{
 		Min: p,
 		Max: p.Add(image.Pt(b.widthMinusDefault+dw, b.heightMinusDefault+dh)),

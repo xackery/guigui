@@ -103,7 +103,7 @@ func (t *TextField) Update(context *guigui.Context, widget *guigui.Widget) error
 	return nil
 }
 
-func (t *TextField) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
+func (t *TextField) Draw(context *guigui.Context, dst *ebiten.Image) {
 	bounds := t.bounds(context)
 	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.85), RoundedCornerRadius(context))
 	DrawRoundedRectBorder(context, dst, bounds, Color2(context.ColorMode(), ColorTypeBase, 0.7, 0), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeInset)
@@ -145,7 +145,7 @@ type textFieldFocus struct {
 	guigui.DefaultWidgetBehavior
 }
 
-func (t *textFieldFocus) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
+func (t *textFieldFocus) Draw(context *guigui.Context, dst *ebiten.Image) {
 	textField := context.WidgetFromBehavior(t).Parent().Behavior().(*TextField)
 	bounds := textField.bounds(context)
 	w := textFieldFocusBorderWidth(context)

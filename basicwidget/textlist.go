@@ -278,12 +278,12 @@ func (t *textListTextItem) textString() string {
 	return t.textListItem.Text
 }
 
-func (t *textListTextItem) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
+func (t *textListTextItem) Draw(context *guigui.Context, dst *ebiten.Image) {
 	if !t.textListItem.Header {
 		return
 	}
-	p := widget.Position()
-	w, h := widget.Size(context)
+	p := context.WidgetFromBehavior(t).Position()
+	w, h := t.Size(context)
 	bounds := image.Rectangle{
 		Min: p,
 		Max: p.Add(image.Pt(w, h)),
@@ -355,9 +355,9 @@ type textListBorderItem struct {
 	guigui.DefaultWidgetBehavior
 }
 
-func (t *textListBorderItem) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
-	p := widget.Position()
-	w, h := widget.Size(context)
+func (t *textListBorderItem) Draw(context *guigui.Context, dst *ebiten.Image) {
+	p := context.WidgetFromBehavior(t).Position()
+	w, h := t.Size(context)
 	x0 := float32(p.X)
 	x1 := float32(p.X + w)
 	y := float32(p.Y) + float32(h)/2

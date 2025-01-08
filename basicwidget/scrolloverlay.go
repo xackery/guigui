@@ -316,7 +316,7 @@ func (s *ScrollOverlay) Update(context *guigui.Context, widget *guigui.Widget) e
 	return nil
 }
 
-func (s *ScrollOverlay) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
+func (s *ScrollOverlay) Draw(context *guigui.Context, dst *ebiten.Image) {
 	if s.barOpacity == 0 {
 		return
 	}

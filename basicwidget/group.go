@@ -39,7 +39,7 @@ func (g *Group) AppendChildWidgets(context *guigui.Context, widget *guigui.Widge
 		if item.PrimaryWidget == nil && item.SecondaryWidget == nil {
 			continue
 		}
-		bounds := g.itemBounds(context, widget, i)
+		bounds := g.itemBounds(context, i)
 		appender.AppendChildWidget(item.PrimaryWidget, bounds.Min)
 		w, _ := item.SecondaryWidget.Size(context)
 		bounds.Min.X = bounds.Max.X - w
@@ -47,7 +47,7 @@ func (g *Group) AppendChildWidgets(context *guigui.Context, widget *guigui.Widge
 	}
 }
 
-func (g *Group) itemBounds(context *guigui.Context, widget *guigui.Widget, childIndex int) image.Rectangle {
+func (g *Group) itemBounds(context *guigui.Context, childIndex int) image.Rectangle {
 	paddingX, paddingY := groupItemPadding(context)
 
 	var y int
@@ -78,7 +78,7 @@ func (g *Group) itemBounds(context *guigui.Context, widget *guigui.Widget, child
 	return image.Rectangle{}
 }
 
-func (g *Group) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
+func (g *Group) Draw(context *guigui.Context, dst *ebiten.Image) {
 	bounds := g.bounds(context)
 	bounds.Max.Y = bounds.Min.Y + g.height(context)
 	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.925), RoundedCornerRadius(context))
@@ -86,7 +86,7 @@ func (g *Group) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten
 	if len(g.items) > 0 {
 		paddingX, paddingY := groupItemPadding(context)
 		for i := range g.items[:len(g.items)-1] {
-			b := g.itemBounds(context, widget, i)
+			b := g.itemBounds(context, i)
 			x0 := float32(bounds.Min.X + paddingX)
 			x1 := float32(bounds.Max.X - paddingX)
 			y := float32(b.Max.Y) + float32(paddingY)

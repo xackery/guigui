@@ -115,7 +115,7 @@ type scrollablePanelBorder struct {
 	scrollOverlay *ScrollOverlay
 }
 
-func (s *scrollablePanelBorder) Draw(context *guigui.Context, widget *guigui.Widget, dst *ebiten.Image) {
+func (s *scrollablePanelBorder) Draw(context *guigui.Context, dst *ebiten.Image) {
 	// Render borders.
 	strokeWidth := float32(1 * context.Scale())
 	bounds := s.bounds(context)

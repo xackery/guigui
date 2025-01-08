@@ -12,7 +12,7 @@ type WidgetBehavior interface {
 	HandleInput(context *Context, widget *Widget) HandleInputResult
 	Update(context *Context, widget *Widget) error
 	CursorShape(context *Context) (ebiten.CursorShapeType, bool)
-	Draw(context *Context, widget *Widget, dst *ebiten.Image)
+	Draw(context *Context, dst *ebiten.Image)
 	IsPopup() bool
 	Size(context *Context) (int, int)
 
@@ -64,7 +64,7 @@ func (*DefaultWidgetBehavior) CursorShape(context *Context) (ebiten.CursorShapeT
 	return 0, false
 }
 
-func (*DefaultWidgetBehavior) Draw(context *Context, widget *Widget, dst *ebiten.Image) {
+func (*DefaultWidgetBehavior) Draw(context *Context, dst *ebiten.Image) {
 }
 
 func (*DefaultWidgetBehavior) IsPopup() bool {
