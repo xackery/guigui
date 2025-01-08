@@ -60,8 +60,8 @@ func (b *Button) PropagateEvent(context *guigui.Context, widget *guigui.Widget, 
 	}, true
 }
 
-func (b *Button) CursorShape(context *guigui.Context, widget *guigui.Widget) (ebiten.CursorShapeType, bool) {
-	if widget.IsEnabled() && b.mouseEventHandler.IsHovering() {
+func (b *Button) CursorShape(context *guigui.Context) (ebiten.CursorShapeType, bool) {
+	if context.WidgetFromBehavior(b).IsEnabled() && b.mouseEventHandler.IsHovering() {
 		return ebiten.CursorShapePointer, true
 	}
 	return 0, true

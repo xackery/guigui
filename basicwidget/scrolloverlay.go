@@ -129,7 +129,7 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context, widget *guigui.Widg
 
 	if !s.draggingX && !s.draggingY && s.hovering && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
-		hb, vb := s.barBounds(context, widget)
+		hb, vb := s.barBounds(context)
 		if image.Pt(x, y).In(hb) {
 			s.setDragging(true, s.draggingY)
 			s.draggingStartX = x
@@ -212,9 +212,9 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context, widget *guigui.Widg
 	return guigui.HandleInputResult{}
 }
 
-func (s *ScrollOverlay) CursorShape(context *guigui.Context, widget *guigui.Widget) (ebiten.CursorShapeType, bool) {
+func (s *ScrollOverlay) CursorShape(context *guigui.Context) (ebiten.CursorShapeType, bool) {
 	x, y := ebiten.CursorPosition()
-	hb, vb := s.barBounds(context, widget)
+	hb, vb := s.barBounds(context)
 	if image.Pt(x, y).In(hb) || image.Pt(x, y).In(vb) {
 		return ebiten.CursorShapeDefault, true
 	}
@@ -330,7 +330,7 @@ func (s *ScrollOverlay) Draw(context *guigui.Context, widget *guigui.Widget, dst
 		A: uint16(float64(a) * opacity),
 	}
 
-	hb, vb := s.barBounds(context, widget)
+	hb, vb := s.barBounds(context)
 
 	// Show a horizontal bar.
 	if !hb.Empty() {
@@ -380,7 +380,7 @@ func (s *ScrollOverlay) barSize(context *guigui.Context) (float64, float64) {
 	return w, h
 }
 
-func (s *ScrollOverlay) barBounds(context *guigui.Context, widget *guigui.Widget) (image.Rectangle, image.Rectangle) {
+func (s *ScrollOverlay) barBounds(context *guigui.Context) (image.Rectangle, image.Rectangle) {
 	bounds := s.bounds(context)
 
 	offsetX, offsetY := s.Offset()

@@ -74,8 +74,8 @@ func (t *ToggleButton) Update(context *guigui.Context, widget *guigui.Widget) er
 	return nil
 }
 
-func (t *ToggleButton) CursorShape(context *guigui.Context, widget *guigui.Widget) (ebiten.CursorShapeType, bool) {
-	if widget.IsEnabled() && t.mouseEventHandler.IsHovering() {
+func (t *ToggleButton) CursorShape(context *guigui.Context) (ebiten.CursorShapeType, bool) {
+	if context.WidgetFromBehavior(t).IsEnabled() && t.mouseEventHandler.IsHovering() {
 		return ebiten.CursorShapePointer, true
 	}
 	return 0, true

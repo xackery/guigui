@@ -830,7 +830,7 @@ func (t *Text) ResetSize() {
 	t.heightSet = false
 }
 
-func (t *Text) CursorShape(context *guigui.Context, widget *guigui.Widget) (ebiten.CursorShapeType, bool) {
+func (t *Text) CursorShape(context *guigui.Context) (ebiten.CursorShapeType, bool) {
 	if t.selectable || t.editable {
 		return ebiten.CursorShapeText, true
 	}
