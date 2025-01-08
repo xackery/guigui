@@ -68,7 +68,7 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, widget *guigui.Wid
 	s.list.SetItems(s.listItemWidgets)
 }
 
-func (s *Sidebar) Update(context *guigui.Context, widget *guigui.Widget) error {
+func (s *Sidebar) Update(context *guigui.Context) error {
 	for i, w := range s.listItemWidgets {
 		t := w.Content.(*basicwidget.Text)
 		if s.list.SelectedItemIndex() == i {

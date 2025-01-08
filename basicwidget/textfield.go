@@ -91,14 +91,14 @@ func (t *TextField) PropagateEvent(context *guigui.Context, widget *guigui.Widge
 	return event, true
 }
 
-func (t *TextField) Update(context *guigui.Context, widget *guigui.Widget) error {
-	if t.prevFocused != widget.HasFocusedChildWidget() {
-		t.prevFocused = widget.HasFocusedChildWidget()
-		widget.RequestRedraw()
+func (t *TextField) Update(context *guigui.Context) error {
+	if t.prevFocused != context.WidgetFromBehavior(t).HasFocusedChildWidget() {
+		t.prevFocused = context.WidgetFromBehavior(t).HasFocusedChildWidget()
+		context.WidgetFromBehavior(t).RequestRedraw()
 	}
-	if widget.IsFocused() {
+	if context.WidgetFromBehavior(t).IsFocused() {
 		context.WidgetFromBehavior(&t.text).Focus()
-		widget.RequestRedraw()
+		context.WidgetFromBehavior(t).RequestRedraw()
 	}
 	return nil
 }

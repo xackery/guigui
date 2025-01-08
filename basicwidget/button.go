@@ -184,9 +184,9 @@ func (t *TextButton) PropagateEvent(context *guigui.Context, widget *guigui.Widg
 	return event, true
 }
 
-func (t *TextButton) Update(context *guigui.Context, widget *guigui.Widget) error {
+func (t *TextButton) Update(context *guigui.Context) error {
 	if t.needsRedraw {
-		widget.RequestRedraw()
+		context.WidgetFromBehavior(t).RequestRedraw()
 		t.needsRedraw = false
 	}
 

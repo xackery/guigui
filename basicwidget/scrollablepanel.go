@@ -82,8 +82,8 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *gu
 	appender.AppendChildWidget(&s.border, widget.Position())
 }
 
-func (s *ScrollablePanel) Update(context *guigui.Context, widget *guigui.Widget) error {
-	p := widget.Position()
+func (s *ScrollablePanel) Update(context *guigui.Context) error {
+	p := context.WidgetFromBehavior(s).Position()
 	var w, h int
 	for _, childWidget := range s.childWidgets {
 		b := childWidget.bounds(context)

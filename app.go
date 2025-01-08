@@ -316,7 +316,7 @@ func (a *app) propagateEvents(widget *Widget) {
 }
 
 func (a *app) updateWidget(widget *Widget) error {
-	if err := widget.behavior.Update(a.context, widget); err != nil {
+	if err := widget.behavior.Update(a.context); err != nil {
 		return err
 	}
 

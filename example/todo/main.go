@@ -111,7 +111,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	}
 }
 
-func (r *Root) Update(context *guigui.Context, widget *guigui.Widget) error {
+func (r *Root) Update(context *guigui.Context) error {
 	for event := range context.WidgetFromBehavior(&r.createButton).DequeueEvents() {
 		switch e := event.(type) {
 		case basicwidget.ButtonEvent:

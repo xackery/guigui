@@ -194,7 +194,7 @@ func (t *TextList) MoveItem(from, to int) {
 	t.list.MoveItem(from, to)
 }
 
-func (t *TextList) Update(context *guigui.Context, widget *guigui.Widget) error {
+func (t *TextList) Update(context *guigui.Context) error {
 	for i, li := range t.textListItems {
 		item, ok := li.listItem.Content.(*textListTextItem)
 		if !ok {

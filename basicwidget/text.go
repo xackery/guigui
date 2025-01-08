@@ -357,7 +357,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 	}
 	if processed {
 		widget.RequestRedraw()
-		t.adjustScrollOffset(context, widget)
+		t.adjustScrollOffset(context)
 		return guigui.HandleInputByWidget(widget)
 	}
 
@@ -580,7 +580,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 	return guigui.HandleInputResult{}
 }
 
-func (t *Text) adjustScrollOffset(context *guigui.Context, widget *guigui.Widget) {
+func (t *Text) adjustScrollOffset(context *guigui.Context) {
 	t.updateContentSize(context)
 
 	start, end, ok := t.selectionToDraw(context)
@@ -661,29 +661,29 @@ func (t *Text) compositionSelectionToDraw(context *guigui.Context) (uStart, cSta
 	return s, s + cs, s + ce, s + l, true
 }
 
-func (t *Text) Update(context *guigui.Context, widget *guigui.Widget) error {
-	if !t.prevFocused && widget.IsFocused() {
+func (t *Text) Update(context *guigui.Context) error {
+	if !t.prevFocused && context.WidgetFromBehavior(t).IsFocused() {
 		t.field.Focus()
 		t.cursor.resetCounter()
 		start, end := t.field.Selection()
 		if start < 0 || end < 0 {
 			t.selectAll()
 		}
-	} else if t.prevFocused && !widget.IsFocused() {
+	} else if t.prevFocused && !context.WidgetFromBehavior(t).IsFocused() {
 		t.applyFilter()
 	}
 
 	if t.needsRedraw {
-		widget.RequestRedraw()
+		context.WidgetFromBehavior(t).RequestRedraw()
 		t.needsRedraw = false
 	}
 
-	if t.toAdjustScrollOffset && !widget.VisibleBounds().Empty() {
-		t.adjustScrollOffset(context, widget)
+	if t.toAdjustScrollOffset && !context.WidgetFromBehavior(t).VisibleBounds().Empty() {
+		t.adjustScrollOffset(context)
 		t.toAdjustScrollOffset = false
 	}
 
-	t.prevFocused = widget.IsFocused()
+	t.prevFocused = context.WidgetFromBehavior(t).IsFocused()
 
 	return nil
 }
@@ -895,8 +895,8 @@ func (t *textCursor) resetCounter() {
 	t.counter = 0
 }
 
-func (t *textCursor) Update(context *guigui.Context, widget *guigui.Widget) error {
-	textWidget := widget.Parent()
+func (t *textCursor) Update(context *guigui.Context) error {
+	textWidget := context.WidgetFromBehavior(t).Parent()
 	text := textWidget.Behavior().(*Text)
 	x, top, bottom, ok := text.cursorPosition(context, textWidget)
 	if t.prevX != x || t.prevTop != top || t.prevBottom != bottom || t.prevOK != ok {
@@ -911,7 +911,7 @@ func (t *textCursor) Update(context *guigui.Context, widget *guigui.Widget) erro
 	if r := t.shouldRenderCursor(context, textWidget); t.prevShown != r {
 		t.prevShown = r
 		// TODO: This is not efficient. Improve this.
-		widget.RequestRedraw()
+		context.WidgetFromBehavior(t).RequestRedraw()
 	}
 	return nil
 }

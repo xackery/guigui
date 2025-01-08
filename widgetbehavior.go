@@ -10,7 +10,7 @@ import (
 type WidgetBehavior interface {
 	AppendChildWidgets(context *Context, widget *Widget, appender *ChildWidgetAppender)
 	HandleInput(context *Context, widget *Widget) HandleInputResult
-	Update(context *Context, widget *Widget) error
+	Update(context *Context) error
 	CursorShape(context *Context) (ebiten.CursorShapeType, bool)
 	Draw(context *Context, dst *ebiten.Image)
 	IsPopup() bool
@@ -56,7 +56,7 @@ func (*DefaultWidgetBehavior) HandleInput(context *Context, widget *Widget) Hand
 	return HandleInputResult{}
 }
 
-func (*DefaultWidgetBehavior) Update(context *Context, widget *Widget) error {
+func (*DefaultWidgetBehavior) Update(context *Context) error {
 	return nil
 }
 

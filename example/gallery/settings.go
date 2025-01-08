@@ -54,7 +54,7 @@ func (s *Settings) AppendChildWidgets(context *guigui.Context, widget *guigui.Wi
 	}
 }
 
-func (s *Settings) Update(context *guigui.Context, widget *guigui.Widget) error {
+func (s *Settings) Update(context *guigui.Context) error {
 	if s.colorModeToggle.Value() {
 		context.SetColorMode(guigui.ColorModeDark)
 	} else {

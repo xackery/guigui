@@ -67,7 +67,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	}
 }
 
-func (r *Root) Update(context *guigui.Context, widget *guigui.Widget) error {
+func (r *Root) Update(context *guigui.Context) error {
 	for e := range context.WidgetFromBehavior(&r.incButton).DequeueEvents() {
 		args := e.(basicwidget.ButtonEvent)
 		if args.Type == basicwidget.ButtonEventTypeUp {

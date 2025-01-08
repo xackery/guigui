@@ -37,7 +37,7 @@ const (
 
 func (m *MouseEventHandler) HandleInput(context *Context, widget *Widget) HandleInputResult {
 	x, y := ebiten.CursorPosition()
-	m.setHovering(image.Pt(x, y).In(widget.VisibleBounds()) && widget.IsVisible(), widget)
+	m.setHovering(image.Pt(x, y).In(widget.VisibleBounds()) && widget.IsVisible(), context)
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		if !image.Pt(ebiten.CursorPosition()).In(widget.VisibleBounds()) {
@@ -67,13 +67,13 @@ func (m *MouseEventHandler) HandleInput(context *Context, widget *Widget) Handle
 	return HandleInputResult{}
 }
 
-func (m *MouseEventHandler) Update(context *Context, widget *Widget) error {
+func (m *MouseEventHandler) Update(context *Context) error {
 	if m.needsRedraw {
-		widget.RequestRedraw()
+		context.WidgetFromBehavior(m).RequestRedraw()
 		m.needsRedraw = false
 	}
-	if !widget.IsVisible() {
-		m.setHovering(false, widget)
+	if !context.WidgetFromBehavior(m).IsVisible() {
+		m.setHovering(false, context)
 	}
 	return nil
 }
@@ -111,21 +111,21 @@ func (m *MouseEventHandler) setPressing(pressing bool, widget *Widget) {
 	widget.RequestRedraw()
 }
 
-func (m *MouseEventHandler) setHovering(hovering bool, widget *Widget) {
+func (m *MouseEventHandler) setHovering(hovering bool, context *Context) {
 	if m.hovering == hovering {
 		return
 	}
 
-	if widget.IsEnabled() {
+	if context.WidgetFromBehavior(m).IsEnabled() {
 		x, y := ebiten.CursorPosition()
 		if hovering {
-			widget.EnqueueEvent(MouseEvent{
+			context.WidgetFromBehavior(m).EnqueueEvent(MouseEvent{
 				Type:            MouseEventTypeEnter,
 				CursorPositionX: x,
 				CursorPositionY: y,
 			})
 		} else {
-			widget.EnqueueEvent(MouseEvent{
+			context.WidgetFromBehavior(m).EnqueueEvent(MouseEvent{
 				Type:            MouseEventTypeLeave,
 				CursorPositionX: x,
 				CursorPositionY: y,
@@ -134,7 +134,7 @@ func (m *MouseEventHandler) setHovering(hovering bool, widget *Widget) {
 	}
 
 	m.hovering = hovering
-	widget.RequestRedraw()
+	context.WidgetFromBehavior(m).RequestRedraw()
 }
 
 func (m *MouseEventHandler) IsPressing() bool {

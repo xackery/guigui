@@ -329,13 +329,13 @@ func (l *List) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 	return guigui.HandleInputResult{}
 }
 
-func (l *List) Update(context *guigui.Context, widget *guigui.Widget) error {
+func (l *List) Update(context *guigui.Context) error {
 	if l.needsRedraw {
-		widget.RequestRedraw()
+		context.WidgetFromBehavior(l).RequestRedraw()
 		l.needsRedraw = false
 	}
 
-	w, _ := widget.Size(context)
+	w, _ := context.WidgetFromBehavior(l).Size(context)
 	l.scrollOverlay.SetContentSize(w, l.ContentHeight(context))
 
 	if l.indexToJump >= 0 {

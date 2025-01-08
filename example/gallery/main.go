@@ -40,10 +40,6 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	}
 }
 
-func (r *Root) Update(context *guigui.Context, widget *guigui.Widget) error {
-	return nil
-}
-
 func (r *Root) Draw(context *guigui.Context, dst *ebiten.Image) {
 	basicwidget.FillBackground(dst, context)
 }

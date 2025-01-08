@@ -53,7 +53,7 @@ func (t *ToggleButton) AppendChildWidgets(context *guigui.Context, widget *guigu
 	appender.AppendChildWidget(&t.mouseEventHandler, widget.Position())
 }
 
-func (t *ToggleButton) Update(context *guigui.Context, widget *guigui.Widget) error {
+func (t *ToggleButton) Update(context *guigui.Context) error {
 	for e := range context.WidgetFromBehavior(&t.mouseEventHandler).DequeueEvents() {
 		switch e := e.(type) {
 		case guigui.MouseEvent:
@@ -64,12 +64,12 @@ func (t *ToggleButton) Update(context *guigui.Context, widget *guigui.Widget) er
 	}
 
 	if t.needsRedraw {
-		widget.RequestRedraw()
+		context.WidgetFromBehavior(t).RequestRedraw()
 		t.needsRedraw = false
 	}
 	if t.count > 0 {
 		t.count--
-		widget.RequestRedraw()
+		context.WidgetFromBehavior(t).RequestRedraw()
 	}
 	return nil
 }
