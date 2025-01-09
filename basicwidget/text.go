@@ -90,9 +90,11 @@ type Text struct {
 }
 
 func (t *Text) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	p := context.WidgetFromBehavior(t).Position()
-	p.X -= cursorWidth(context)
-	appender.AppendChildWidget(&t.cursor, p)
+	if t.selectable || t.editable {
+		p := context.WidgetFromBehavior(t).Position()
+		p.X -= cursorWidth(context)
+		appender.AppendChildWidget(&t.cursor, p)
+	}
 
 	context.WidgetFromBehavior(&t.scrollOverlay).Hide()
 	appender.AppendChildWidget(&t.scrollOverlay, context.WidgetFromBehavior(t).Position())
