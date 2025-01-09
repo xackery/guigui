@@ -4,8 +4,10 @@
 package guigui
 
 import (
+	"fmt"
 	"image"
 	"iter"
+	"log/slog"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -256,9 +258,17 @@ func (w *Widget) requestRedraw(region image.Rectangle) {
 }
 
 func (w *Widget) requestRedrawIfNeeded(oldState state, region image.Rectangle) {
+	if region.Empty() {
+		return
+	}
+
 	newState := w.currentState()
 	if oldState == newState {
 		return
+	}
+
+	if theDebugMode.showRenderingRegions {
+		slog.Info("Request redrawing", "widget", fmt.Sprintf("%T", w.behavior), "region", region)
 	}
 
 	w.redrawBounds = w.redrawBounds.Union(region)
