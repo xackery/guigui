@@ -119,23 +119,24 @@ func (c *Context) ResetColorMode() {
 }
 
 func (c *Context) AppendLocales(locales []language.Tag) []language.Tag {
+	origLen := len(locales)
 	// App locales
 	for _, l := range c.locales {
-		if slices.Contains(locales, l) {
+		if slices.Contains(locales[origLen:], l) {
 			continue
 		}
 		locales = append(locales, l)
 	}
 	// Env locales
 	for _, l := range envLocales {
-		if slices.Contains(locales, l) {
+		if slices.Contains(locales[origLen:], l) {
 			continue
 		}
 		locales = append(locales, l)
 	}
 	// System locales
 	for _, l := range systemLocales {
-		if slices.Contains(locales, l) {
+		if slices.Contains(locales[origLen:], l) {
 			continue
 		}
 		locales = append(locales, l)
@@ -144,8 +145,9 @@ func (c *Context) AppendLocales(locales []language.Tag) []language.Tag {
 }
 
 func (c *Context) AppendAppLocales(locales []language.Tag) []language.Tag {
+	origLen := len(locales)
 	for _, l := range c.locales {
-		if slices.Contains(locales, l) {
+		if slices.Contains(locales[origLen:], l) {
 			continue
 		}
 		locales = append(locales, l)
