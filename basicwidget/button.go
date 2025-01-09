@@ -33,8 +33,8 @@ type ButtonEvent struct {
 	Type ButtonEventType
 }
 
-func (b *Button) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	appender.AppendChildWidget(&b.mouseEventHandler, widget.Position())
+func (b *Button) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	appender.AppendChildWidget(&b.mouseEventHandler, context.WidgetFromBehavior(b).Position())
 }
 
 func (b *Button) PropagateEvent(context *guigui.Context, widget *guigui.Widget, event guigui.Event) (guigui.Event, bool) {
@@ -161,15 +161,15 @@ func (t *TextButton) SetTextColor(clr color.Color) {
 	t.needsRedraw = true
 }
 
-func (t *TextButton) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	w, h := widget.Size(context)
+func (t *TextButton) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	w, h := t.Size(context)
 
 	t.button.SetSize(context, w, h)
-	appender.AppendChildWidget(&t.button, widget.Position())
+	appender.AppendChildWidget(&t.button, context.WidgetFromBehavior(t).Position())
 
 	t.text.SetHorizontalAlign(HorizontalAlignCenter)
 	t.text.SetVerticalAlign(VerticalAlignMiddle)
-	p := widget.Position()
+	p := context.WidgetFromBehavior(t).Position()
 	if t.button.isActive(context) {
 		// As the text is centered, shift it down by double sizes of the stroke width.
 		p.Y += int(2 * context.Scale())

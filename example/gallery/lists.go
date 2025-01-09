@@ -19,7 +19,7 @@ type Lists struct {
 	textList     basicwidget.TextList
 }
 
-func (l *Lists) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+func (l *Lists) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	l.textListText.SetText("Text List")
 	var items []basicwidget.TextListItem
 	for i := 0; i < 100; i++ {
@@ -30,7 +30,7 @@ func (l *Lists) AppendChildWidgets(context *guigui.Context, widget *guigui.Widge
 	l.textList.SetItems(items)
 
 	u := float64(basicwidget.UnitSize(context))
-	w, _ := widget.Size(context)
+	w, _ := l.Size(context)
 	l.group.SetWidth(context, w-int(1*u))
 	l.group.SetItems([]*basicwidget.GroupItem{
 		{
@@ -39,7 +39,7 @@ func (l *Lists) AppendChildWidgets(context *guigui.Context, widget *guigui.Widge
 		},
 	})
 	{
-		p := widget.Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
+		p := context.WidgetFromBehavior(l).Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
 		appender.AppendChildWidget(&l.group, p)
 	}
 }

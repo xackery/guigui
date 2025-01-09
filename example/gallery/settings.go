@@ -23,7 +23,7 @@ type Settings struct {
 	initOnce sync.Once
 }
 
-func (s *Settings) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+func (s *Settings) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	s.initOnce.Do(func() {
 		if context.ColorMode() == guigui.ColorModeDark {
 			s.colorModeToggle.SetValue(true)
@@ -36,7 +36,7 @@ func (s *Settings) AppendChildWidgets(context *guigui.Context, widget *guigui.Wi
 	s.localeSelector.SetText("(TODO)")
 
 	u := float64(basicwidget.UnitSize(context))
-	w, _ := widget.Size(context)
+	w, _ := s.Size(context)
 	s.group.SetWidth(context, w-int(1*u))
 	s.group.SetItems([]*basicwidget.GroupItem{
 		{
@@ -49,7 +49,7 @@ func (s *Settings) AppendChildWidgets(context *guigui.Context, widget *guigui.Wi
 		},
 	})
 	{
-		p := widget.Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
+		p := context.WidgetFromBehavior(s).Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
 		appender.AppendChildWidget(&s.group, p)
 	}
 }

@@ -87,8 +87,8 @@ func (t *TextListItem) selectable() bool {
 	return t
 }*/
 
-func (t *TextList) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	appender.AppendChildWidget(&t.list, widget.Position())
+func (t *TextList) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	appender.AppendChildWidget(&t.list, context.WidgetFromBehavior(t).Position())
 }
 
 func (t *TextList) SelectedItemIndex() int {
@@ -259,11 +259,11 @@ type textListTextItem struct {
 	return t
 }*/
 
-func (t *textListTextItem) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	p := widget.Position()
+func (t *textListTextItem) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	p := context.WidgetFromBehavior(t).Position()
 	if t.textListItem.Header {
 		p.X += UnitSize(context) / 2
-		w, h := widget.Size(context)
+		w, h := t.Size(context)
 		t.text.SetSize(w-UnitSize(context), h)
 	}
 	t.text.SetText(t.textString())

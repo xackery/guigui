@@ -82,13 +82,13 @@ func listItemPadding(context *guigui.Context) int {
 	return UnitSize(context) / 4
 }
 
-func (l *List) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+func (l *List) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	if l.style != ListStyleSidebar {
-		appender.AppendChildWidget(&l.listFrame, widget.Position())
+		appender.AppendChildWidget(&l.listFrame, context.WidgetFromBehavior(l).Position())
 	}
 
 	_, offsetY := l.scrollOverlay.Offset()
-	p := widget.Position()
+	p := context.WidgetFromBehavior(l).Position()
 	p.X += RoundedCornerRadius(context) + listItemPadding(context)
 	p.Y += RoundedCornerRadius(context) + int(offsetY)
 	for _, item := range l.items {
@@ -103,8 +103,8 @@ func (l *List) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 		p.Y += h
 	}
 
-	appender.AppendChildWidget(&l.scrollOverlay, widget.Position())
-	appender.AppendChildWidget(&l.dragDropOverlay, widget.Position())
+	appender.AppendChildWidget(&l.scrollOverlay, context.WidgetFromBehavior(l).Position())
+	appender.AppendChildWidget(&l.dragDropOverlay, context.WidgetFromBehavior(l).Position())
 }
 
 func (l *List) SelectedItem() (ListItem, bool) {

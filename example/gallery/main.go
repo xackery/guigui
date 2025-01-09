@@ -23,11 +23,11 @@ type Root struct {
 	lists    Lists
 }
 
-func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	appender.AppendChildWidget(&r.sidebar, widget.Position())
+func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	appender.AppendChildWidget(&r.sidebar, context.WidgetFromBehavior(r).Position())
 
 	sw, _ := r.sidebar.Size(context)
-	p := widget.Position()
+	p := context.WidgetFromBehavior(r).Position()
 	p.X += sw
 
 	switch r.sidebar.SelectedItemTag() {

@@ -28,7 +28,7 @@ func (w *widgetWithBounds) bounds(context *guigui.Context) image.Rectangle {
 type ScrollablePanel struct {
 	guigui.DefaultWidgetBehavior
 
-	setContentFunc func(context *guigui.Context, widget *guigui.Widget, childAppender *ScrollablePanelChildWidgetAppender)
+	setContentFunc func(context *guigui.Context, childAppender *ScrollablePanelChildWidgetAppender)
 	childWidgets   []widgetWithBounds
 	scollOverlay   ScrollOverlay
 	border         scrollablePanelBorder
@@ -51,7 +51,7 @@ func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget guigui.Wid
 	})
 }
 
-func (s *ScrollablePanel) SetContent(f func(context *guigui.Context, widget *guigui.Widget, childAppender *ScrollablePanelChildWidgetAppender)) {
+func (s *ScrollablePanel) SetContent(f func(context *guigui.Context, childAppender *ScrollablePanelChildWidgetAppender)) {
 	s.setContentFunc = f
 }
 
@@ -60,10 +60,10 @@ func (s *ScrollablePanel) SetPadding(paddingX, paddingY int) {
 	s.paddingY = paddingY
 }
 
-func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	s.childWidgets = slices.Delete(s.childWidgets, 0, len(s.childWidgets))
 	if s.setContentFunc != nil {
-		s.setContentFunc(context, widget, &ScrollablePanelChildWidgetAppender{
+		s.setContentFunc(context, &ScrollablePanelChildWidgetAppender{
 			context:         context,
 			scrollablePanel: s,
 		})
@@ -76,10 +76,10 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, widget *gu
 		appender.AppendChildWidget(childWidget.widget, p)
 	}
 
-	appender.AppendChildWidget(&s.scollOverlay, widget.Position())
+	appender.AppendChildWidget(&s.scollOverlay, context.WidgetFromBehavior(s).Position())
 
 	s.border.scrollOverlay = &s.scollOverlay
-	appender.AppendChildWidget(&s.border, widget.Position())
+	appender.AppendChildWidget(&s.border, context.WidgetFromBehavior(s).Position())
 }
 
 func (s *ScrollablePanel) Update(context *guigui.Context) error {

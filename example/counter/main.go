@@ -24,13 +24,13 @@ type Root struct {
 	counter int
 }
 
-func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	{
-		w, h := widget.Size(context)
+		w, h := r.Size(context)
 		w -= 2 * basicwidget.UnitSize(context)
 		h -= 4 * basicwidget.UnitSize(context)
 		r.counterText.SetSize(w, h)
-		p := widget.Position()
+		p := context.WidgetFromBehavior(r).Position()
 		p.X += basicwidget.UnitSize(context)
 		p.Y += basicwidget.UnitSize(context)
 		appender.AppendChildWidget(&r.counterText, p)
@@ -39,8 +39,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	r.resetButton.SetText("Reset")
 	r.resetButton.SetWidth(6 * basicwidget.UnitSize(context))
 	{
-		p := widget.Position()
-		_, h := widget.Size(context)
+		p := context.WidgetFromBehavior(r).Position()
+		_, h := context.WidgetFromBehavior(r).Size(context)
 		p.X += basicwidget.UnitSize(context)
 		p.Y += h - 2*basicwidget.UnitSize(context)
 		appender.AppendChildWidget(&r.resetButton, p)
@@ -49,8 +49,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	r.incButton.SetText("Increment")
 	r.incButton.SetWidth(6 * basicwidget.UnitSize(context))
 	{
-		p := widget.Position()
-		w, h := widget.Size(context)
+		p := context.WidgetFromBehavior(r).Position()
+		w, h := r.Size(context)
 		p.X += w - 7*basicwidget.UnitSize(context)
 		p.Y += h - 2*basicwidget.UnitSize(context)
 		appender.AppendChildWidget(&r.incButton, p)
@@ -59,8 +59,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget
 	r.decButton.SetText("Decrement")
 	r.decButton.SetWidth(6 * basicwidget.UnitSize(context))
 	{
-		p := widget.Position()
-		w, h := widget.Size(context)
+		p := context.WidgetFromBehavior(r).Position()
+		w, h := r.Size(context)
 		p.X += w - int(13.5*float64(basicwidget.UnitSize(context)))
 		p.Y += h - 2*basicwidget.UnitSize(context)
 		appender.AppendChildWidget(&r.decButton, p)

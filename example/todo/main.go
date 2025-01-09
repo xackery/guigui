@@ -49,31 +49,31 @@ type Root struct {
 	tasks []Task
 }
 
-func (r *Root) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	u := float64(basicwidget.UnitSize(context))
 
-	width, _ := widget.Size(context)
+	width, _ := r.Size(context)
 	w := width - int(6.5*u)
 	r.textField.SetSize(context, w, int(u))
 	{
-		p := widget.Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
+		p := context.WidgetFromBehavior(r).Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
 		appender.AppendChildWidget(&r.textField, p)
 	}
 
 	r.createButton.SetText("Create")
 	r.createButton.SetWidth(int(5 * u))
 	{
-		p := widget.Position()
-		w, _ := widget.Size(context)
+		p := context.WidgetFromBehavior(r).Position()
+		w, _ := r.Size(context)
 		p.X += w - int(0.5*u) - int(5*u)
 		p.Y += int(0.5 * u)
 		appender.AppendChildWidget(&r.createButton, p)
 	}
 
-	w, h := widget.Size(context)
+	w, h := r.Size(context)
 	r.tasksPanel.SetSize(context, w, h-int(2*u))
-	r.tasksPanel.SetContent(func(context *guigui.Context, widget *guigui.Widget, childAppender *basicwidget.ScrollablePanelChildWidgetAppender) {
-		p := widget.Position()
+	r.tasksPanel.SetContent(func(context *guigui.Context, childAppender *basicwidget.ScrollablePanelChildWidgetAppender) {
+		p := context.WidgetFromBehavior(&r.tasksPanel).Position()
 		minX := p.X + int(0.5*u)
 		y := p.Y
 		for i, t := range r.tasks {

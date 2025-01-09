@@ -55,7 +55,7 @@ func (t *TextField) SelectAll() {
 	t.text.selectAll()
 }
 
-func (t *TextField) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+func (t *TextField) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	t.text.SetEditable(true)
 	b := t.bounds(context)
 	b.Min.X += UnitSize(context) / 2
@@ -67,9 +67,9 @@ func (t *TextField) AppendChildWidgets(context *guigui.Context, widget *guigui.W
 	}
 	appender.AppendChildWidget(&t.text, b.Min)
 
-	if widget.HasFocusedChildWidget() {
+	if context.WidgetFromBehavior(t).HasFocusedChildWidget() {
 		w := textFieldFocusBorderWidth(context)
-		p := widget.Position().Add(image.Pt(-w, -w))
+		p := context.WidgetFromBehavior(t).Position().Add(image.Pt(-w, -w))
 		appender.AppendChildWidget(&t.focus, p)
 	}
 }

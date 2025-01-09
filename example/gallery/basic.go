@@ -22,7 +22,7 @@ type Basic struct {
 	textField        basicwidget.TextField
 }
 
-func (b *Basic) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+func (b *Basic) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	b.textButtonText.SetText("Text Button")
 	b.textButton.SetText("Click Me!")
 	b.toggleButtonText.SetText("Toggle Button")
@@ -30,7 +30,7 @@ func (b *Basic) AppendChildWidgets(context *guigui.Context, widget *guigui.Widge
 	b.textField.SetHorizontalAlign(basicwidget.HorizontalAlignEnd)
 
 	u := float64(basicwidget.UnitSize(context))
-	w, _ := widget.Size(context)
+	w, _ := b.Size(context)
 	b.group.SetWidth(context, w-int(1*u))
 	b.group.SetItems([]*basicwidget.GroupItem{
 		{
@@ -47,7 +47,7 @@ func (b *Basic) AppendChildWidgets(context *guigui.Context, widget *guigui.Widge
 		},
 	})
 	{
-		p := widget.Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
+		p := context.WidgetFromBehavior(b).Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
 		appender.AppendChildWidget(&b.group, p)
 	}
 }

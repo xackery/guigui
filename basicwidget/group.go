@@ -34,7 +34,7 @@ func (g *Group) SetItems(items []*GroupItem) {
 	g.items = append(g.items, items...)
 }
 
-func (g *Group) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
+func (g *Group) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	for i, item := range g.items {
 		if item.PrimaryWidget == nil && item.SecondaryWidget == nil {
 			continue

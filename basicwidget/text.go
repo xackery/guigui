@@ -89,13 +89,13 @@ type Text struct {
 	needsRedraw bool
 }
 
-func (t *Text) AppendChildWidgets(context *guigui.Context, widget *guigui.Widget, appender *guigui.ChildWidgetAppender) {
-	p := widget.Position()
+func (t *Text) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	p := context.WidgetFromBehavior(t).Position()
 	p.X -= cursorWidth(context)
 	appender.AppendChildWidget(&t.cursor, p)
 
 	context.WidgetFromBehavior(&t.scrollOverlay).Hide()
-	appender.AppendChildWidget(&t.scrollOverlay, widget.Position())
+	appender.AppendChildWidget(&t.scrollOverlay, context.WidgetFromBehavior(t).Position())
 }
 
 func (t *Text) SetSelectable(selectable bool) {
