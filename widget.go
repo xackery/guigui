@@ -268,7 +268,7 @@ func (w *Widget) requestRedrawIfNeeded(oldState state, region image.Rectangle) {
 	}
 
 	if theDebugMode.showRenderingRegions {
-		slog.Info("Request redrawing", "widget", fmt.Sprintf("%T", w.behavior), "region", region)
+		slog.Info("Request redrawing", "requester", fmt.Sprintf("%T", w.behavior), "region", region)
 	}
 
 	w.redrawBounds = w.redrawBounds.Union(region)
