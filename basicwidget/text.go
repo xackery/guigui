@@ -293,7 +293,7 @@ func (t *Text) lineHeight(context *guigui.Context) float64 {
 	return LineHeight(context) * (t.scaleMinus1 + 1)
 }
 
-func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigui.HandleInputResult {
+func (t *Text) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 	if !t.selectable && !t.editable {
 		return guigui.HandleInputResult{}
 	}
@@ -319,23 +319,23 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 	}
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		if image.Pt(x, y).In(widget.VisibleBounds()) {
+		if image.Pt(x, y).In(context.WidgetFromBehavior(t).VisibleBounds()) {
 			t.dragging = true
 			idx := textIndexFromPosition(textBounds, x, y, t.field.Text(), face, t.lineHeight(context), t.hAlign, t.vAlign)
 			t.selectionDragStart = idx
-			widget.Focus()
+			context.WidgetFromBehavior(t).Focus()
 			if start, end := t.field.Selection(); start != idx || end != idx {
 				t.setTextAndSelection(t.field.Text(), idx, idx, -1)
 			}
 			return guigui.HandleInputByWidget(t)
 		}
-		widget.Blur()
+		context.WidgetFromBehavior(t).Blur()
 	}
 
-	if !widget.IsFocused() {
+	if !context.WidgetFromBehavior(t).IsFocused() {
 		if t.field.IsFocused() {
 			t.field.Blur()
-			widget.RequestRedraw()
+			context.WidgetFromBehavior(t).RequestRedraw()
 		}
 		return guigui.HandleInputResult{}
 	}
@@ -356,7 +356,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 		}
 	}
 	if processed {
-		widget.RequestRedraw()
+		context.WidgetFromBehavior(t).RequestRedraw()
 		t.adjustScrollOffset(context)
 		return guigui.HandleInputByWidget(t)
 	}
@@ -380,7 +380,7 @@ func (t *Text) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 			}
 			t.applyFilter()
 			// TODO: This is not reached on browsers. Fix this.
-			widget.EnqueueEvent(TextEvent{
+			context.WidgetFromBehavior(t).EnqueueEvent(TextEvent{
 				Type: TextEventTypeEnterPressed,
 				Text: t.field.Text(),
 			})

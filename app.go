@@ -267,7 +267,7 @@ func (a *app) handleInputWidget(widget *Widget) HandleInputResult {
 		}
 	}
 
-	return widget.behavior.HandleInput(a.context, widget)
+	return widget.behavior.HandleInput(a.context)
 }
 
 func (a *app) cursorShape(widget *Widget) bool {

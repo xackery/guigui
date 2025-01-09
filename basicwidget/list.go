@@ -206,7 +206,7 @@ func (l *List) SetStyle(style ListStyle) {
 	l.needsRedraw = true
 }
 
-func (l *List) calcDropDstIndex(context *guigui.Context, widget *guigui.Widget) int {
+func (l *List) calcDropDstIndex(context *guigui.Context) int {
 	_, y := ebiten.CursorPosition()
 	for i := range l.items {
 		if r := l.itemRect(context, i); y < (r.Min.Y+r.Max.Y)/2 {
@@ -216,12 +216,12 @@ func (l *List) calcDropDstIndex(context *guigui.Context, widget *guigui.Widget) 
 	return len(l.items)
 }
 
-func (l *List) HandleInput(context *guigui.Context, widget *guigui.Widget) guigui.HandleInputResult {
+func (l *List) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 	// Process dragging.
 	if l.dragDropOverlay.IsDragging() {
 		_, y := ebiten.CursorPosition()
-		p := widget.Position()
-		_, h := widget.Size(context)
+		p := context.WidgetFromBehavior(l).Position()
+		_, h := l.Size(context)
 		var dy float64
 		if upperY := p.Y + UnitSize(context); y < upperY {
 			dy = float64(upperY-y) / 4
@@ -230,10 +230,10 @@ func (l *List) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 			dy = float64(lowerY-y) / 4
 		}
 		l.scrollOverlay.SetOffsetByDelta(0, dy)
-		i := l.calcDropDstIndex(context, widget)
+		i := l.calcDropDstIndex(context)
 		if l.dropDstIndex != i {
 			l.dropDstIndex = i
-			widget.RequestRedraw()
+			context.WidgetFromBehavior(l).RequestRedraw()
 		}
 		return guigui.HandleInputByWidget(l)
 	}
@@ -250,17 +250,17 @@ func (l *List) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 	l.dropSrcIndex = -1
 	if l.dropDstIndex != -1 {
 		l.dropDstIndex = -1
-		widget.RequestRedraw()
+		context.WidgetFromBehavior(l).RequestRedraw()
 	}
 
 	if dropped {
 		return guigui.HandleInputByWidget(l)
 	}
 
-	if x, y := ebiten.CursorPosition(); image.Pt(x, y).In(widget.VisibleBounds()) {
+	if x, y := ebiten.CursorPosition(); image.Pt(x, y).In(context.WidgetFromBehavior(l).VisibleBounds()) {
 		_, offsetY := l.scrollOverlay.Offset()
 		y -= RoundedCornerRadius(context)
-		y -= widget.Position().Y
+		y -= context.WidgetFromBehavior(l).Position().Y
 		y -= int(offsetY)
 		index := -1
 		var cy int
@@ -283,8 +283,8 @@ func (l *List) HandleInput(context *guigui.Context, widget *guigui.Widget) guigu
 					return guigui.HandleInputByWidget(l)
 				}
 
-				wasFocused := widget.IsFocused()
-				widget.Focus()
+				wasFocused := context.WidgetFromBehavior(l).IsFocused()
+				context.WidgetFromBehavior(l).Focus()
 				if l.selectedItemIndex != index || !wasFocused {
 					l.SetSelectedItemIndex(index)
 					l.lastSelectingItemTime = time.Now()

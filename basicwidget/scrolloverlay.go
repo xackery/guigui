@@ -110,8 +110,8 @@ func adjustedWheel() (float64, float64) {
 	return x, y
 }
 
-func (s *ScrollOverlay) HandleInput(context *guigui.Context, widget *guigui.Widget) guigui.HandleInputResult {
-	s.setHovering(image.Pt(ebiten.CursorPosition()).In(widget.VisibleBounds()) && widget.IsVisible())
+func (s *ScrollOverlay) HandleInput(context *guigui.Context) guigui.HandleInputResult {
+	s.setHovering(image.Pt(ebiten.CursorPosition()).In(context.WidgetFromBehavior(s).VisibleBounds()) && context.WidgetFromBehavior(s).IsVisible())
 
 	if s.hovering {
 		x, y := ebiten.CursorPosition()
@@ -161,7 +161,7 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context, widget *guigui.Widg
 			prevOffsetX := s.offsetX
 			prevOffsetY := s.offsetY
 
-			w, h := widget.Size(context)
+			w, h := s.Size(context)
 			barWidth, barHeight := s.barSize(context)
 			if s.draggingX && barWidth > 0 && s.contentWidth-w > 0 {
 				offsetPerPixel := float64(s.contentWidth-w) / (float64(w) - barWidth)
@@ -173,11 +173,11 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context, widget *guigui.Widg
 			}
 			s.adjustOffset(context)
 			if prevOffsetX != s.offsetX || prevOffsetY != s.offsetY {
-				widget.EnqueueEvent(ScrollEvent{
+				context.WidgetFromBehavior(s).EnqueueEvent(ScrollEvent{
 					OffsetX: s.offsetX,
 					OffsetY: s.offsetY,
 				})
-				widget.RequestRedraw()
+				context.WidgetFromBehavior(s).RequestRedraw()
 			}
 		}
 		return guigui.HandleInputByWidget(s)
@@ -199,11 +199,11 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context, widget *guigui.Widg
 		s.offsetY += dy * 4 * context.Scale()
 		s.adjustOffset(context)
 		if prevOffsetX != s.offsetX || prevOffsetY != s.offsetY {
-			widget.EnqueueEvent(ScrollEvent{
+			context.WidgetFromBehavior(s).EnqueueEvent(ScrollEvent{
 				OffsetX: s.offsetX,
 				OffsetY: s.offsetY,
 			})
-			widget.RequestRedraw()
+			context.WidgetFromBehavior(s).RequestRedraw()
 			return guigui.HandleInputByWidget(s)
 		}
 		return guigui.HandleInputResult{}

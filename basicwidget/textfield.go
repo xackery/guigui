@@ -74,9 +74,9 @@ func (t *TextField) AppendChildWidgets(context *guigui.Context, widget *guigui.W
 	}
 }
 
-func (t *TextField) HandleInput(context *guigui.Context, widget *guigui.Widget) guigui.HandleInputResult {
+func (t *TextField) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 	x, y := ebiten.CursorPosition()
-	t.hovering = image.Pt(x, y).In(widget.VisibleBounds())
+	t.hovering = image.Pt(x, y).In(context.WidgetFromBehavior(t).VisibleBounds())
 	if t.hovering {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			context.WidgetFromBehavior(&t.text).Focus()
