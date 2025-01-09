@@ -949,6 +949,6 @@ func (t *textCursor) IsPopup() bool {
 }
 
 func (t *textCursor) Size(context *guigui.Context) (int, int) {
-	w, h := context.WidgetFromBehavior(t).Parent().Size(context)
+	w, h := context.WidgetFromBehavior(t).Parent().Behavior().Size(context)
 	return w + 2*cursorWidth(context), h
 }

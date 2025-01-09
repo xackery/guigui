@@ -43,7 +43,7 @@ func (w *Widget) Position() image.Point {
 }
 
 func (w *Widget) bounds() image.Rectangle {
-	width, height := w.Size(w.app().context)
+	width, height := w.behavior.Size(w.app().context)
 	return image.Rectangle{
 		Min: w.position,
 		Max: w.position.Add(image.Point{width, height}),
@@ -291,8 +291,4 @@ func (w *Widget) ensureOffscreen(bounds image.Rectangle) *ebiten.Image {
 
 func (w *Widget) Behavior() WidgetBehavior {
 	return w.behavior
-}
-
-func (w *Widget) Size(context *Context) (int, int) {
-	return w.behavior.Size(context)
 }

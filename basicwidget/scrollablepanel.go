@@ -133,7 +133,7 @@ func (s *scrollablePanelBorder) Draw(context *guigui.Context, dst *ebiten.Image)
 }
 
 func (s *scrollablePanelBorder) Size(context *guigui.Context) (int, int) {
-	return context.WidgetFromBehavior(s).Parent().Size(context)
+	return context.WidgetFromBehavior(s).Parent().Behavior().Size(context)
 }
 
 func (s *scrollablePanelBorder) bounds(context *guigui.Context) image.Rectangle {

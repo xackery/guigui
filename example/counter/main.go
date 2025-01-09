@@ -40,7 +40,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 	r.resetButton.SetWidth(6 * basicwidget.UnitSize(context))
 	{
 		p := context.WidgetFromBehavior(r).Position()
-		_, h := context.WidgetFromBehavior(r).Size(context)
+		_, h := r.Size(context)
 		p.X += basicwidget.UnitSize(context)
 		p.Y += h - 2*basicwidget.UnitSize(context)
 		appender.AppendChildWidget(&r.resetButton, p)

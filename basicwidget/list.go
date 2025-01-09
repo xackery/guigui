@@ -335,7 +335,7 @@ func (l *List) Update(context *guigui.Context) error {
 		l.needsRedraw = false
 	}
 
-	w, _ := context.WidgetFromBehavior(l).Size(context)
+	w, _ := l.Size(context)
 	l.scrollOverlay.SetContentSize(w, l.ContentHeight(context))
 
 	if l.indexToJump >= 0 {
@@ -348,7 +348,7 @@ func (l *List) Update(context *guigui.Context) error {
 }
 
 func (l *List) ItemWidth(context *guigui.Context) int {
-	w, _ := context.WidgetFromBehavior(l).Size(context)
+	w, _ := l.Size(context)
 	w -= 2 * RoundedCornerRadius(context)
 	w -= 2 * listItemPadding(context)
 	return w
@@ -526,7 +526,7 @@ func (l *listFrame) Draw(context *guigui.Context, dst *ebiten.Image) {
 }
 
 func (l *listFrame) Size(context *guigui.Context) (int, int) {
-	return context.WidgetFromBehavior(l).Parent().Size(context)
+	return context.WidgetFromBehavior(l).Parent().Behavior().Size(context)
 }
 
 func moveItemInSlice[T any](slice []T, from int, count int, to int) {

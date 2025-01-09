@@ -344,7 +344,7 @@ func (s *ScrollOverlay) Draw(context *guigui.Context, dst *ebiten.Image) {
 }
 
 func (s *ScrollOverlay) Size(context *guigui.Context) (int, int) {
-	return context.WidgetFromBehavior(s).Parent().Size(context)
+	return context.WidgetFromBehavior(s).Parent().Behavior().Size(context)
 }
 
 func (s *ScrollOverlay) bounds(context *guigui.Context) image.Rectangle {

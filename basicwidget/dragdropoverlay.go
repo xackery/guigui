@@ -59,5 +59,5 @@ func (d *DragDropOverlay) HandleInput(context *guigui.Context) guigui.HandleInpu
 }
 
 func (d *DragDropOverlay) Size(context *guigui.Context) (int, int) {
-	return context.WidgetFromBehavior(d).Parent().Size(context)
+	return context.WidgetFromBehavior(d).Parent().Behavior().Size(context)
 }

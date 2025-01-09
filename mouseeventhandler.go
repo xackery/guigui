@@ -79,7 +79,7 @@ func (m *MouseEventHandler) Update(context *Context) error {
 }
 
 func (m *MouseEventHandler) Size(context *Context) (int, int) {
-	return context.WidgetFromBehavior(m).Parent().Size(context)
+	return context.WidgetFromBehavior(m).Parent().Behavior().Size(context)
 }
 
 func (m *MouseEventHandler) setPressing(pressing bool, context *Context) {

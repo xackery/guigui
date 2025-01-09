@@ -158,7 +158,7 @@ func (t *textFieldFocus) IsPopup() bool {
 }
 
 func (t *textFieldFocus) Size(context *guigui.Context) (int, int) {
-	w, h := context.WidgetFromBehavior(t).Parent().Size(context)
+	w, h := context.WidgetFromBehavior(t).Parent().Behavior().Size(context)
 	w += 2 * textFieldFocusBorderWidth(context)
 	h += 2 * textFieldFocusBorderWidth(context)
 	return w, h

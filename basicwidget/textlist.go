@@ -292,7 +292,7 @@ func (t *textListTextItem) Draw(context *guigui.Context, dst *ebiten.Image) {
 }
 
 func (t *textListTextItem) Size(context *guigui.Context) (int, int) {
-	w, _ := context.WidgetFromBehavior(t).Parent().Size(context)
+	w, _ := context.WidgetFromBehavior(t).Parent().Behavior().Size(context)
 	return w, int(LineHeight(context))
 }
 
@@ -366,6 +366,6 @@ func (t *textListBorderItem) Draw(context *guigui.Context, dst *ebiten.Image) {
 }
 
 func (t *textListBorderItem) Size(context *guigui.Context) (int, int) {
-	w, _ := context.WidgetFromBehavior(t).Parent().Size(context)
+	w, _ := context.WidgetFromBehavior(t).Parent().Behavior().Size(context)
 	return w, UnitSize(context) / 2
 }

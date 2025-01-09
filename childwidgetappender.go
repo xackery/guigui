@@ -23,7 +23,7 @@ func (c *ChildWidgetAppender) AppendChildWidget(widgetBehavior WidgetBehavior, p
 	// Redraw if the child is a new one, or the bounds are changed.
 	// Size might require the parent info, so set this earlier.
 	widget.parent = c.widget
-	w, h := widget.Size(c.app.context)
+	w, h := widget.behavior.Size(c.app.context)
 	bounds := image.Rectangle{
 		Min: position,
 		Max: position.Add(image.Point{w, h}),

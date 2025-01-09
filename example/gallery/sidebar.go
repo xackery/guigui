@@ -81,7 +81,7 @@ func (s *Sidebar) Update(context *guigui.Context) error {
 }
 
 func (s *Sidebar) Size(context *guigui.Context) (int, int) {
-	_, h := context.WidgetFromBehavior(s).Parent().Size(context)
+	_, h := context.WidgetFromBehavior(s).Parent().Behavior().Size(context)
 	return sidebarWidth(context), h
 }
 
