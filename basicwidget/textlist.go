@@ -139,19 +139,14 @@ func (t *TextList) Tag(index int) any {
 }
 
 func (t *TextList) newTextListItem(item TextListItem) ListItem {
-	if item.Border {
-		return ListItem{
-			Content:    &textListBorderItem{},
-			Selectable: false,
-		}
-	}
-	textItem := &textListTextItem{
+	textItem := &textListItemWidget{
 		textList:     t,
 		textListItem: item,
+		border:       item.Border,
 	}
 	return ListItem{
 		Content:    textItem,
-		Selectable: item.selectable(),
+		Selectable: item.selectable() && !item.Border,
 		Wide:       item.Header,
 		Draggable:  item.Draggable,
 	}
@@ -196,7 +191,7 @@ func (t *TextList) MoveItem(from, to int) {
 
 func (t *TextList) Update(context *guigui.Context) error {
 	for i, li := range t.textListItems {
-		item, ok := li.listItem.Content.(*textListTextItem)
+		item, ok := li.listItem.Content.(*textListItemWidget)
 		if !ok {
 			continue
 		}
@@ -231,12 +226,13 @@ func (t *TextList) ContentHeight(context *guigui.Context) int {
 	return t.list().ContentHeight(context)
 }*/
 
-type textListTextItem struct {
+type textListItemWidget struct {
 	guigui.DefaultWidgetBehavior
 
 	textList     *TextList
 	textListItem TextListItem
 	text         Text
+	border       bool
 }
 
 /*func newTextListTextItem(settings *model.Settings, textList *TextList, textListItem TextListItem) *textListTextItem {
@@ -259,7 +255,7 @@ type textListTextItem struct {
 	return t
 }*/
 
-func (t *textListTextItem) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (t *textListItemWidget) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	p := context.WidgetFromBehavior(t).Position()
 	if t.textListItem.Header {
 		p.X += UnitSize(context) / 2
@@ -271,34 +267,46 @@ func (t *textListTextItem) AppendChildWidgets(context *guigui.Context, appender 
 	appender.AppendChildWidget(&t.text, p)
 }
 
-func (t *textListTextItem) textString() string {
+func (t *textListItemWidget) textString() string {
 	if t.textListItem.DummyText != "" {
 		return t.textListItem.DummyText
 	}
 	return t.textListItem.Text
 }
 
-func (t *textListTextItem) Draw(context *guigui.Context, dst *ebiten.Image) {
-	if !t.textListItem.Header {
+func (t *textListItemWidget) Draw(context *guigui.Context, dst *ebiten.Image) {
+	if t.border {
+		p := context.WidgetFromBehavior(t).Position()
+		w, h := t.Size(context)
+		x0 := float32(p.X)
+		x1 := float32(p.X + w)
+		y := float32(p.Y) + float32(h)/2
+		width := float32(1 * context.Scale())
+		vector.StrokeLine(dst, x0, y, x1, y, width, Color(context.ColorMode(), ColorTypeBase, 0.8), false)
 		return
 	}
-	p := context.WidgetFromBehavior(t).Position()
-	w, h := t.Size(context)
-	bounds := image.Rectangle{
-		Min: p,
-		Max: p.Add(image.Pt(w, h)),
+	if t.textListItem.Header {
+		p := context.WidgetFromBehavior(t).Position()
+		w, h := t.Size(context)
+		bounds := image.Rectangle{
+			Min: p,
+			Max: p.Add(image.Pt(w, h)),
+		}
+		DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.6), RoundedCornerRadius(context))
 	}
-	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.6), RoundedCornerRadius(context))
 }
 
-func (t *textListTextItem) Size(context *guigui.Context) (int, int) {
+func (t *textListItemWidget) Size(context *guigui.Context) (int, int) {
 	w, _ := context.WidgetFromBehavior(t).Parent().Behavior().Size(context)
+	if t.border {
+		return w, UnitSize(context) / 2
+	}
 	return w, int(LineHeight(context))
 }
 
-func (t *textListTextItem) index() int {
+func (t *textListItemWidget) index() int {
 	for i, li := range t.textList.textListItems {
-		tt, ok := li.listItem.Content.(*textListTextItem)
+		tt, ok := li.listItem.Content.(*textListItemWidget)
 		if !ok {
 			continue
 		}
@@ -350,22 +358,3 @@ func (t *textListTextItem) index() int {
 	tf.SelectAll()
 	tf.Focus()
 }*/
-
-type textListBorderItem struct {
-	guigui.DefaultWidgetBehavior
-}
-
-func (t *textListBorderItem) Draw(context *guigui.Context, dst *ebiten.Image) {
-	p := context.WidgetFromBehavior(t).Position()
-	w, h := t.Size(context)
-	x0 := float32(p.X)
-	x1 := float32(p.X + w)
-	y := float32(p.Y) + float32(h)/2
-	width := float32(1 * context.Scale())
-	vector.StrokeLine(dst, x0, y, x1, y, width, Color(context.ColorMode(), ColorTypeBase, 0.8), false)
-}
-
-func (t *textListBorderItem) Size(context *guigui.Context) (int, int) {
-	w, _ := context.WidgetFromBehavior(t).Parent().Behavior().Size(context)
-	return w, UnitSize(context) / 2
-}
