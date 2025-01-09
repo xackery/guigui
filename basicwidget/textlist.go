@@ -17,8 +17,8 @@ import (
 type TextList struct {
 	guigui.DefaultWidgetBehavior
 
-	list          List
-	textListItems []TextListItem
+	list                List
+	textListItemWidgets []*textListItemWidget
 }
 
 /*type TextListCallback struct {
@@ -38,8 +38,6 @@ type TextListItem struct {
 	Border    bool
 	Draggable bool
 	Tag       any
-
-	listItem ListItem
 }
 
 func (t *TextListItem) selectable() bool {
@@ -96,17 +94,17 @@ func (t *TextList) SelectedItemIndex() int {
 }
 
 func (t *TextList) SelectedItem() (TextListItem, bool) {
-	if t.list.SelectedItemIndex() < 0 || t.list.SelectedItemIndex() >= len(t.textListItems) {
+	if t.list.SelectedItemIndex() < 0 || t.list.SelectedItemIndex() >= len(t.textListItemWidgets) {
 		return TextListItem{}, false
 	}
-	return t.textListItems[t.list.SelectedItemIndex()], true
+	return t.textListItemWidgets[t.list.SelectedItemIndex()].textListItem, true
 }
 
 func (t *TextList) ItemAt(index int) (TextListItem, bool) {
-	if index < 0 || index >= len(t.textListItems) {
+	if index < 0 || index >= len(t.textListItemWidgets) {
 		return TextListItem{}, false
 	}
-	return t.textListItems[index], true
+	return t.textListItemWidgets[index].textListItem, true
 }
 
 func (t *TextList) SetItemsByStrings(strs []string) {
@@ -118,38 +116,32 @@ func (t *TextList) SetItemsByStrings(strs []string) {
 }
 
 func (t *TextList) SetItems(items []TextListItem) {
-	t.textListItems = make([]TextListItem, len(items))
-	copy(t.textListItems, items)
+	if cap(t.textListItemWidgets) < len(items) {
+		t.textListItemWidgets = append(t.textListItemWidgets, make([]*textListItemWidget, len(items)-cap(t.textListItemWidgets))...)
+	}
+	t.textListItemWidgets = t.textListItemWidgets[:len(items)]
 
 	listItems := make([]ListItem, len(items))
 	for i, item := range items {
-		li := t.newTextListItem(item)
-		t.textListItems[i].listItem = li
-		listItems[i] = li
+		if t.textListItemWidgets[i] == nil {
+			t.textListItemWidgets[i] = &textListItemWidget{
+				textList:     t,
+				textListItem: item,
+			}
+		} else {
+			t.textListItemWidgets[i].textListItem = item
+		}
+		listItems[i] = t.textListItemWidgets[i].listItem()
 	}
 	t.list.SetItems(listItems)
 }
 
 func (t *TextList) ItemsCount() int {
-	return len(t.textListItems)
+	return len(t.textListItemWidgets)
 }
 
 func (t *TextList) Tag(index int) any {
-	return t.textListItems[index].Tag
-}
-
-func (t *TextList) newTextListItem(item TextListItem) ListItem {
-	textItem := &textListItemWidget{
-		textList:     t,
-		textListItem: item,
-		border:       item.Border,
-	}
-	return ListItem{
-		Content:    textItem,
-		Selectable: item.selectable() && !item.Border,
-		Wide:       item.Header,
-		Draggable:  item.Draggable,
-	}
+	return t.textListItemWidgets[index].textListItem.Tag
 }
 
 func (t *TextList) SetSelectedItemIndex(index int) {
@@ -165,44 +157,41 @@ func (t *TextList) SetStyle(style ListStyle) {
 }
 
 func (t *TextList) SetItemString(str string, index int) {
-	t.textListItems[index].Text = str
+	t.textListItemWidgets[index].textListItem.Text = str
 }
 
 func (t *TextList) AppendItem(item TextListItem) {
-	t.AddItem(item, len(t.textListItems))
+	t.AddItem(item, len(t.textListItemWidgets))
 }
 
 func (t *TextList) AddItem(item TextListItem, index int) {
-	t.textListItems = slices.Insert(t.textListItems, index, item)
-	li := t.newTextListItem(item)
-	t.textListItems[index].listItem = li
-	t.list.AddItem(li, index)
+	t.textListItemWidgets = slices.Insert(t.textListItemWidgets, index, &textListItemWidget{
+		textList:     t,
+		textListItem: item,
+	})
+	t.list.AddItem(t.textListItemWidgets[index].listItem(), index)
 }
 
 func (t *TextList) RemoveItem(index int) {
-	t.textListItems = slices.Delete(t.textListItems, index, index+1)
+	t.textListItemWidgets = slices.Delete(t.textListItemWidgets, index, index+1)
 	t.list.RemoveItem(index)
 }
 
 func (t *TextList) MoveItem(from, to int) {
-	moveItemInSlice(t.textListItems, from, 1, to)
+	moveItemInSlice(t.textListItemWidgets, from, 1, to)
 	t.list.MoveItem(from, to)
 }
 
 func (t *TextList) Update(context *guigui.Context) error {
-	for i, li := range t.textListItems {
-		item, ok := li.listItem.Content.(*textListItemWidget)
-		if !ok {
-			continue
-		}
+	for i, item := range t.textListItemWidgets {
 		item.text.SetBold(item.textListItem.Header)
 		if context.WidgetFromBehavior(t).HasFocusedChildWidget() && t.list.SelectedItemIndex() == i ||
-			(t.list.IsHoveringVisible() && t.list.HoveredItemIndex() == i) && li.listItem.Selectable {
+			(t.list.IsHoveringVisible() && t.list.HoveredItemIndex() == i) && item.selectable() {
 			item.text.SetColor(DefaultActiveListItemTextColor(context))
-		} else if !li.listItem.Selectable && !item.textListItem.Header {
+		} else if !item.selectable() && !item.textListItem.Header {
 			item.text.SetColor(DefaultDisabledListItemTextColor(context))
 		} else {
-			item.text.SetColor(li.Color)
+			item.text.SetColor(item.textListItem.Color)
 		}
 	}
 	return nil
@@ -231,8 +220,8 @@ type textListItemWidget struct {
 
 	textList     *TextList
 	textListItem TextListItem
-	text         Text
-	border       bool
+
+	text Text
 }
 
 /*func newTextListTextItem(settings *model.Settings, textList *TextList, textListItem TextListItem) *textListTextItem {
@@ -275,7 +264,7 @@ func (t *textListItemWidget) textString() string {
 }
 
 func (t *textListItemWidget) Draw(context *guigui.Context, dst *ebiten.Image) {
-	if t.border {
+	if t.textListItem.Border {
 		p := context.WidgetFromBehavior(t).Position()
 		w, h := t.Size(context)
 		x0 := float32(p.X)
@@ -298,23 +287,32 @@ func (t *textListItemWidget) Draw(context *guigui.Context, dst *ebiten.Image) {
 
 func (t *textListItemWidget) Size(context *guigui.Context) (int, int) {
 	w, _ := context.WidgetFromBehavior(t).Parent().Behavior().Size(context)
-	if t.border {
+	if t.textListItem.Border {
 		return w, UnitSize(context) / 2
 	}
 	return w, int(LineHeight(context))
 }
 
 func (t *textListItemWidget) index() int {
-	for i, li := range t.textList.textListItems {
-		tt, ok := li.listItem.Content.(*textListItemWidget)
-		if !ok {
-			continue
-		}
+	for i, tt := range t.textList.textListItemWidgets {
 		if tt == t {
 			return i
 		}
 	}
 	return -1
+}
+
+func (t *textListItemWidget) selectable() bool {
+	return t.textListItem.selectable() && !t.textListItem.Border
+}
+
+func (t *textListItemWidget) listItem() ListItem {
+	return ListItem{
+		Content:    t,
+		Selectable: t.selectable(),
+		Wide:       t.textListItem.Header,
+		Draggable:  t.textListItem.Draggable,
+	}
 }
 
 /*func (t *textListTextItem) edit(from int) {
