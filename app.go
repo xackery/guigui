@@ -98,7 +98,7 @@ func Run(root WidgetBehavior, options *RunOptions) error {
 	ebiten.SetWindowSizeLimits(minW, minH, maxW, maxH)
 
 	a := &app{
-		root: widgetFromBehavior(root),
+		root: root.internalWidget(root),
 	}
 	a.root.app_ = a
 	a.context = &Context{

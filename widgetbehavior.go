@@ -16,7 +16,7 @@ type WidgetBehavior interface {
 	IsPopup() bool
 	Size(context *Context) (int, int)
 
-	internalWidget() *Widget
+	internalWidget(behavior WidgetBehavior) *Widget
 }
 
 type EventPropagator interface {
@@ -30,7 +30,7 @@ type HandleInputResult struct {
 
 func HandleInputByWidget(widgetBehavior WidgetBehavior) HandleInputResult {
 	return HandleInputResult{
-		widget: widgetFromBehavior(widgetBehavior),
+		widget: widgetBehavior.internalWidget(widgetBehavior),
 	}
 }
 
@@ -75,8 +75,12 @@ func (*DefaultWidgetBehavior) Size(context *Context) (int, int) {
 	return int(16 * context.Scale()), int(16 * context.Scale())
 }
 
-func (d *DefaultWidgetBehavior) internalWidget() *Widget {
-	// d.widget.behavior cannot be set here.
+func (d *DefaultWidgetBehavior) internalWidget(behavior WidgetBehavior) *Widget {
+	// The argument might not match with d.
+	if d.widget.behavior != nil && d.widget.behavior != behavior {
+		panic("guigui: internalWidget must be called with the same behavior")
+	}
+	d.widget.behavior = behavior
 	return &d.widget
 }
 

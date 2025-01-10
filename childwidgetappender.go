@@ -11,7 +11,7 @@ type ChildWidgetAppender struct {
 }
 
 func (c *ChildWidgetAppender) AppendChildWidget(widgetBehavior WidgetBehavior, position image.Point) {
-	widget := widgetFromBehavior(widgetBehavior)
+	widget := widgetBehavior.internalWidget(widgetBehavior)
 	if _, ok := c.app.currentWidgets[widget]; ok {
 		panic("guigui: the widget is already in the widget tree")
 	}
