@@ -50,11 +50,11 @@ func toggleButtonMaxCount() int {
 }
 
 func (t *ToggleButton) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	appender.AppendChildWidget(&t.mouseEventHandler, context.WidgetFromBehavior(t).Position())
+	appender.AppendChildWidget(&t.mouseEventHandler, context.Widget(t).Position())
 }
 
 func (t *ToggleButton) Update(context *guigui.Context) error {
-	for e := range context.WidgetFromBehavior(&t.mouseEventHandler).DequeueEvents() {
+	for e := range context.Widget(&t.mouseEventHandler).DequeueEvents() {
 		switch e := e.(type) {
 		case guigui.MouseEvent:
 			if e.Type == guigui.MouseEventTypeUp {
@@ -64,18 +64,18 @@ func (t *ToggleButton) Update(context *guigui.Context) error {
 	}
 
 	if t.needsRedraw {
-		context.WidgetFromBehavior(t).RequestRedraw()
+		context.Widget(t).RequestRedraw()
 		t.needsRedraw = false
 	}
 	if t.count > 0 {
 		t.count--
-		context.WidgetFromBehavior(t).RequestRedraw()
+		context.Widget(t).RequestRedraw()
 	}
 	return nil
 }
 
 func (t *ToggleButton) CursorShape(context *guigui.Context) (ebiten.CursorShapeType, bool) {
-	if context.WidgetFromBehavior(t).IsEnabled() && t.mouseEventHandler.IsHovering() {
+	if context.Widget(t).IsEnabled() && t.mouseEventHandler.IsHovering() {
 		return ebiten.CursorShapePointer, true
 	}
 	return 0, true
@@ -93,10 +93,10 @@ func (t *ToggleButton) Draw(context *guigui.Context, dst *ebiten.Image) {
 	if t.isActive(context) {
 		thumbColor = Color2(cm, ColorTypeBase, 0.95, 0.55)
 		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
-	} else if t.mouseEventHandler.IsHovering() && context.WidgetFromBehavior(&t.mouseEventHandler).IsEnabled() {
+	} else if t.mouseEventHandler.IsHovering() && context.Widget(&t.mouseEventHandler).IsEnabled() {
 		thumbColor = Color2(cm, ColorTypeBase, 0.975, 0.575)
 		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
-	} else if !context.WidgetFromBehavior(t).IsEnabled() {
+	} else if !context.Widget(t).IsEnabled() {
 		thumbColor = Color2(cm, ColorTypeBase, 0.95, 0.55)
 		borderColor = Color2(cm, ColorTypeBase, 0.8, 0.1)
 	}
@@ -140,12 +140,12 @@ func (t *ToggleButton) Draw(context *guigui.Context, dst *ebiten.Image) {
 }
 
 func (t *ToggleButton) isActive(context *guigui.Context) bool {
-	return context.WidgetFromBehavior(t).IsEnabled() && t.mouseEventHandler.IsHovering() && t.mouseEventHandler.IsPressing()
+	return context.Widget(t).IsEnabled() && t.mouseEventHandler.IsHovering() && t.mouseEventHandler.IsPressing()
 }
 
 func (t *ToggleButton) bounds(context *guigui.Context) image.Rectangle {
 	cw, ch := t.Size(context)
-	p := context.WidgetFromBehavior(t).Position()
+	p := context.Widget(t).Position()
 	return image.Rectangle{
 		Min: p,
 		Max: p.Add(image.Pt(cw, ch)),

@@ -37,25 +37,25 @@ const (
 
 func (m *MouseEventHandler) HandleInput(context *Context) HandleInputResult {
 	x, y := ebiten.CursorPosition()
-	m.setHovering(image.Pt(x, y).In(context.WidgetFromBehavior(m).VisibleBounds()) && context.WidgetFromBehavior(m).IsVisible(), context)
+	m.setHovering(image.Pt(x, y).In(context.Widget(m).VisibleBounds()) && context.Widget(m).IsVisible(), context)
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		if !image.Pt(ebiten.CursorPosition()).In(context.WidgetFromBehavior(m).VisibleBounds()) {
+		if !image.Pt(ebiten.CursorPosition()).In(context.Widget(m).VisibleBounds()) {
 			return HandleInputResult{}
 		}
-		if context.WidgetFromBehavior(m).IsEnabled() {
+		if context.Widget(m).IsEnabled() {
 			m.setPressing(true, context)
 		}
-		context.WidgetFromBehavior(m).Focus()
+		context.Widget(m).Focus()
 		return HandleInputByWidget(m)
 	}
 
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) && m.pressing {
 		m.setPressing(false, context)
-		if !image.Pt(ebiten.CursorPosition()).In(context.WidgetFromBehavior(m).VisibleBounds()) {
+		if !image.Pt(ebiten.CursorPosition()).In(context.Widget(m).VisibleBounds()) {
 			return HandleInputResult{}
 		}
-		if context.WidgetFromBehavior(m).IsEnabled() {
+		if context.Widget(m).IsEnabled() {
 			return HandleInputByWidget(m)
 		}
 	}
@@ -69,17 +69,17 @@ func (m *MouseEventHandler) HandleInput(context *Context) HandleInputResult {
 
 func (m *MouseEventHandler) Update(context *Context) error {
 	if m.needsRedraw {
-		context.WidgetFromBehavior(m).RequestRedraw()
+		context.Widget(m).RequestRedraw()
 		m.needsRedraw = false
 	}
-	if !context.WidgetFromBehavior(m).IsVisible() {
+	if !context.Widget(m).IsVisible() {
 		m.setHovering(false, context)
 	}
 	return nil
 }
 
 func (m *MouseEventHandler) Size(context *Context) (int, int) {
-	return context.WidgetFromBehavior(m).Parent().Behavior().Size(context)
+	return context.Widget(m).Parent().Behavior().Size(context)
 }
 
 func (m *MouseEventHandler) setPressing(pressing bool, context *Context) {
@@ -87,10 +87,10 @@ func (m *MouseEventHandler) setPressing(pressing bool, context *Context) {
 		return
 	}
 
-	if context.WidgetFromBehavior(m).IsEnabled() {
+	if context.Widget(m).IsEnabled() {
 		if pressing {
 			x, y := ebiten.CursorPosition()
-			context.WidgetFromBehavior(m).EnqueueEvent(MouseEvent{
+			context.Widget(m).EnqueueEvent(MouseEvent{
 				Type:            MouseEventTypeDown,
 				MouseButton:     ebiten.MouseButtonLeft,
 				CursorPositionX: x,
@@ -98,7 +98,7 @@ func (m *MouseEventHandler) setPressing(pressing bool, context *Context) {
 			})
 		} else {
 			x, y := ebiten.CursorPosition()
-			context.WidgetFromBehavior(m).EnqueueEvent(MouseEvent{
+			context.Widget(m).EnqueueEvent(MouseEvent{
 				Type:            MouseEventTypeUp,
 				MouseButton:     ebiten.MouseButtonLeft,
 				CursorPositionX: x,
@@ -108,7 +108,7 @@ func (m *MouseEventHandler) setPressing(pressing bool, context *Context) {
 	}
 
 	m.pressing = pressing
-	context.WidgetFromBehavior(m).RequestRedraw()
+	context.Widget(m).RequestRedraw()
 }
 
 func (m *MouseEventHandler) setHovering(hovering bool, context *Context) {
@@ -116,16 +116,16 @@ func (m *MouseEventHandler) setHovering(hovering bool, context *Context) {
 		return
 	}
 
-	if context.WidgetFromBehavior(m).IsEnabled() {
+	if context.Widget(m).IsEnabled() {
 		x, y := ebiten.CursorPosition()
 		if hovering {
-			context.WidgetFromBehavior(m).EnqueueEvent(MouseEvent{
+			context.Widget(m).EnqueueEvent(MouseEvent{
 				Type:            MouseEventTypeEnter,
 				CursorPositionX: x,
 				CursorPositionY: y,
 			})
 		} else {
-			context.WidgetFromBehavior(m).EnqueueEvent(MouseEvent{
+			context.Widget(m).EnqueueEvent(MouseEvent{
 				Type:            MouseEventTypeLeave,
 				CursorPositionX: x,
 				CursorPositionY: y,
@@ -134,7 +134,7 @@ func (m *MouseEventHandler) setHovering(hovering bool, context *Context) {
 	}
 
 	m.hovering = hovering
-	context.WidgetFromBehavior(m).RequestRedraw()
+	context.Widget(m).RequestRedraw()
 }
 
 func (m *MouseEventHandler) IsPressing() bool {

@@ -22,7 +22,7 @@ type Image struct {
 
 func (i *Image) Update(context *guigui.Context) error {
 	if i.needsRedraw {
-		context.WidgetFromBehavior(i).RequestRedraw()
+		context.Widget(i).RequestRedraw()
 		i.needsRedraw = false
 	}
 	return nil
@@ -33,13 +33,13 @@ func (i *Image) Draw(context *guigui.Context, dst *ebiten.Image) {
 		return
 	}
 
-	p := context.WidgetFromBehavior(i).Position()
+	p := context.Widget(i).Position()
 	w, h := i.Size(context)
 	imgScale := min(float64(w)/float64(i.image.Bounds().Dx()), float64(h)/float64(i.image.Bounds().Dy()))
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(imgScale, imgScale)
 	op.GeoM.Translate(float64(p.X), float64(p.Y))
-	if !context.WidgetFromBehavior(i).IsEnabled() {
+	if !context.Widget(i).IsEnabled() {
 		// TODO: Reduce the saturation?
 		op.ColorScale.ScaleAlpha(0.25)
 	}

@@ -49,7 +49,7 @@ func (s *Settings) AppendChildWidgets(context *guigui.Context, appender *guigui.
 		},
 	})
 	{
-		p := context.WidgetFromBehavior(s).Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
+		p := context.Widget(s).Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
 		appender.AppendChildWidget(&s.group, p)
 	}
 }
@@ -64,7 +64,7 @@ func (s *Settings) Update(context *guigui.Context) error {
 }
 
 func (s *Settings) Size(context *guigui.Context) (int, int) {
-	w, h := context.WidgetFromBehavior(s).Parent().Behavior().Size(context)
+	w, h := context.Widget(s).Parent().Behavior().Size(context)
 	w -= sidebarWidth(context)
 	return w, h
 }

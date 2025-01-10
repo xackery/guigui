@@ -39,13 +39,13 @@ func (l *Lists) AppendChildWidgets(context *guigui.Context, appender *guigui.Chi
 		},
 	})
 	{
-		p := context.WidgetFromBehavior(l).Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
+		p := context.Widget(l).Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
 		appender.AppendChildWidget(&l.group, p)
 	}
 }
 
 func (l *Lists) Size(context *guigui.Context) (int, int) {
-	w, h := context.WidgetFromBehavior(l).Parent().Behavior().Size(context)
+	w, h := context.Widget(l).Parent().Behavior().Size(context)
 	w -= sidebarWidth(context)
 	return w, h
 }

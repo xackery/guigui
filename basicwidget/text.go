@@ -91,13 +91,13 @@ type Text struct {
 
 func (t *Text) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	if t.selectable || t.editable {
-		p := context.WidgetFromBehavior(t).Position()
+		p := context.Widget(t).Position()
 		p.X -= cursorWidth(context)
 		appender.AppendChildWidget(&t.cursor, p)
 	}
 
-	context.WidgetFromBehavior(&t.scrollOverlay).Hide()
-	appender.AppendChildWidget(&t.scrollOverlay, context.WidgetFromBehavior(t).Position())
+	context.Widget(&t.scrollOverlay).Hide()
+	appender.AppendChildWidget(&t.scrollOverlay, context.Widget(t).Position())
 }
 
 func (t *Text) SetSelectable(selectable bool) {
@@ -222,9 +222,9 @@ func (t *Text) SetEditable(editable bool) {
 
 func (t *Text) SetScrollable(context *guigui.Context, scrollable bool) {
 	if scrollable {
-		context.WidgetFromBehavior(&t.scrollOverlay).Show()
+		context.Widget(&t.scrollOverlay).Show()
 	} else {
-		context.WidgetFromBehavior(&t.scrollOverlay).Hide()
+		context.Widget(&t.scrollOverlay).Hide()
 	}
 }
 
@@ -242,7 +242,7 @@ func (t *Text) SetMultiline(multiline bool) {
 }
 
 func (t *Text) bounds(context *guigui.Context) image.Rectangle {
-	p := context.WidgetFromBehavior(t).Position()
+	p := context.Widget(t).Position()
 	w, h := t.Size(context)
 	return image.Rectangle{
 		Min: p,
@@ -321,23 +321,23 @@ func (t *Text) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 	}
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		if image.Pt(x, y).In(context.WidgetFromBehavior(t).VisibleBounds()) {
+		if image.Pt(x, y).In(context.Widget(t).VisibleBounds()) {
 			t.dragging = true
 			idx := textIndexFromPosition(textBounds, x, y, t.field.Text(), face, t.lineHeight(context), t.hAlign, t.vAlign)
 			t.selectionDragStart = idx
-			context.WidgetFromBehavior(t).Focus()
+			context.Widget(t).Focus()
 			if start, end := t.field.Selection(); start != idx || end != idx {
 				t.setTextAndSelection(t.field.Text(), idx, idx, -1)
 			}
 			return guigui.HandleInputByWidget(t)
 		}
-		context.WidgetFromBehavior(t).Blur()
+		context.Widget(t).Blur()
 	}
 
-	if !context.WidgetFromBehavior(t).IsFocused() {
+	if !context.Widget(t).IsFocused() {
 		if t.field.IsFocused() {
 			t.field.Blur()
-			context.WidgetFromBehavior(t).RequestRedraw()
+			context.Widget(t).RequestRedraw()
 		}
 		return guigui.HandleInputResult{}
 	}
@@ -358,7 +358,7 @@ func (t *Text) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 		}
 	}
 	if processed {
-		context.WidgetFromBehavior(t).RequestRedraw()
+		context.Widget(t).RequestRedraw()
 		t.adjustScrollOffset(context)
 		return guigui.HandleInputByWidget(t)
 	}
@@ -382,7 +382,7 @@ func (t *Text) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 			}
 			t.applyFilter()
 			// TODO: This is not reached on browsers. Fix this.
-			context.WidgetFromBehavior(t).EnqueueEvent(TextEvent{
+			context.Widget(t).EnqueueEvent(TextEvent{
 				Type: TextEventTypeEnterPressed,
 				Text: t.field.Text(),
 			})
@@ -625,7 +625,7 @@ func (t *Text) selectionToDraw(context *guigui.Context) (start, end int, ok bool
 	if !t.editable {
 		return s, e, true
 	}
-	if !context.WidgetFromBehavior(t).IsFocused() {
+	if !context.Widget(t).IsFocused() {
 		return s, e, true
 	}
 	cs, ce, ok := t.field.CompositionSelection()
@@ -645,7 +645,7 @@ func (t *Text) compositionSelectionToDraw(context *guigui.Context) (uStart, cSta
 	if !t.editable {
 		return 0, 0, 0, 0, false
 	}
-	if !context.WidgetFromBehavior(t).IsFocused() {
+	if !context.Widget(t).IsFocused() {
 		return 0, 0, 0, 0, false
 	}
 	s, _ := t.field.Selection()
@@ -664,28 +664,28 @@ func (t *Text) compositionSelectionToDraw(context *guigui.Context) (uStart, cSta
 }
 
 func (t *Text) Update(context *guigui.Context) error {
-	if !t.prevFocused && context.WidgetFromBehavior(t).IsFocused() {
+	if !t.prevFocused && context.Widget(t).IsFocused() {
 		t.field.Focus()
 		t.cursor.resetCounter()
 		start, end := t.field.Selection()
 		if start < 0 || end < 0 {
 			t.selectAll()
 		}
-	} else if t.prevFocused && !context.WidgetFromBehavior(t).IsFocused() {
+	} else if t.prevFocused && !context.Widget(t).IsFocused() {
 		t.applyFilter()
 	}
 
 	if t.needsRedraw {
-		context.WidgetFromBehavior(t).RequestRedraw()
+		context.Widget(t).RequestRedraw()
 		t.needsRedraw = false
 	}
 
-	if t.toAdjustScrollOffset && !context.WidgetFromBehavior(t).VisibleBounds().Empty() {
+	if t.toAdjustScrollOffset && !context.Widget(t).VisibleBounds().Empty() {
 		t.adjustScrollOffset(context)
 		t.toAdjustScrollOffset = false
 	}
 
-	t.prevFocused = context.WidgetFromBehavior(t).IsFocused()
+	t.prevFocused = context.Widget(t).IsFocused()
 
 	return nil
 }
@@ -705,7 +705,7 @@ func (t *Text) updateContentSize(context *guigui.Context) {
 
 func (t *Text) Draw(context *guigui.Context, dst *ebiten.Image) {
 	textBounds := t.textBounds(context)
-	if !textBounds.Overlaps(context.WidgetFromBehavior(t).VisibleBounds()) {
+	if !textBounds.Overlaps(context.Widget(t).VisibleBounds()) {
 		return
 	}
 
@@ -898,7 +898,7 @@ func (t *textCursor) resetCounter() {
 }
 
 func (t *textCursor) Update(context *guigui.Context) error {
-	textWidget := context.WidgetFromBehavior(t).Parent()
+	textWidget := context.Widget(t).Parent()
 	text := textWidget.Behavior().(*Text)
 	x, top, bottom, ok := text.cursorPosition(context, textWidget)
 	if t.prevX != x || t.prevTop != top || t.prevBottom != bottom || t.prevOK != ok {
@@ -913,7 +913,7 @@ func (t *textCursor) Update(context *guigui.Context) error {
 	if r := t.shouldRenderCursor(context, textWidget); t.prevShown != r {
 		t.prevShown = r
 		// TODO: This is not efficient. Improve this.
-		context.WidgetFromBehavior(t).RequestRedraw()
+		context.Widget(t).RequestRedraw()
 	}
 	return nil
 }
@@ -938,7 +938,7 @@ func (t *textCursor) shouldRenderCursor(context *guigui.Context, textWidget *gui
 }
 
 func (t *textCursor) Draw(context *guigui.Context, dst *ebiten.Image) {
-	textWidget := context.WidgetFromBehavior(t).Parent()
+	textWidget := context.Widget(t).Parent()
 	if !t.shouldRenderCursor(context, textWidget) {
 		return
 	}
@@ -951,6 +951,6 @@ func (t *textCursor) IsPopup() bool {
 }
 
 func (t *textCursor) Size(context *guigui.Context) (int, int) {
-	w, h := context.WidgetFromBehavior(t).Parent().Behavior().Size(context)
+	w, h := context.Widget(t).Parent().Behavior().Size(context)
 	return w + 2*cursorWidth(context), h
 }

@@ -76,14 +76,14 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, appender *
 		appender.AppendChildWidget(childWidget.widget, p)
 	}
 
-	appender.AppendChildWidget(&s.scollOverlay, context.WidgetFromBehavior(s).Position())
+	appender.AppendChildWidget(&s.scollOverlay, context.Widget(s).Position())
 
 	s.border.scrollOverlay = &s.scollOverlay
-	appender.AppendChildWidget(&s.border, context.WidgetFromBehavior(s).Position())
+	appender.AppendChildWidget(&s.border, context.Widget(s).Position())
 }
 
 func (s *ScrollablePanel) Update(context *guigui.Context) error {
-	p := context.WidgetFromBehavior(s).Position()
+	p := context.Widget(s).Position()
 	var w, h int
 	for _, childWidget := range s.childWidgets {
 		b := childWidget.bounds(context)
@@ -133,11 +133,11 @@ func (s *scrollablePanelBorder) Draw(context *guigui.Context, dst *ebiten.Image)
 }
 
 func (s *scrollablePanelBorder) Size(context *guigui.Context) (int, int) {
-	return context.WidgetFromBehavior(s).Parent().Behavior().Size(context)
+	return context.Widget(s).Parent().Behavior().Size(context)
 }
 
 func (s *scrollablePanelBorder) bounds(context *guigui.Context) image.Rectangle {
-	p := context.WidgetFromBehavior(s).Position()
+	p := context.Widget(s).Position()
 	w, h := s.Size(context)
 	return image.Rectangle{
 		Min: p,

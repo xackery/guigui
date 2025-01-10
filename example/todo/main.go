@@ -56,14 +56,14 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 	w := width - int(6.5*u)
 	r.textField.SetSize(context, w, int(u))
 	{
-		p := context.WidgetFromBehavior(r).Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
+		p := context.Widget(r).Position().Add(image.Pt(int(0.5*u), int(0.5*u)))
 		appender.AppendChildWidget(&r.textField, p)
 	}
 
 	r.createButton.SetText("Create")
 	r.createButton.SetWidth(int(5 * u))
 	{
-		p := context.WidgetFromBehavior(r).Position()
+		p := context.Widget(r).Position()
 		w, _ := r.Size(context)
 		p.X += w - int(0.5*u) - int(5*u)
 		p.Y += int(0.5 * u)
@@ -73,7 +73,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 	w, h := r.Size(context)
 	r.tasksPanel.SetSize(context, w, h-int(2*u))
 	r.tasksPanel.SetContent(func(context *guigui.Context, childAppender *basicwidget.ScrollablePanelChildWidgetAppender) {
-		p := context.WidgetFromBehavior(&r.tasksPanel).Position()
+		p := context.Widget(&r.tasksPanel).Position()
 		minX := p.X + int(0.5*u)
 		y := p.Y
 		for i, t := range r.tasks {
@@ -112,7 +112,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 }
 
 func (r *Root) Update(context *guigui.Context) error {
-	for event := range context.WidgetFromBehavior(&r.createButton).DequeueEvents() {
+	for event := range context.Widget(&r.createButton).DequeueEvents() {
 		switch e := event.(type) {
 		case basicwidget.ButtonEvent:
 			if e.Type == basicwidget.ButtonEventTypeUp {
@@ -120,7 +120,7 @@ func (r *Root) Update(context *guigui.Context) error {
 			}
 		}
 	}
-	for event := range context.WidgetFromBehavior(&r.textField).DequeueEvents() {
+	for event := range context.Widget(&r.textField).DequeueEvents() {
 		switch e := event.(type) {
 		case basicwidget.TextEvent:
 			if e.Type == basicwidget.TextEventTypeEnterPressed {
@@ -129,7 +129,7 @@ func (r *Root) Update(context *guigui.Context) error {
 		}
 	}
 	for id, t := range r.taskWidgets {
-		for event := range context.WidgetFromBehavior(&t.doneButton).DequeueEvents() {
+		for event := range context.Widget(&t.doneButton).DequeueEvents() {
 			switch e := event.(type) {
 			case basicwidget.ButtonEvent:
 				if e.Type == basicwidget.ButtonEventTypeUp {
@@ -142,9 +142,9 @@ func (r *Root) Update(context *guigui.Context) error {
 	}
 
 	if r.canCreateTask() {
-		context.WidgetFromBehavior(&r.createButton).Enable()
+		context.Widget(&r.createButton).Enable()
 	} else {
-		context.WidgetFromBehavior(&r.createButton).Disable()
+		context.Widget(&r.createButton).Disable()
 	}
 
 	return nil

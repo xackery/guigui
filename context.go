@@ -164,7 +164,7 @@ func (c *Context) SetAppLocales(locales []language.Tag) {
 	c.app.requestRedraw(c.app.bounds())
 }
 
-func (c *Context) WidgetFromBehavior(behavior WidgetBehavior) *Widget {
+func (c *Context) Widget(behavior WidgetBehavior) *Widget {
 	return widgetFromBehavior(behavior)
 }
 

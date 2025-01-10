@@ -24,10 +24,10 @@ type Root struct {
 }
 
 func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	appender.AppendChildWidget(&r.sidebar, context.WidgetFromBehavior(r).Position())
+	appender.AppendChildWidget(&r.sidebar, context.Widget(r).Position())
 
 	sw, _ := r.sidebar.Size(context)
-	p := context.WidgetFromBehavior(r).Position()
+	p := context.Widget(r).Position()
 	p.X += sw
 
 	switch r.sidebar.SelectedItemTag() {

@@ -86,7 +86,7 @@ func (t *TextListItem) selectable() bool {
 }*/
 
 func (t *TextList) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	appender.AppendChildWidget(&t.list, context.WidgetFromBehavior(t).Position())
+	appender.AppendChildWidget(&t.list, context.Widget(t).Position())
 }
 
 func (t *TextList) SelectedItemIndex() int {
@@ -185,7 +185,7 @@ func (t *TextList) MoveItem(from, to int) {
 func (t *TextList) Update(context *guigui.Context) error {
 	for i, item := range t.textListItemWidgets {
 		item.text.SetBold(item.textListItem.Header)
-		if context.WidgetFromBehavior(t).HasFocusedChildWidget() && t.list.SelectedItemIndex() == i ||
+		if context.Widget(t).HasFocusedChildWidget() && t.list.SelectedItemIndex() == i ||
 			(t.list.IsHoveringVisible() && t.list.HoveredItemIndex() == i) && item.selectable() {
 			item.text.SetColor(DefaultActiveListItemTextColor(context))
 		} else if !item.selectable() && !item.textListItem.Header {
@@ -245,7 +245,7 @@ type textListItemWidget struct {
 }*/
 
 func (t *textListItemWidget) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	p := context.WidgetFromBehavior(t).Position()
+	p := context.Widget(t).Position()
 	if t.textListItem.Header {
 		p.X += UnitSize(context) / 2
 		w, h := t.Size(context)
@@ -265,7 +265,7 @@ func (t *textListItemWidget) textString() string {
 
 func (t *textListItemWidget) Draw(context *guigui.Context, dst *ebiten.Image) {
 	if t.textListItem.Border {
-		p := context.WidgetFromBehavior(t).Position()
+		p := context.Widget(t).Position()
 		w, h := t.Size(context)
 		x0 := float32(p.X)
 		x1 := float32(p.X + w)
@@ -275,7 +275,7 @@ func (t *textListItemWidget) Draw(context *guigui.Context, dst *ebiten.Image) {
 		return
 	}
 	if t.textListItem.Header {
-		p := context.WidgetFromBehavior(t).Position()
+		p := context.Widget(t).Position()
 		w, h := t.Size(context)
 		bounds := image.Rectangle{
 			Min: p,
@@ -286,7 +286,7 @@ func (t *textListItemWidget) Draw(context *guigui.Context, dst *ebiten.Image) {
 }
 
 func (t *textListItemWidget) Size(context *guigui.Context) (int, int) {
-	w, _ := context.WidgetFromBehavior(t).Parent().Behavior().Size(context)
+	w, _ := context.Widget(t).Parent().Behavior().Size(context)
 	if t.textListItem.Border {
 		return w, UnitSize(context) / 2
 	}
