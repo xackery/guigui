@@ -87,7 +87,7 @@ func (t *TextField) HandleInput(context *guigui.Context) guigui.HandleInputResul
 	return guigui.HandleInputResult{}
 }
 
-func (t *TextField) PropagateEvent(context *guigui.Context, widget *guigui.Widget, event guigui.Event) (guigui.Event, bool) {
+func (t *TextField) PropagateEvent(context *guigui.Context, event guigui.Event) (guigui.Event, bool) {
 	return event, true
 }
 

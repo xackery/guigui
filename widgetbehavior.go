@@ -20,7 +20,7 @@ type WidgetBehavior interface {
 }
 
 type EventPropagator interface {
-	PropagateEvent(context *Context, widget *Widget, event Event) (Event, bool)
+	PropagateEvent(context *Context, event Event) (Event, bool)
 }
 
 type HandleInputResult struct {

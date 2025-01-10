@@ -37,12 +37,12 @@ func (b *Button) AppendChildWidgets(context *guigui.Context, appender *guigui.Ch
 	appender.AppendChildWidget(&b.mouseEventHandler, context.WidgetFromBehavior(b).Position())
 }
 
-func (b *Button) PropagateEvent(context *guigui.Context, widget *guigui.Widget, event guigui.Event) (guigui.Event, bool) {
+func (b *Button) PropagateEvent(context *guigui.Context, event guigui.Event) (guigui.Event, bool) {
 	args, ok := event.(guigui.MouseEvent)
 	if !ok {
 		return nil, false
 	}
-	if !image.Pt(args.CursorPositionX, args.CursorPositionY).In(widget.VisibleBounds()) {
+	if !image.Pt(args.CursorPositionX, args.CursorPositionY).In(context.WidgetFromBehavior(b).VisibleBounds()) {
 		return nil, false
 	}
 	var typ ButtonEventType
@@ -180,7 +180,7 @@ func (t *TextButton) AppendChildWidgets(context *guigui.Context, appender *guigu
 	appender.AppendChildWidget(&t.text, p)
 }
 
-func (t *TextButton) PropagateEvent(context *guigui.Context, widget *guigui.Widget, event guigui.Event) (guigui.Event, bool) {
+func (t *TextButton) PropagateEvent(context *guigui.Context, event guigui.Event) (guigui.Event, bool) {
 	return event, true
 }
 

@@ -306,7 +306,7 @@ func (a *app) propagateEvents(widget *Widget) {
 
 	for _, child := range widget.children {
 		for ev := range child.DequeueEvents() {
-			ev, ok = w.PropagateEvent(a.context, child, ev)
+			ev, ok = w.PropagateEvent(a.context, ev)
 			if !ok {
 				continue
 			}
