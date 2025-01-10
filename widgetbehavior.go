@@ -84,7 +84,7 @@ type RootWidgetBehavior struct {
 	DefaultWidgetBehavior
 }
 
-func (RootWidgetBehavior) Size(context *Context) (int, int) {
+func (*RootWidgetBehavior) Size(context *Context) (int, int) {
 	bounds := context.app.bounds()
 	return bounds.Dx(), bounds.Dy()
 }
