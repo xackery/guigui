@@ -13,6 +13,37 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+type widgetsAndBounds struct {
+	bounds map[*Widget]image.Rectangle
+}
+
+func (w *widgetsAndBounds) reset() {
+	clear(w.bounds)
+}
+
+func (w *widgetsAndBounds) append(widget *Widget, bounds image.Rectangle) {
+	if w.bounds == nil {
+		w.bounds = map[*Widget]image.Rectangle{}
+	}
+	w.bounds[widget] = bounds
+}
+
+func (w *widgetsAndBounds) equals(currentWidgets []*Widget) bool {
+	if len(w.bounds) != len(currentWidgets) {
+		return false
+	}
+	for _, widget := range currentWidgets {
+		b, ok := w.bounds[widget]
+		if !ok {
+			return false
+		}
+		if b != widget.bounds() {
+			return false
+		}
+	}
+	return true
+}
+
 type Widget struct {
 	app_ *app
 
@@ -22,6 +53,7 @@ type Widget struct {
 
 	parent   *Widget
 	children []*Widget
+	prev     widgetsAndBounds
 
 	hidden       bool
 	disabled     bool

@@ -47,9 +47,6 @@ type app struct {
 	invalidated                image.Rectangle
 	invalidatedRegionsForDebug []invalidatedRegionsForDebugItem
 
-	prevWidgets    map[*Widget]image.Rectangle
-	currentWidgets map[*Widget]struct{}
-
 	screenWidth  float64
 	screenHeight float64
 
@@ -143,6 +140,7 @@ func (a *app) Update() error {
 
 	clearEventQueues(a.root)
 
+	// Invalidate the engire screen if the screen size is changed.
 	var invalidated bool
 	if a.lastScreenWidth != a.screenWidth {
 		invalidated = true
@@ -156,10 +154,14 @@ func (a *app) Update() error {
 		invalidated = true
 		a.lastScale = s
 	}
-
 	if invalidated {
 		a.requestRedraw(a.bounds())
+	} else {
+		// Invalidate regions if a widget's children state is changed.
+		// A widget's bounds might be changed in Update, so do this after updating.
+		a.addInvalidatedRegions(a.root)
 	}
+	a.resetPrevWidgets(a.root)
 
 	if theDebugMode.showRenderingRegions {
 		// Update the regions in the reversed order to remove items.
@@ -217,29 +219,7 @@ const (
 )
 
 func (a *app) appendChildWidgets() {
-	for w := range a.currentWidgets {
-		if a.prevWidgets == nil {
-			a.prevWidgets = map[*Widget]image.Rectangle{}
-		}
-		a.prevWidgets[w] = w.bounds()
-		// Do not reset parent here, as bounds might require parent info.
-	}
-	for w := range a.currentWidgets {
-		w.parent = nil
-	}
-	clear(a.currentWidgets)
-
 	a.doAppendChildWidgets(a.root)
-
-	// If the previous children are not in the current children, redraw the region.
-	for w, bounds := range a.prevWidgets {
-		if _, ok := a.currentWidgets[w]; !ok {
-			// Do not use w.bounds() as w.parent might be nil.
-			a.requestRedraw(bounds)
-		}
-	}
-
-	clear(a.prevWidgets)
 }
 
 func (a *app) doAppendChildWidgets(widget *Widget) {
@@ -248,7 +228,6 @@ func (a *app) doAppendChildWidgets(widget *Widget) {
 		app:    a,
 		widget: widget,
 	})
-
 	for _, child := range widget.children {
 		a.doAppendChildWidgets(child)
 	}
@@ -340,6 +319,32 @@ func clearEventQueues(widget *Widget) {
 	widget.eventQueue.Clear()
 	for _, child := range widget.children {
 		clearEventQueues(child)
+	}
+}
+
+func (a *app) addInvalidatedRegions(widget *Widget) {
+	// If the children and/or children's bounds are changed, request redraw.
+	if !widget.prev.equals(widget.children) {
+		a.requestRedraw(widget.visibleBounds)
+		for _, child := range widget.children {
+			if child.behavior.IsPopup() {
+				a.requestRedraw(child.visibleBounds)
+			}
+		}
+	}
+	for _, child := range widget.children {
+		a.addInvalidatedRegions(child)
+	}
+}
+
+func (a *app) resetPrevWidgets(widget *Widget) {
+	// Reset the states.
+	widget.prev.reset()
+	for _, child := range widget.children {
+		widget.prev.append(child, child.bounds())
+	}
+	for _, child := range widget.children {
+		a.resetPrevWidgets(child)
 	}
 }
 
