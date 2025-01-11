@@ -169,15 +169,8 @@ func (t *TextButton) AppendChildWidgets(context *guigui.Context, appender *guigu
 
 	t.text.SetHorizontalAlign(HorizontalAlignCenter)
 	t.text.SetVerticalAlign(VerticalAlignMiddle)
-	p := context.Widget(t).Position()
-	if t.button.isActive(context) {
-		// As the text is centered, shift it down by double sizes of the stroke width.
-		p.Y += int(2 * context.Scale())
-	} else if !context.Widget(&t.button).IsEnabled() {
-		p.Y += int(1 * context.Scale())
-	}
 	t.text.SetSize(w, h)
-	appender.AppendChildWidget(&t.text, p)
+	appender.AppendChildWidget(&t.text, context.Widget(t).Position())
 }
 
 func (t *TextButton) PropagateEvent(context *guigui.Context, event guigui.Event) (guigui.Event, bool) {
@@ -195,6 +188,13 @@ func (t *TextButton) Update(context *guigui.Context) error {
 	} else {
 		t.text.SetColor(t.textColor)
 	}
+
+	p := context.Widget(t).Position()
+	if t.button.isActive(context) {
+		p.Y += int(1 * context.Scale())
+	}
+	context.Widget(&t.text).SetPosition(p)
+
 	return nil
 }
 

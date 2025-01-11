@@ -84,6 +84,11 @@ func (w *Widget) Position() image.Point {
 	return w.position
 }
 
+func (w *Widget) SetPosition(position image.Point) {
+	w.position = position
+	// Rerendering happens at a.addInvalidatedRegions if necessary.
+}
+
 func (w *Widget) bounds() image.Rectangle {
 	width, height := w.behavior.Size(w.app().context)
 	return image.Rectangle{
