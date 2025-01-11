@@ -13,7 +13,7 @@ import (
 )
 
 type Button struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	mouseEventHandler guigui.MouseEventHandler
 
@@ -136,7 +136,7 @@ func (b *Button) Size(context *guigui.Context) (int, int) {
 }
 
 type TextButton struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	button Button
 	text   Text

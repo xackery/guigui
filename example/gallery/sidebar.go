@@ -9,7 +9,7 @@ import (
 )
 
 type Sidebar struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	sidebar         basicwidget.Sidebar
 	list            basicwidget.List

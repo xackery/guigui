@@ -12,7 +12,7 @@ import (
 )
 
 type Sidebar struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	scrollablePanel ScrollablePanel
 

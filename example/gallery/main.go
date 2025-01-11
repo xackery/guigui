@@ -15,7 +15,7 @@ import (
 )
 
 type Root struct {
-	guigui.RootWidgetBehavior
+	guigui.RootWidget
 
 	sidebar  Sidebar
 	settings Settings

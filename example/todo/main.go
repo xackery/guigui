@@ -39,7 +39,7 @@ type TaskWidgets struct {
 }
 
 type Root struct {
-	guigui.RootWidgetBehavior
+	guigui.RootWidget
 
 	createButton basicwidget.TextButton
 	textField    basicwidget.TextField

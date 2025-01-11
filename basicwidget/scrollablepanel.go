@@ -14,7 +14,7 @@ import (
 )
 
 type widgetWithBounds struct {
-	widget   guigui.WidgetBehavior
+	widget   guigui.Widget
 	position image.Point
 }
 
@@ -26,7 +26,7 @@ func (w *widgetWithBounds) bounds(context *guigui.Context) image.Rectangle {
 }
 
 type ScrollablePanel struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	setContentFunc func(context *guigui.Context, childAppender *ScrollablePanelChildWidgetAppender)
 	childWidgets   []widgetWithBounds
@@ -44,7 +44,7 @@ type ScrollablePanelChildWidgetAppender struct {
 	scrollablePanel *ScrollablePanel
 }
 
-func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget guigui.WidgetBehavior, position image.Point) {
+func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget guigui.Widget, position image.Point) {
 	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widgetWithBounds{
 		widget:   widget,
 		position: position,
@@ -110,7 +110,7 @@ func (s *ScrollablePanel) SetSize(context *guigui.Context, width, height int) {
 }
 
 type scrollablePanelBorder struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	scrollOverlay *ScrollOverlay
 }

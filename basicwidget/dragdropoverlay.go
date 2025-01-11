@@ -13,7 +13,7 @@ import (
 )
 
 type DragDropOverlay struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	object any
 }

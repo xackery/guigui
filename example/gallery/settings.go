@@ -12,7 +12,7 @@ import (
 )
 
 type Settings struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	group               basicwidget.Group
 	colorModeToggleText basicwidget.Text

@@ -22,7 +22,7 @@ func barShowingTime() int {
 }
 
 type ScrollOverlay struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	contentWidth  int
 	contentHeight int

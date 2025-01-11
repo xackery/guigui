@@ -12,7 +12,7 @@ import (
 )
 
 type Lists struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	group        basicwidget.Group
 	textListText basicwidget.Text

@@ -12,7 +12,7 @@ import (
 )
 
 type TextField struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	text  Text
 	focus textFieldFocus
@@ -142,7 +142,7 @@ func textFieldFocusBorderWidth(context *guigui.Context) int {
 }
 
 type textFieldFocus struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 }
 
 func (t *textFieldFocus) Draw(context *guigui.Context, dst *ebiten.Image) {

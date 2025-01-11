@@ -17,7 +17,7 @@ type ToggleButtonEvent struct {
 }
 
 type ToggleButton struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	mouseEventHandler guigui.MouseEventHandler
 

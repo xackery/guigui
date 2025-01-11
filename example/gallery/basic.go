@@ -11,7 +11,7 @@ import (
 )
 
 type Basic struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	group            basicwidget.Group
 	textButtonText   basicwidget.Text

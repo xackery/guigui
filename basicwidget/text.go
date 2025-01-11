@@ -53,7 +53,7 @@ func DefaultTextColor(context *guigui.Context) color.Color {
 }
 
 type Text struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	field textinput.Field
 
@@ -883,7 +883,7 @@ func (t *Text) cursorBounds(context *guigui.Context) image.Rectangle {
 }
 
 type textCursor struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	counter    int
 	prevShown  bool

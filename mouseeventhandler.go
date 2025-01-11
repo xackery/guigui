@@ -11,7 +11,7 @@ import (
 )
 
 type MouseEventHandler struct {
-	DefaultWidgetBehavior
+	DefaultWidget
 
 	hovering bool
 	pressing bool

@@ -26,7 +26,7 @@ const (
 )
 
 type ListItem struct {
-	Content    guigui.WidgetBehavior
+	Content    guigui.Widget
 	Selectable bool
 	Wide       bool
 	Draggable  bool
@@ -42,7 +42,7 @@ func DefaultDisabledListItemTextColor(context *guigui.Context) color.Color {
 }
 
 type List struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	listFrame       listFrame
 	scrollOverlay   ScrollOverlay
@@ -506,7 +506,7 @@ func (l *List) SetSize(context *guigui.Context, width, height int) {
 }
 
 type listFrame struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 }
 
 func (l *listFrame) Draw(context *guigui.Context, dst *ebiten.Image) {

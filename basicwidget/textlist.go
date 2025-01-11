@@ -15,7 +15,7 @@ import (
 )
 
 type TextList struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	list                List
 	textListItemWidgets []*textListItemWidget
@@ -216,7 +216,7 @@ func (t *TextList) ContentHeight(context *guigui.Context) int {
 }*/
 
 type textListItemWidget struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	textList     *TextList
 	textListItem TextListItem

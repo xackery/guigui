@@ -10,7 +10,7 @@ import (
 )
 
 type Image struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	image *ebiten.Image
 

@@ -13,12 +13,12 @@ import (
 )
 
 type GroupItem struct {
-	PrimaryWidget   guigui.WidgetBehavior
-	SecondaryWidget guigui.WidgetBehavior
+	PrimaryWidget   guigui.Widget
+	SecondaryWidget guigui.Widget
 }
 
 type Group struct {
-	guigui.DefaultWidgetBehavior
+	guigui.DefaultWidget
 
 	items []*GroupItem
 
