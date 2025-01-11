@@ -11,14 +11,14 @@ type ChildWidgetAppender struct {
 }
 
 func (c *ChildWidgetAppender) AppendChildWidget(widget Widget, position image.Point) {
-	widgetState := widget.widgetState(widget)
+	widgetState := widget.widgetState()
 	widgetState.parent = c.widget
 	widgetState.position = position
 	if widget.IsPopup() {
 		widgetState.visibleBounds = Bounds(widget)
 	} else {
-		widgetState.visibleBounds = c.widget.widgetState(c.widget).visibleBounds.Intersect(Bounds(widget))
+		widgetState.visibleBounds = VisibleBounds(c.widget).Intersect(Bounds(widget))
 	}
-	cWidgetState := c.widget.widgetState(c.widget)
+	cWidgetState := c.widget.widgetState()
 	cWidgetState.children = append(cWidgetState.children, widget)
 }

@@ -16,7 +16,7 @@ type Widget interface {
 	IsPopup() bool
 	Size(context *Context) (int, int)
 
-	widgetState(widget Widget) *widgetState
+	widgetState() *widgetState
 }
 
 type EventPropagator interface {
@@ -45,7 +45,7 @@ func (r *HandleInputResult) ShouldRaise() bool {
 }
 
 func Parent(widget Widget) Widget {
-	return widget.widgetState(widget).parent
+	return widget.widgetState().parent
 }
 
 type DefaultWidget struct {
@@ -78,7 +78,7 @@ func (*DefaultWidget) Size(context *Context) (int, int) {
 	return int(16 * context.Scale()), int(16 * context.Scale())
 }
 
-func (d *DefaultWidget) widgetState(widget Widget) *widgetState {
+func (d *DefaultWidget) widgetState() *widgetState {
 	return &d.widgetState_
 }
 
