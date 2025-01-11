@@ -44,6 +44,14 @@ func (w *widgetsAndBounds) equals(currentWidgets []*Widget) bool {
 	return true
 }
 
+func (w *widgetsAndBounds) redrawPopupRegions() {
+	for widget, bounds := range w.bounds {
+		if widget.behavior.IsPopup() {
+			widget.requestRedraw(bounds)
+		}
+	}
+}
+
 type Widget struct {
 	app_ *app
 

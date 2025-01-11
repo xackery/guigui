@@ -325,6 +325,8 @@ func clearEventQueues(widget *Widget) {
 func (a *app) addInvalidatedRegions(widget *Widget) {
 	// If the children and/or children's bounds are changed, request redraw.
 	if !widget.prev.equals(widget.children) {
+		// Popups are outside of widget, so redraw the regions explicitly.
+		widget.prev.redrawPopupRegions()
 		a.requestRedraw(widget.visibleBounds)
 		for _, child := range widget.children {
 			if child.behavior.IsPopup() {
