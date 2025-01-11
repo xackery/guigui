@@ -14,21 +14,21 @@ import (
 )
 
 type widgetsAndBounds struct {
-	bounds map[*widgetState]image.Rectangle
+	bounds map[Widget]image.Rectangle
 }
 
 func (w *widgetsAndBounds) reset() {
 	clear(w.bounds)
 }
 
-func (w *widgetsAndBounds) append(widget *widgetState, bounds image.Rectangle) {
+func (w *widgetsAndBounds) append(widget Widget, bounds image.Rectangle) {
 	if w.bounds == nil {
-		w.bounds = map[*widgetState]image.Rectangle{}
+		w.bounds = map[Widget]image.Rectangle{}
 	}
 	w.bounds[widget] = bounds
 }
 
-func (w *widgetsAndBounds) equals(currentWidgets []*widgetState) bool {
+func (w *widgetsAndBounds) equals(currentWidgets []Widget) bool {
 	if len(w.bounds) != len(currentWidgets) {
 		return false
 	}
@@ -37,7 +37,7 @@ func (w *widgetsAndBounds) equals(currentWidgets []*widgetState) bool {
 		if !ok {
 			return false
 		}
-		if b != widget.bounds() {
+		if b != widget.widgetState(widget).bounds() {
 			return false
 		}
 	}
@@ -46,8 +46,8 @@ func (w *widgetsAndBounds) equals(currentWidgets []*widgetState) bool {
 
 func (w *widgetsAndBounds) redrawPopupRegions() {
 	for widget, bounds := range w.bounds {
-		if widget.widget.IsPopup() {
-			widget.requestRedrawWithRegion(bounds)
+		if widget.IsPopup() {
+			widget.widgetState(widget).requestRedrawWithRegion(bounds)
 		}
 	}
 }
@@ -59,8 +59,8 @@ type widgetState struct {
 	position      image.Point
 	visibleBounds image.Rectangle
 
-	parent   *widgetState
-	children []*widgetState
+	parent   Widget
+	children []Widget
 	prev     widgetsAndBounds
 
 	hidden       bool
@@ -135,7 +135,7 @@ type state struct {
 
 func (w *widgetState) app() *app {
 	p := w
-	for ; p.parent != nil; p = p.parent {
+	for ; p.parent != nil; p = p.parent.widgetState(p.parent) {
 	}
 	return p.app_
 }
@@ -182,7 +182,7 @@ func IsVisible(widget Widget) bool {
 
 func (w *widgetState) isVisible() bool {
 	if w.parent != nil {
-		return !w.hidden && w.parent.isVisible()
+		return !w.hidden && IsVisible(w.parent)
 	}
 	return !w.hidden
 }
@@ -220,7 +220,7 @@ func IsEnabled(widget Widget) bool {
 
 func (w *widgetState) isEnabled() bool {
 	if w.parent != nil {
-		return !w.disabled && w.parent.isEnabled()
+		return !w.disabled && IsEnabled(w.parent)
 	}
 	return !w.disabled
 }
@@ -241,11 +241,11 @@ func (w *widgetState) focus() {
 	if a == nil {
 		return
 	}
-	if a.focusedWidget == w {
+	if a.focusedWidget == w.widget {
 		return
 	}
 
-	var oldWidget *widgetState
+	var oldWidget Widget
 	if a.focusedWidget != nil {
 		oldWidget = a.focusedWidget
 	}
@@ -253,13 +253,13 @@ func (w *widgetState) focus() {
 	newWidgetOldState := w.currentState()
 	var oldWidgetOldState state
 	if oldWidget != nil {
-		oldWidgetOldState = oldWidget.currentState()
+		oldWidgetOldState = oldWidget.widgetState(oldWidget).currentState()
 	}
 
-	a.focusedWidget = w
-	a.focusedWidget.requestRedrawIfNeeded(newWidgetOldState, a.focusedWidget.visibleBounds)
+	a.focusedWidget = w.widget
+	a.focusedWidget.widgetState(a.focusedWidget).requestRedrawIfNeeded(newWidgetOldState, a.focusedWidget.widgetState(a.focusedWidget).visibleBounds)
 	if oldWidget != nil {
-		oldWidget.requestRedrawIfNeeded(oldWidgetOldState, oldWidget.visibleBounds)
+		oldWidget.widgetState(oldWidget).requestRedrawIfNeeded(oldWidgetOldState, oldWidget.widgetState(oldWidget).visibleBounds)
 	}
 }
 
@@ -272,7 +272,7 @@ func (w *widgetState) blur() {
 	if a == nil {
 		return
 	}
-	if a.focusedWidget != w {
+	if a.focusedWidget != w.widget {
 		return
 	}
 	oldState := w.currentState()
@@ -286,7 +286,7 @@ func IsFocused(widget Widget) bool {
 
 func (w *widgetState) isFocused() bool {
 	a := w.app()
-	return a != nil && a.focusedWidget == w && w.isVisible()
+	return a != nil && a.focusedWidget == w.widget && w.isVisible()
 }
 
 func HasFocusedChildWidget(widget Widget) bool {
@@ -298,7 +298,7 @@ func (w *widgetState) hasFocusedChildWidget() bool {
 		return true
 	}
 	for _, child := range w.children {
-		if child.hasFocusedChildWidget() {
+		if child.widgetState(child).hasFocusedChildWidget() {
 			return true
 		}
 	}
@@ -339,7 +339,7 @@ func RequestRedraw(widget Widget) {
 func (w *widgetState) requestRedraw() {
 	w.requestRedrawWithRegion(w.visibleBounds)
 	for _, child := range w.children {
-		child.requestRedrawIfPopup()
+		child.widgetState(child).requestRedrawIfPopup()
 	}
 }
 
@@ -348,7 +348,7 @@ func (w *widgetState) requestRedrawIfPopup() {
 		w.requestRedrawWithRegion(w.visibleBounds)
 	}
 	for _, child := range w.children {
-		child.requestRedrawIfPopup()
+		child.widgetState(child).requestRedrawIfPopup()
 	}
 }
 

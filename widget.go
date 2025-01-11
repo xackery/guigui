@@ -24,13 +24,13 @@ type EventPropagator interface {
 }
 
 type HandleInputResult struct {
-	widget  *widgetState
+	widget  Widget
 	aborted bool
 }
 
 func HandleInputByWidget(widget Widget) HandleInputResult {
 	return HandleInputResult{
-		widget: widget.widgetState(widget),
+		widget: widget,
 	}
 }
 
@@ -45,7 +45,7 @@ func (r *HandleInputResult) ShouldRaise() bool {
 }
 
 func Parent(widget Widget) Widget {
-	return widget.widgetState(widget).parent.widget
+	return widget.widgetState(widget).parent
 }
 
 type DefaultWidget struct {

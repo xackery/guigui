@@ -7,7 +7,7 @@ import "image"
 
 type ChildWidgetAppender struct {
 	app    *app
-	widget *widgetState
+	widget Widget
 }
 
 func (c *ChildWidgetAppender) AppendChildWidget(widget Widget, position image.Point) {
@@ -17,7 +17,8 @@ func (c *ChildWidgetAppender) AppendChildWidget(widget Widget, position image.Po
 	if widget.IsPopup() {
 		widgetState.visibleBounds = widgetState.bounds()
 	} else {
-		widgetState.visibleBounds = c.widget.visibleBounds.Intersect(widgetState.bounds())
+		widgetState.visibleBounds = c.widget.widgetState(c.widget).visibleBounds.Intersect(widgetState.bounds())
 	}
-	c.widget.children = append(c.widget.children, widgetState)
+	cWidgetState := c.widget.widgetState(c.widget)
+	cWidgetState.children = append(cWidgetState.children, widget)
 }

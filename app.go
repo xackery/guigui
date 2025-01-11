@@ -41,7 +41,7 @@ func invalidatedRegionForDebugMaxTime() int {
 }
 
 type app struct {
-	root    *widgetState
+	root    Widget
 	context *Context
 
 	invalidated                image.Rectangle
@@ -54,7 +54,7 @@ type app struct {
 	lastScreenHeight float64
 	lastScale        float64
 
-	focusedWidget *widgetState
+	focusedWidget Widget
 
 	debugScreen *ebiten.Image
 }
@@ -95,9 +95,9 @@ func Run(root Widget, options *RunOptions) error {
 	ebiten.SetWindowSizeLimits(minW, minH, maxW, maxH)
 
 	a := &app{
-		root: root.widgetState(root),
+		root: root,
 	}
-	a.root.app_ = a
+	a.root.widgetState(a.root).app_ = a
 	a.context = &Context{
 		app: a,
 	}
@@ -115,8 +115,9 @@ func (a app) bounds() image.Rectangle {
 }
 
 func (a *app) Update() error {
-	a.root.position = image.Point{}
-	a.root.visibleBounds = a.bounds()
+	rootState := a.root.widgetState(a.root)
+	rootState.position = image.Point{}
+	rootState.visibleBounds = a.bounds()
 
 	a.context.setDeviceScale(ebiten.Monitor().DeviceScaleFactor())
 
@@ -222,50 +223,53 @@ func (a *app) appendChildWidgets() {
 	a.doAppendChildWidgets(a.root)
 }
 
-func (a *app) doAppendChildWidgets(widget *widgetState) {
-	widget.children = slices.Delete(widget.children, 0, len(widget.children))
-	widget.widget.AppendChildWidgets(a.context, &ChildWidgetAppender{
+func (a *app) doAppendChildWidgets(widget Widget) {
+	widgetState := widget.widgetState(widget)
+	widgetState.children = slices.Delete(widgetState.children, 0, len(widgetState.children))
+	widget.AppendChildWidgets(a.context, &ChildWidgetAppender{
 		app:    a,
 		widget: widget,
 	})
-	for _, child := range widget.children {
+	for _, child := range widgetState.children {
 		a.doAppendChildWidgets(child)
 	}
 }
 
-func (a *app) handleInputWidget(widget *widgetState) HandleInputResult {
-	if widget.hidden {
+func (a *app) handleInputWidget(widget Widget) HandleInputResult {
+	widgetState := widget.widgetState(widget)
+	if widgetState.hidden {
 		return HandleInputResult{}
 	}
 
 	// Iterate the children in the reverse order of rendering.
-	for i := len(widget.children) - 1; i >= 0; i-- {
-		child := widget.children[i]
+	for i := len(widgetState.children) - 1; i >= 0; i-- {
+		child := widgetState.children[i]
 		if r := a.handleInputWidget(child); r.ShouldRaise() {
 			return r
 		}
 	}
 
-	return widget.widget.HandleInput(a.context)
+	return widget.HandleInput(a.context)
 }
 
-func (a *app) cursorShape(widget *widgetState) bool {
-	if widget.hidden {
+func (a *app) cursorShape(widget Widget) bool {
+	widgetState := widget.widgetState(widget)
+	if widgetState.hidden {
 		return false
 	}
 
 	// Iterate the children in the reverse order of rendering.
-	for i := len(widget.children) - 1; i >= 0; i-- {
-		child := widget.children[i]
+	for i := len(widgetState.children) - 1; i >= 0; i-- {
+		child := widgetState.children[i]
 		if a.cursorShape(child) {
 			return true
 		}
 	}
 
-	if !image.Pt(ebiten.CursorPosition()).In(widget.visibleBounds) {
+	if !image.Pt(ebiten.CursorPosition()).In(widgetState.visibleBounds) {
 		return false
 	}
-	shape, ok := widget.widget.CursorShape(a.context)
+	shape, ok := widget.CursorShape(a.context)
 	if !ok {
 		return false
 	}
@@ -273,79 +277,84 @@ func (a *app) cursorShape(widget *widgetState) bool {
 	return true
 }
 
-func (a *app) propagateEvents(widget *widgetState) {
-	for _, child := range widget.children {
+func (a *app) propagateEvents(widget Widget) {
+	widgetState := widget.widgetState(widget)
+	for _, child := range widgetState.children {
 		a.propagateEvents(child)
 	}
 
-	w, ok := widget.widget.(EventPropagator)
+	w, ok := widget.(EventPropagator)
 	if !ok {
 		return
 	}
 
-	for _, child := range widget.children {
-		for ev := range child.dequeueEvents() {
+	for _, child := range widgetState.children {
+		for ev := range DequeueEvents(child) {
 			ev, ok = w.PropagateEvent(a.context, ev)
 			if !ok {
 				continue
 			}
-			widget.enqueueEvent(ev)
+			widgetState.enqueueEvent(ev)
 		}
 	}
 }
 
-func (a *app) updateWidget(widget *widgetState) error {
-	if err := widget.widget.Update(a.context); err != nil {
+func (a *app) updateWidget(widget Widget) error {
+	widgetState := widget.widgetState(widget)
+	if err := widget.Update(a.context); err != nil {
 		return err
 	}
 
-	for _, child := range widget.children {
+	for _, child := range widgetState.children {
 		if err := a.updateWidget(child); err != nil {
 			return err
 		}
 	}
 
-	if widget.mightNeedRedraw {
-		b := widget.visibleBounds.Union(widget.redrawBounds)
+	if widgetState.mightNeedRedraw {
+		b := widgetState.visibleBounds.Union(widgetState.redrawBounds)
 		a.requestRedraw(b)
-		widget.mightNeedRedraw = false
-		widget.redrawBounds = image.Rectangle{}
+		widgetState.mightNeedRedraw = false
+		widgetState.redrawBounds = image.Rectangle{}
 	}
 
 	return nil
 }
 
-func clearEventQueues(widget *widgetState) {
-	widget.eventQueue.Clear()
-	for _, child := range widget.children {
+func clearEventQueues(widget Widget) {
+	widgetState := widget.widgetState(widget)
+	widgetState.eventQueue.Clear()
+	for _, child := range widgetState.children {
 		clearEventQueues(child)
 	}
 }
 
-func (a *app) addInvalidatedRegions(widget *widgetState) {
+func (a *app) addInvalidatedRegions(widget Widget) {
+	widgetState := widget.widgetState(widget)
 	// If the children and/or children's bounds are changed, request redraw.
-	if !widget.prev.equals(widget.children) {
+	if !widgetState.prev.equals(widgetState.children) {
 		// Popups are outside of widget, so redraw the regions explicitly.
-		widget.prev.redrawPopupRegions()
-		a.requestRedraw(widget.visibleBounds)
-		for _, child := range widget.children {
-			if child.widget.IsPopup() {
-				a.requestRedraw(child.visibleBounds)
+		widgetState.prev.redrawPopupRegions()
+		a.requestRedraw(widgetState.visibleBounds)
+		for _, child := range widgetState.children {
+			if child.widgetState(child).widget.IsPopup() {
+				a.requestRedraw(child.widgetState(child).visibleBounds)
 			}
 		}
 	}
-	for _, child := range widget.children {
+	for _, child := range widgetState.children {
 		a.addInvalidatedRegions(child)
 	}
 }
 
-func (a *app) resetPrevWidgets(widget *widgetState) {
+func (a *app) resetPrevWidgets(widget Widget) {
+	widgetState := widget.widgetState(widget)
 	// Reset the states.
-	widget.prev.reset()
-	for _, child := range widget.children {
-		widget.prev.append(child, child.bounds())
+	widgetState.prev.reset()
+	for _, child := range widgetState.children {
+		widgetState.prev.append(child, child.widgetState(child).bounds())
 	}
-	for _, child := range widget.children {
+	for _, child := range widgetState.children {
 		a.resetPrevWidgets(child)
 	}
 }
@@ -384,34 +393,35 @@ func (a *app) drawWidget(screen *ebiten.Image) {
 	}
 }
 
-func (a *app) doDrawWidget(dst *ebiten.Image, widget *widgetState) {
-	if widget.visibleBounds.Empty() {
+func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget) {
+	widgetState := widget.widgetState(widget)
+	if widgetState.visibleBounds.Empty() {
 		return
 	}
 
-	if widget.hidden {
+	if widgetState.hidden {
 		return
 	}
-	if widget.opacity() == 0 {
+	if widgetState.opacity() == 0 {
 		return
 	}
 
 	var origDst *ebiten.Image
-	if widget.opacity() < 1 {
+	if widgetState.opacity() < 1 {
 		origDst = dst
-		dst = widget.ensureOffscreen(dst.Bounds())
+		dst = widgetState.ensureOffscreen(dst.Bounds())
 		dst.Clear()
 	}
-	widget.widget.Draw(a.context, dst.SubImage(widget.visibleBounds).(*ebiten.Image))
+	widget.Draw(a.context, dst.SubImage(widgetState.visibleBounds).(*ebiten.Image))
 
-	for _, child := range widget.children {
+	for _, child := range widgetState.children {
 		a.doDrawWidget(dst, child)
 	}
 
-	if widget.opacity() < 1 {
+	if widgetState.opacity() < 1 {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(float64(dst.Bounds().Min.X), float64(dst.Bounds().Min.Y))
-		op.ColorScale.ScaleAlpha(float32(widget.opacity()))
+		op.ColorScale.ScaleAlpha(float32(widgetState.opacity()))
 		origDst.DrawImage(dst, op)
 	}
 }
