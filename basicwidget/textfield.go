@@ -146,7 +146,7 @@ type textFieldFocus struct {
 }
 
 func (t *textFieldFocus) Draw(context *guigui.Context, dst *ebiten.Image) {
-	textField := context.Widget(t).Parent().Behavior().(*TextField)
+	textField := guigui.Parent(t).(*TextField)
 	bounds := textField.bounds(context)
 	w := textFieldFocusBorderWidth(context)
 	bounds = bounds.Inset(-w)
@@ -158,7 +158,7 @@ func (t *textFieldFocus) IsPopup() bool {
 }
 
 func (t *textFieldFocus) Size(context *guigui.Context) (int, int) {
-	w, h := context.Widget(t).Parent().Behavior().Size(context)
+	w, h := guigui.Parent(t).Size(context)
 	w += 2 * textFieldFocusBorderWidth(context)
 	h += 2 * textFieldFocusBorderWidth(context)
 	return w, h

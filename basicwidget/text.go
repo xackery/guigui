@@ -839,8 +839,8 @@ func (t *Text) CursorShape(context *guigui.Context) (ebiten.CursorShapeType, boo
 	return 0, false
 }
 
-func (t *Text) cursorPosition(context *guigui.Context, widget *guigui.Widget) (x, top, bottom float64, ok bool) {
-	if !widget.IsFocused() {
+func (t *Text) cursorPosition(context *guigui.Context) (x, top, bottom float64, ok bool) {
+	if !context.Widget(t).IsFocused() {
 		return 0, 0, 0, false
 	}
 	if !t.editable {
@@ -855,7 +855,7 @@ func (t *Text) cursorPosition(context *guigui.Context, widget *guigui.Widget) (x
 	}
 
 	textBounds := t.textBounds(context)
-	if !textBounds.Overlaps(widget.VisibleBounds()) {
+	if !textBounds.Overlaps(context.Widget(t).VisibleBounds()) {
 		return 0, 0, 0, false
 	}
 
@@ -873,8 +873,8 @@ func cursorWidth(context *guigui.Context) int {
 	return int(2 * context.Scale())
 }
 
-func (t *Text) cursorBounds(context *guigui.Context, widget *guigui.Widget) image.Rectangle {
-	x, top, bottom, ok := t.cursorPosition(context, widget)
+func (t *Text) cursorBounds(context *guigui.Context) image.Rectangle {
+	x, top, bottom, ok := t.cursorPosition(context)
 	if !ok {
 		return image.Rectangle{}
 	}
@@ -898,9 +898,8 @@ func (t *textCursor) resetCounter() {
 }
 
 func (t *textCursor) Update(context *guigui.Context) error {
-	textWidget := context.Widget(t).Parent()
-	text := textWidget.Behavior().(*Text)
-	x, top, bottom, ok := text.cursorPosition(context, textWidget)
+	text := guigui.Parent(t).(*Text)
+	x, top, bottom, ok := text.cursorPosition(context)
 	if t.prevX != x || t.prevTop != top || t.prevBottom != bottom || t.prevOK != ok {
 		t.resetCounter()
 	}
@@ -910,7 +909,7 @@ func (t *textCursor) Update(context *guigui.Context) error {
 	t.prevOK = ok
 
 	t.counter++
-	if r := t.shouldRenderCursor(context, textWidget); t.prevShown != r {
+	if r := t.shouldRenderCursor(context, text); t.prevShown != r {
 		t.prevShown = r
 		// TODO: This is not efficient. Improve this.
 		context.Widget(t).RequestRedraw()
@@ -918,13 +917,12 @@ func (t *textCursor) Update(context *guigui.Context) error {
 	return nil
 }
 
-func (t *textCursor) shouldRenderCursor(context *guigui.Context, textWidget *guigui.Widget) bool {
+func (t *textCursor) shouldRenderCursor(context *guigui.Context, text *Text) bool {
 	offset := ebiten.TPS() / 2
 	if t.counter > offset && (t.counter-offset)%ebiten.TPS() >= ebiten.TPS()/2 {
 		return false
 	}
-	text := textWidget.Behavior().(*Text)
-	if _, _, _, ok := text.cursorPosition(context, textWidget); !ok {
+	if _, _, _, ok := text.cursorPosition(context); !ok {
 		return false
 	}
 	s, e, ok := text.selectionToDraw(context)
@@ -938,11 +936,11 @@ func (t *textCursor) shouldRenderCursor(context *guigui.Context, textWidget *gui
 }
 
 func (t *textCursor) Draw(context *guigui.Context, dst *ebiten.Image) {
-	textWidget := context.Widget(t).Parent()
-	if !t.shouldRenderCursor(context, textWidget) {
+	textWidget := guigui.Parent(t)
+	if !t.shouldRenderCursor(context, textWidget.(*Text)) {
 		return
 	}
-	b := textWidget.Behavior().(*Text).cursorBounds(context, textWidget)
+	b := textWidget.(*Text).cursorBounds(context)
 	vector.DrawFilledRect(dst, float32(b.Min.X), float32(b.Min.Y), float32(b.Dx()), float32(b.Dy()), Color(context.ColorMode(), ColorTypeAccent, 0.4), false)
 }
 
@@ -951,6 +949,6 @@ func (t *textCursor) IsPopup() bool {
 }
 
 func (t *textCursor) Size(context *guigui.Context) (int, int) {
-	w, h := context.Widget(t).Parent().Behavior().Size(context)
+	w, h := guigui.Parent(t).Size(context)
 	return w + 2*cursorWidth(context), h
 }

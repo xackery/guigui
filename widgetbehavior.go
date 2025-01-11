@@ -44,6 +44,10 @@ func (r *HandleInputResult) ShouldRaise() bool {
 	return r.widget != nil || r.aborted
 }
 
+func Parent(widgetBehavior WidgetBehavior) WidgetBehavior {
+	return widgetBehavior.internalWidget(widgetBehavior).parent.behavior
+}
+
 // TODO: Add more Widget functions.
 type DefaultWidgetBehavior struct {
 	widget Widget

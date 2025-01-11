@@ -511,7 +511,7 @@ type listFrame struct {
 
 func (l *listFrame) Draw(context *guigui.Context, dst *ebiten.Image) {
 	border := RoundedRectBorderTypeInset
-	if context.Widget(l).Parent().Behavior().(*List).style != ListStyleNormal {
+	if guigui.Parent(l).(*List).style != ListStyleNormal {
 		border = RoundedRectBorderTypeOutset
 	}
 	p := context.Widget(l).Position()
@@ -526,7 +526,7 @@ func (l *listFrame) Draw(context *guigui.Context, dst *ebiten.Image) {
 }
 
 func (l *listFrame) Size(context *guigui.Context) (int, int) {
-	return context.Widget(l).Parent().Behavior().Size(context)
+	return guigui.Parent(l).Size(context)
 }
 
 func moveItemInSlice[T any](slice []T, from int, count int, to int) {

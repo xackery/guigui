@@ -165,5 +165,5 @@ func (c *Context) SetAppLocales(locales []language.Tag) {
 }
 
 func (c *Context) Widget(behavior WidgetBehavior) *Widget {
-	return behavior.internalWidget(behavior) //widgetFromBehavior(behavior)
+	return behavior.internalWidget(behavior)
 }

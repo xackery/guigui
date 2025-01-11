@@ -76,10 +76,6 @@ type Widget struct {
 	offscreen *ebiten.Image
 }
 
-func (w *Widget) Parent() *Widget {
-	return w.parent
-}
-
 func (w *Widget) Position() image.Point {
 	return w.position
 }

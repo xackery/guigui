@@ -53,7 +53,7 @@ func (b *Basic) AppendChildWidgets(context *guigui.Context, appender *guigui.Chi
 }
 
 func (b *Basic) Size(context *guigui.Context) (int, int) {
-	w, h := context.Widget(b).Parent().Behavior().Size(context)
+	w, h := guigui.Parent(b).Size(context)
 	w -= sidebarWidth(context)
 	return w, h
 }
