@@ -37,7 +37,7 @@ func (w *widgetsAndBounds) equals(currentWidgets []Widget) bool {
 		if !ok {
 			return false
 		}
-		if b != widget.widgetState(widget).bounds() {
+		if b != bounds(widget) {
 			return false
 		}
 	}
@@ -47,7 +47,7 @@ func (w *widgetsAndBounds) equals(currentWidgets []Widget) bool {
 func (w *widgetsAndBounds) redrawPopupRegions() {
 	for widget, bounds := range w.bounds {
 		if widget.IsPopup() {
-			widget.widgetState(widget).requestRedrawWithRegion(bounds)
+			requestRedrawWithRegion(widget, bounds)
 		}
 	}
 }
@@ -55,7 +55,6 @@ func (w *widgetsAndBounds) redrawPopupRegions() {
 type widgetState struct {
 	app_ *app
 
-	widget        Widget
 	position      image.Point
 	visibleBounds image.Rectangle
 
@@ -68,7 +67,7 @@ type widgetState struct {
 	transparency float64
 
 	mightNeedRedraw bool
-	origState       state
+	origState       stateForRedraw
 	redrawBounds    image.Rectangle
 
 	eventQueue EventQueue
@@ -85,11 +84,12 @@ func SetPosition(widget Widget, position image.Point) {
 	// Rerendering happens at a.addInvalidatedRegions if necessary.
 }
 
-func (w *widgetState) bounds() image.Rectangle {
-	width, height := w.widget.Size(w.app().context)
+func bounds(widget Widget) image.Rectangle {
+	widgetState := widget.widgetState(widget)
+	width, height := widget.Size(widgetState.app().context)
 	return image.Rectangle{
-		Min: w.position,
-		Max: w.position.Add(image.Point{width, height}),
+		Min: widgetState.position,
+		Max: widgetState.position.Add(image.Point{width, height}),
 	}
 }
 
@@ -123,7 +123,7 @@ func (w *widgetState) dequeueEvents() iter.Seq[Event] {
 	}
 }
 
-type state struct {
+type stateForRedraw struct {
 	hidden       bool
 	disabled     bool
 	transparency float64
@@ -140,40 +140,35 @@ func (w *widgetState) app() *app {
 	return p.app_
 }
 
-func (w *widgetState) currentState() state {
-	return state{
-		hidden:       w.hidden,
-		disabled:     w.disabled,
-		transparency: w.transparency,
-		focused:      w.isFocused(),
+func widgetStateForRedraw(widget Widget) stateForRedraw {
+	widgetState := widget.widgetState(widget)
+	return stateForRedraw{
+		hidden:       widgetState.hidden,
+		disabled:     widgetState.disabled,
+		transparency: widgetState.transparency,
+		focused:      IsFocused(widget),
 	}
 }
 
 func Show(widget Widget) {
-	widget.widgetState(widget).show()
-}
-
-func (w *widgetState) show() {
-	if !w.hidden {
+	widgetState := widget.widgetState(widget)
+	if !widgetState.hidden {
 		return
 	}
-	oldState := w.currentState()
-	w.hidden = false
-	w.requestRedrawIfNeeded(oldState, w.visibleBounds)
+	oldState := widgetStateForRedraw(widget)
+	widgetState.hidden = false
+	requestRedrawIfNeeded(widget, oldState, widgetState.visibleBounds)
 }
 
 func Hide(widget Widget) {
-	widget.widgetState(widget).hide()
-}
-
-func (w *widgetState) hide() {
-	if w.hidden {
+	widgetState := widget.widgetState(widget)
+	if widgetState.hidden {
 		return
 	}
-	oldState := w.currentState()
-	w.hidden = true
-	w.blur()
-	w.requestRedrawIfNeeded(oldState, w.visibleBounds)
+	oldState := widgetStateForRedraw(widget)
+	widgetState.hidden = true
+	Blur(widget)
+	requestRedrawIfNeeded(widget, oldState, widgetState.visibleBounds)
 }
 
 func IsVisible(widget Widget) bool {
@@ -188,30 +183,24 @@ func (w *widgetState) isVisible() bool {
 }
 
 func Enable(widget Widget) {
-	widget.widgetState(widget).enable()
-}
-
-func (w *widgetState) enable() {
-	if !w.disabled {
+	widgetState := widget.widgetState(widget)
+	if !widgetState.disabled {
 		return
 	}
-	oldState := w.currentState()
-	w.disabled = false
-	w.requestRedrawIfNeeded(oldState, w.visibleBounds)
+	oldState := widgetStateForRedraw(widget)
+	widgetState.disabled = false
+	requestRedrawIfNeeded(widget, oldState, widgetState.visibleBounds)
 }
 
 func Disable(widget Widget) {
-	widget.widgetState(widget).disable()
-}
-
-func (w *widgetState) disable() {
-	if w.disabled {
+	widgetState := widget.widgetState(widget)
+	if widgetState.disabled {
 		return
 	}
-	oldState := w.currentState()
-	w.disabled = true
-	w.blur()
-	w.requestRedrawIfNeeded(oldState, w.visibleBounds)
+	oldState := widgetStateForRedraw(widget)
+	widgetState.disabled = true
+	Blur(widget)
+	requestRedrawIfNeeded(widget, oldState, widgetState.visibleBounds)
 }
 
 func IsEnabled(widget Widget) bool {
@@ -226,22 +215,19 @@ func (w *widgetState) isEnabled() bool {
 }
 
 func Focus(widget Widget) {
-	widget.widgetState(widget).focus()
-}
-
-func (w *widgetState) focus() {
-	if !w.isVisible() {
+	widgetState := widget.widgetState(widget)
+	if !widgetState.isVisible() {
 		return
 	}
-	if !w.isEnabled() {
+	if !widgetState.isEnabled() {
 		return
 	}
 
-	a := w.app()
+	a := widgetState.app()
 	if a == nil {
 		return
 	}
-	if a.focusedWidget == w.widget {
+	if a.focusedWidget == widget {
 		return
 	}
 
@@ -250,55 +236,46 @@ func (w *widgetState) focus() {
 		oldWidget = a.focusedWidget
 	}
 
-	newWidgetOldState := w.currentState()
-	var oldWidgetOldState state
+	newWidgetOldState := widgetStateForRedraw(widget)
+	var oldWidgetOldState stateForRedraw
 	if oldWidget != nil {
-		oldWidgetOldState = oldWidget.widgetState(oldWidget).currentState()
+		oldWidgetOldState = widgetStateForRedraw(oldWidget)
 	}
 
-	a.focusedWidget = w.widget
-	a.focusedWidget.widgetState(a.focusedWidget).requestRedrawIfNeeded(newWidgetOldState, a.focusedWidget.widgetState(a.focusedWidget).visibleBounds)
+	a.focusedWidget = widget
+	requestRedrawIfNeeded(a.focusedWidget, newWidgetOldState, a.focusedWidget.widgetState(a.focusedWidget).visibleBounds)
 	if oldWidget != nil {
-		oldWidget.widgetState(oldWidget).requestRedrawIfNeeded(oldWidgetOldState, oldWidget.widgetState(oldWidget).visibleBounds)
+		requestRedrawIfNeeded(oldWidget, oldWidgetOldState, oldWidget.widgetState(oldWidget).visibleBounds)
 	}
 }
 
 func Blur(widget Widget) {
-	widget.widgetState(widget).blur()
-}
-
-func (w *widgetState) blur() {
-	a := w.app()
+	widgetState := widget.widgetState(widget)
+	a := widgetState.app()
 	if a == nil {
 		return
 	}
-	if a.focusedWidget != w.widget {
+	if a.focusedWidget != widget {
 		return
 	}
-	oldState := w.currentState()
+	oldState := widgetStateForRedraw(widget)
 	a.focusedWidget = nil
-	w.requestRedrawIfNeeded(oldState, w.visibleBounds)
+	requestRedrawIfNeeded(widget, oldState, widgetState.visibleBounds)
 }
 
 func IsFocused(widget Widget) bool {
-	return widget.widgetState(widget).isFocused()
-}
-
-func (w *widgetState) isFocused() bool {
-	a := w.app()
-	return a != nil && a.focusedWidget == w.widget && w.isVisible()
+	widgetState := widget.widgetState(widget)
+	a := widgetState.app()
+	return a != nil && a.focusedWidget == widget && widgetState.isVisible()
 }
 
 func HasFocusedChildWidget(widget Widget) bool {
-	return widget.widgetState(widget).hasFocusedChildWidget()
-}
-
-func (w *widgetState) hasFocusedChildWidget() bool {
-	if w.isFocused() {
+	widgetState := widget.widgetState(widget)
+	if IsFocused(widget) {
 		return true
 	}
-	for _, child := range w.children {
-		if child.widgetState(child).hasFocusedChildWidget() {
+	for _, child := range widgetState.children {
+		if HasFocusedChildWidget(child) {
 			return true
 		}
 	}
@@ -314,75 +291,71 @@ func (w *widgetState) opacity() float64 {
 }
 
 func SetOpacity(widget Widget, opacity float64) {
-	widget.widgetState(widget).setOpacity(opacity)
-}
-
-func (w *widgetState) setOpacity(opacity float64) {
-	if 1-w.transparency == opacity {
+	widgetState := widget.widgetState(widget)
+	if 1-widgetState.transparency == opacity {
 		return
 	}
-	oldState := w.currentState()
+	oldState := widgetStateForRedraw(widget)
 	if opacity < 0 {
 		opacity = 0
 	}
 	if opacity > 1 {
 		opacity = 1
 	}
-	w.transparency = 1 - opacity
-	w.requestRedrawIfNeeded(oldState, w.visibleBounds)
+	widgetState.transparency = 1 - opacity
+	requestRedrawIfNeeded(widget, oldState, widgetState.visibleBounds)
 }
 
 func RequestRedraw(widget Widget) {
-	widget.widgetState(widget).requestRedraw()
-}
-
-func (w *widgetState) requestRedraw() {
-	w.requestRedrawWithRegion(w.visibleBounds)
-	for _, child := range w.children {
-		child.widgetState(child).requestRedrawIfPopup()
+	widgetState := widget.widgetState(widget)
+	requestRedrawWithRegion(widget, widgetState.visibleBounds)
+	for _, child := range widgetState.children {
+		requestRedrawIfPopup(child)
 	}
 }
 
-func (w *widgetState) requestRedrawIfPopup() {
-	if w.widget.IsPopup() {
-		w.requestRedrawWithRegion(w.visibleBounds)
+func requestRedrawIfPopup(widget Widget) {
+	widgetState := widget.widgetState(widget)
+	if widget.IsPopup() {
+		requestRedrawWithRegion(widget, widgetState.visibleBounds)
 	}
-	for _, child := range w.children {
-		child.widgetState(child).requestRedrawIfPopup()
+	for _, child := range widgetState.children {
+		requestRedrawIfPopup(child)
 	}
 }
 
-func (w *widgetState) requestRedrawWithRegion(region image.Rectangle) {
-	w.requestRedrawIfNeeded(state{
+func requestRedrawWithRegion(widget Widget, region image.Rectangle) {
+	requestRedrawIfNeeded(widget, stateForRedraw{
 		nan: math.NaN(),
 	}, region)
 }
 
-func (w *widgetState) requestRedrawIfNeeded(oldState state, region image.Rectangle) {
+func requestRedrawIfNeeded(widget Widget, oldState stateForRedraw, region image.Rectangle) {
 	if region.Empty() {
 		return
 	}
 
-	newState := w.currentState()
+	newState := widgetStateForRedraw(widget)
 	if oldState == newState {
 		return
 	}
 
 	if theDebugMode.showRenderingRegions {
-		slog.Info("Request redrawing", "requester", fmt.Sprintf("%T", w.widget), "region", region)
+		slog.Info("Request redrawing", "requester", fmt.Sprintf("%T", widget), "region", region)
 	}
 
-	w.redrawBounds = w.redrawBounds.Union(region)
+	widgetState := widget.widgetState(widget)
+	widgetState.redrawBounds = widgetState.redrawBounds.Union(region)
 
-	if !w.mightNeedRedraw {
-		w.mightNeedRedraw = true
-		w.origState = oldState
+	if !widgetState.mightNeedRedraw {
+		widgetState.mightNeedRedraw = true
+		widgetState.origState = oldState
 		return
 	}
 
-	if w.origState == newState {
-		w.mightNeedRedraw = false
-		w.origState = state{}
+	if widgetState.origState == newState {
+		widgetState.mightNeedRedraw = false
+		widgetState.origState = stateForRedraw{}
 		return
 	}
 }

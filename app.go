@@ -337,7 +337,7 @@ func (a *app) addInvalidatedRegions(widget Widget) {
 		widgetState.prev.redrawPopupRegions()
 		a.requestRedraw(widgetState.visibleBounds)
 		for _, child := range widgetState.children {
-			if child.widgetState(child).widget.IsPopup() {
+			if child.IsPopup() {
 				a.requestRedraw(child.widgetState(child).visibleBounds)
 			}
 		}
@@ -352,7 +352,7 @@ func (a *app) resetPrevWidgets(widget Widget) {
 	// Reset the states.
 	widgetState.prev.reset()
 	for _, child := range widgetState.children {
-		widgetState.prev.append(child, child.widgetState(child).bounds())
+		widgetState.prev.append(child, bounds(child))
 	}
 	for _, child := range widgetState.children {
 		a.resetPrevWidgets(child)

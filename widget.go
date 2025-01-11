@@ -79,11 +79,6 @@ func (*DefaultWidget) Size(context *Context) (int, int) {
 }
 
 func (d *DefaultWidget) widgetState(widget Widget) *widgetState {
-	// The argument might not match with d.
-	if d.widgetState_.widget != nil && d.widgetState_.widget != widget {
-		panic("guigui: widgetState must be called with the same widget")
-	}
-	d.widgetState_.widget = widget
 	return &d.widgetState_
 }
 
