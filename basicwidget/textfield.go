@@ -67,19 +67,19 @@ func (t *TextField) AppendChildWidgets(context *guigui.Context, appender *guigui
 	}
 	appender.AppendChildWidget(&t.text, b.Min)
 
-	if context.Widget(t).HasFocusedChildWidget() {
+	if guigui.HasFocusedChildWidget(t) {
 		w := textFieldFocusBorderWidth(context)
-		p := context.Widget(t).Position().Add(image.Pt(-w, -w))
+		p := guigui.Position(t).Add(image.Pt(-w, -w))
 		appender.AppendChildWidget(&t.focus, p)
 	}
 }
 
 func (t *TextField) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 	x, y := ebiten.CursorPosition()
-	t.hovering = image.Pt(x, y).In(context.Widget(t).VisibleBounds())
+	t.hovering = image.Pt(x, y).In(guigui.VisibleBounds(t))
 	if t.hovering {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-			context.Widget(&t.text).Focus()
+			guigui.Focus(&t.text)
 			t.text.selectAll()
 			return guigui.HandleInputByWidget(t)
 		}
@@ -92,13 +92,13 @@ func (t *TextField) PropagateEvent(context *guigui.Context, event guigui.Event) 
 }
 
 func (t *TextField) Update(context *guigui.Context) error {
-	if t.prevFocused != context.Widget(t).HasFocusedChildWidget() {
-		t.prevFocused = context.Widget(t).HasFocusedChildWidget()
-		context.Widget(t).RequestRedraw()
+	if t.prevFocused != guigui.HasFocusedChildWidget(t) {
+		t.prevFocused = guigui.HasFocusedChildWidget(t)
+		guigui.RequestRedraw(t)
 	}
-	if context.Widget(t).IsFocused() {
-		context.Widget(&t.text).Focus()
-		context.Widget(t).RequestRedraw()
+	if guigui.IsFocused(t) {
+		guigui.Focus(&t.text)
+		guigui.RequestRedraw(t)
 	}
 	return nil
 }
@@ -116,7 +116,7 @@ func defaultTextFieldSize(context *guigui.Context) (int, int) {
 
 func (t *TextField) bounds(context *guigui.Context) image.Rectangle {
 	w, h := t.Size(context)
-	p := context.Widget(t).Position()
+	p := guigui.Position(t)
 	return image.Rectangle{
 		Min: p,
 		Max: p.Add(image.Pt(w, h)),

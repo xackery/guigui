@@ -34,7 +34,7 @@ type ButtonEvent struct {
 }
 
 func (b *Button) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	appender.AppendChildWidget(&b.mouseEventHandler, context.Widget(b).Position())
+	appender.AppendChildWidget(&b.mouseEventHandler, guigui.Position(b))
 }
 
 func (b *Button) PropagateEvent(context *guigui.Context, event guigui.Event) (guigui.Event, bool) {
@@ -42,7 +42,7 @@ func (b *Button) PropagateEvent(context *guigui.Context, event guigui.Event) (gu
 	if !ok {
 		return nil, false
 	}
-	if !image.Pt(args.CursorPositionX, args.CursorPositionY).In(context.Widget(b).VisibleBounds()) {
+	if !image.Pt(args.CursorPositionX, args.CursorPositionY).In(guigui.VisibleBounds(b)) {
 		return nil, false
 	}
 	var typ ButtonEventType
@@ -61,7 +61,7 @@ func (b *Button) PropagateEvent(context *guigui.Context, event guigui.Event) (gu
 }
 
 func (b *Button) CursorShape(context *guigui.Context) (ebiten.CursorShapeType, bool) {
-	if context.Widget(b).IsEnabled() && b.mouseEventHandler.IsHovering() {
+	if guigui.IsEnabled(b) && b.mouseEventHandler.IsHovering() {
 		return ebiten.CursorShapePointer, true
 	}
 	return 0, true
@@ -74,13 +74,13 @@ func (b *Button) Draw(context *guigui.Context, dst *ebiten.Image) {
 	cm := context.ColorMode()
 	backgroundColor := Color2(cm, ColorTypeBase, 1, 0.3)
 	borderColor := Color2(cm, ColorTypeBase, 0.7, 0)
-	if b.isActive(context) {
+	if b.isActive() {
 		backgroundColor = Color2(cm, ColorTypeBase, 0.95, 0.25)
 		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
-	} else if b.mouseEventHandler.IsHovering() && context.Widget(&b.mouseEventHandler).IsEnabled() {
+	} else if b.mouseEventHandler.IsHovering() && guigui.IsEnabled(&b.mouseEventHandler) {
 		backgroundColor = Color2(cm, ColorTypeBase, 0.975, 0.275)
 		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
-	} else if !context.Widget(b).IsEnabled() {
+	} else if !guigui.IsEnabled(b) {
 		backgroundColor = Color2(cm, ColorTypeBase, 0.95, 0.25)
 		borderColor = Color2(cm, ColorTypeBase, 0.8, 0.1)
 	}
@@ -88,35 +88,35 @@ func (b *Button) Draw(context *guigui.Context, dst *ebiten.Image) {
 	bounds := b.bounds(context)
 	r := min(RoundedCornerRadius(context), bounds.Dx()/4, bounds.Dy()/4)
 	border := !b.borderInvisible
-	if b.mouseEventHandler.IsHovering() && context.Widget(&b.mouseEventHandler).IsEnabled() {
+	if b.mouseEventHandler.IsHovering() && guigui.IsEnabled(&b.mouseEventHandler) {
 		border = true
 	}
-	if border || b.isActive(context) {
+	if border || b.isActive() {
 		bounds := bounds.Inset(int(1 * context.Scale()))
 		DrawRoundedRect(context, dst, bounds, backgroundColor, r)
 	}
 
 	if border {
 		borderType := RoundedRectBorderTypeOutset
-		if b.isActive(context) {
+		if b.isActive() {
 			borderType = RoundedRectBorderTypeInset
-		} else if !context.Widget(b).IsEnabled() {
+		} else if !guigui.IsEnabled(b) {
 			borderType = RoundedRectBorderTypeRegular
 		}
 		DrawRoundedRectBorder(context, dst, bounds, borderColor, r, float32(1*context.Scale()), borderType)
 	}
 }
 
-func (b *Button) isActive(context *guigui.Context) bool {
-	return context.Widget(&b.mouseEventHandler).IsEnabled() && b.mouseEventHandler.IsHovering() && b.mouseEventHandler.IsPressing()
+func (b *Button) isActive() bool {
+	return guigui.IsEnabled(b) && b.mouseEventHandler.IsHovering() && b.mouseEventHandler.IsPressing()
 }
 
 func (b *Button) bounds(context *guigui.Context) image.Rectangle {
-	dw, dh := defaultButtonSize(context)
-	p := context.Widget(b).Position()
+	w, h := b.Size(context)
+	p := guigui.Position(b)
 	return image.Rectangle{
 		Min: p,
-		Max: p.Add(image.Pt(b.widthMinusDefault+dw, b.heightMinusDefault+dh)),
+		Max: p.Add(image.Pt(w, h)),
 	}
 }
 
@@ -165,12 +165,12 @@ func (t *TextButton) AppendChildWidgets(context *guigui.Context, appender *guigu
 	w, h := t.Size(context)
 
 	t.button.SetSize(context, w, h)
-	appender.AppendChildWidget(&t.button, context.Widget(t).Position())
+	appender.AppendChildWidget(&t.button, guigui.Position(t))
 
 	t.text.SetHorizontalAlign(HorizontalAlignCenter)
 	t.text.SetVerticalAlign(VerticalAlignMiddle)
 	t.text.SetSize(w, h)
-	appender.AppendChildWidget(&t.text, context.Widget(t).Position())
+	appender.AppendChildWidget(&t.text, guigui.Position(t))
 }
 
 func (t *TextButton) PropagateEvent(context *guigui.Context, event guigui.Event) (guigui.Event, bool) {
@@ -179,21 +179,21 @@ func (t *TextButton) PropagateEvent(context *guigui.Context, event guigui.Event)
 
 func (t *TextButton) Update(context *guigui.Context) error {
 	if t.needsRedraw {
-		context.Widget(t).RequestRedraw()
+		guigui.RequestRedraw(t)
 		t.needsRedraw = false
 	}
 
-	if !context.Widget(&t.button).IsEnabled() {
+	if !guigui.IsEnabled(&t.button) {
 		t.text.SetColor(Color(context.ColorMode(), ColorTypeBase, 0.5))
 	} else {
 		t.text.SetColor(t.textColor)
 	}
 
-	p := context.Widget(t).Position()
-	if t.button.isActive(context) {
+	p := guigui.Position(t)
+	if t.button.isActive() {
 		p.Y += int(1 * context.Scale())
 	}
-	context.Widget(&t.text).SetPosition(p)
+	guigui.SetPosition(&t.text, p)
 
 	return nil
 }

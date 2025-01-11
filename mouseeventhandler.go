@@ -37,31 +37,31 @@ const (
 
 func (m *MouseEventHandler) HandleInput(context *Context) HandleInputResult {
 	x, y := ebiten.CursorPosition()
-	m.setHovering(image.Pt(x, y).In(context.Widget(m).VisibleBounds()) && context.Widget(m).IsVisible(), context)
+	m.setHovering(image.Pt(x, y).In(VisibleBounds(m)) && IsVisible(m))
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		if !image.Pt(ebiten.CursorPosition()).In(context.Widget(m).VisibleBounds()) {
+		if !image.Pt(ebiten.CursorPosition()).In(VisibleBounds(m)) {
 			return HandleInputResult{}
 		}
-		if context.Widget(m).IsEnabled() {
-			m.setPressing(true, context)
+		if IsEnabled(m) {
+			m.setPressing(true)
 		}
-		context.Widget(m).Focus()
+		Focus(m)
 		return HandleInputByWidget(m)
 	}
 
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) && m.pressing {
-		m.setPressing(false, context)
-		if !image.Pt(ebiten.CursorPosition()).In(context.Widget(m).VisibleBounds()) {
+		m.setPressing(false)
+		if !image.Pt(ebiten.CursorPosition()).In(VisibleBounds(m)) {
 			return HandleInputResult{}
 		}
-		if context.Widget(m).IsEnabled() {
+		if IsEnabled(m) {
 			return HandleInputByWidget(m)
 		}
 	}
 
 	if !ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		m.setPressing(false, context)
+		m.setPressing(false)
 	}
 
 	return HandleInputResult{}
@@ -69,11 +69,11 @@ func (m *MouseEventHandler) HandleInput(context *Context) HandleInputResult {
 
 func (m *MouseEventHandler) Update(context *Context) error {
 	if m.needsRedraw {
-		context.Widget(m).RequestRedraw()
+		RequestRedraw(m)
 		m.needsRedraw = false
 	}
-	if !context.Widget(m).IsVisible() {
-		m.setHovering(false, context)
+	if !IsVisible(m) {
+		m.setHovering(false)
 	}
 	return nil
 }
@@ -82,15 +82,15 @@ func (m *MouseEventHandler) Size(context *Context) (int, int) {
 	return Parent(m).Size(context)
 }
 
-func (m *MouseEventHandler) setPressing(pressing bool, context *Context) {
+func (m *MouseEventHandler) setPressing(pressing bool) {
 	if m.pressing == pressing {
 		return
 	}
 
-	if context.Widget(m).IsEnabled() {
+	if IsEnabled(m) {
 		if pressing {
 			x, y := ebiten.CursorPosition()
-			context.Widget(m).EnqueueEvent(MouseEvent{
+			EnqueueEvent(m, MouseEvent{
 				Type:            MouseEventTypeDown,
 				MouseButton:     ebiten.MouseButtonLeft,
 				CursorPositionX: x,
@@ -98,7 +98,7 @@ func (m *MouseEventHandler) setPressing(pressing bool, context *Context) {
 			})
 		} else {
 			x, y := ebiten.CursorPosition()
-			context.Widget(m).EnqueueEvent(MouseEvent{
+			EnqueueEvent(m, MouseEvent{
 				Type:            MouseEventTypeUp,
 				MouseButton:     ebiten.MouseButtonLeft,
 				CursorPositionX: x,
@@ -108,24 +108,24 @@ func (m *MouseEventHandler) setPressing(pressing bool, context *Context) {
 	}
 
 	m.pressing = pressing
-	context.Widget(m).RequestRedraw()
+	RequestRedraw(m)
 }
 
-func (m *MouseEventHandler) setHovering(hovering bool, context *Context) {
+func (m *MouseEventHandler) setHovering(hovering bool) {
 	if m.hovering == hovering {
 		return
 	}
 
-	if context.Widget(m).IsEnabled() {
+	if IsEnabled(m) {
 		x, y := ebiten.CursorPosition()
 		if hovering {
-			context.Widget(m).EnqueueEvent(MouseEvent{
+			EnqueueEvent(m, MouseEvent{
 				Type:            MouseEventTypeEnter,
 				CursorPositionX: x,
 				CursorPositionY: y,
 			})
 		} else {
-			context.Widget(m).EnqueueEvent(MouseEvent{
+			EnqueueEvent(m, MouseEvent{
 				Type:            MouseEventTypeLeave,
 				CursorPositionX: x,
 				CursorPositionY: y,
@@ -134,7 +134,7 @@ func (m *MouseEventHandler) setHovering(hovering bool, context *Context) {
 	}
 
 	m.hovering = hovering
-	context.Widget(m).RequestRedraw()
+	RequestRedraw(m)
 }
 
 func (m *MouseEventHandler) IsPressing() bool {

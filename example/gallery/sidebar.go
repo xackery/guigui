@@ -25,9 +25,9 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.C
 	s.sidebar.SetSize(context, sidebarWidth(context), h)
 	s.sidebar.SetContent(context, func(context *guigui.Context, childAppender *basicwidget.ScrollablePanelChildWidgetAppender) {
 		s.list.SetSize(context, sidebarWidth(context), h)
-		childAppender.AppendChildWidget(&s.list, context.Widget(s).Position())
+		childAppender.AppendChildWidget(&s.list, guigui.Position(s))
 	})
-	appender.AppendChildWidget(&s.sidebar, context.Widget(s).Position())
+	appender.AppendChildWidget(&s.sidebar, guigui.Position(s))
 
 	s.list.SetStyle(basicwidget.ListStyleSidebar)
 	if len(s.listItemWidgets) == 0 {

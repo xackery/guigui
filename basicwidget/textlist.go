@@ -86,7 +86,7 @@ func (t *TextListItem) selectable() bool {
 }*/
 
 func (t *TextList) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	appender.AppendChildWidget(&t.list, context.Widget(t).Position())
+	appender.AppendChildWidget(&t.list, guigui.Position(t))
 }
 
 func (t *TextList) SelectedItemIndex() int {
@@ -185,7 +185,7 @@ func (t *TextList) MoveItem(from, to int) {
 func (t *TextList) Update(context *guigui.Context) error {
 	for i, item := range t.textListItemWidgets {
 		item.text.SetBold(item.textListItem.Header)
-		if context.Widget(t).HasFocusedChildWidget() && t.list.SelectedItemIndex() == i ||
+		if guigui.HasFocusedChildWidget(t) && t.list.SelectedItemIndex() == i ||
 			(t.list.IsHoveringVisible() && t.list.HoveredItemIndex() == i) && item.selectable() {
 			item.text.SetColor(DefaultActiveListItemTextColor(context))
 		} else if !item.selectable() && !item.textListItem.Header {
@@ -245,7 +245,7 @@ type textListItemWidget struct {
 }*/
 
 func (t *textListItemWidget) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	p := context.Widget(t).Position()
+	p := guigui.Position(t)
 	if t.textListItem.Header {
 		p.X += UnitSize(context) / 2
 		w, h := t.Size(context)
@@ -265,7 +265,7 @@ func (t *textListItemWidget) textString() string {
 
 func (t *textListItemWidget) Draw(context *guigui.Context, dst *ebiten.Image) {
 	if t.textListItem.Border {
-		p := context.Widget(t).Position()
+		p := guigui.Position(t)
 		w, h := t.Size(context)
 		x0 := float32(p.X)
 		x1 := float32(p.X + w)
@@ -275,7 +275,7 @@ func (t *textListItemWidget) Draw(context *guigui.Context, dst *ebiten.Image) {
 		return
 	}
 	if t.textListItem.Header {
-		p := context.Widget(t).Position()
+		p := guigui.Position(t)
 		w, h := t.Size(context)
 		bounds := image.Rectangle{
 			Min: p,

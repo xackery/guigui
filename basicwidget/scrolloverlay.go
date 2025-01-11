@@ -111,7 +111,7 @@ func adjustedWheel() (float64, float64) {
 }
 
 func (s *ScrollOverlay) HandleInput(context *guigui.Context) guigui.HandleInputResult {
-	s.setHovering(image.Pt(ebiten.CursorPosition()).In(context.Widget(s).VisibleBounds()) && context.Widget(s).IsVisible())
+	s.setHovering(image.Pt(ebiten.CursorPosition()).In(guigui.VisibleBounds(s)) && guigui.IsVisible(s))
 
 	if s.hovering {
 		x, y := ebiten.CursorPosition()
@@ -173,11 +173,11 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context) guigui.HandleInputR
 			}
 			s.adjustOffset(context)
 			if prevOffsetX != s.offsetX || prevOffsetY != s.offsetY {
-				context.Widget(s).EnqueueEvent(ScrollEvent{
+				guigui.EnqueueEvent(s, ScrollEvent{
 					OffsetX: s.offsetX,
 					OffsetY: s.offsetY,
 				})
-				context.Widget(s).RequestRedraw()
+				guigui.RequestRedraw(s)
 			}
 		}
 		return guigui.HandleInputByWidget(s)
@@ -199,11 +199,11 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context) guigui.HandleInputR
 		s.offsetY += dy * 4 * context.Scale()
 		s.adjustOffset(context)
 		if prevOffsetX != s.offsetX || prevOffsetY != s.offsetY {
-			context.Widget(s).EnqueueEvent(ScrollEvent{
+			guigui.EnqueueEvent(s, ScrollEvent{
 				OffsetX: s.offsetX,
 				OffsetY: s.offsetY,
 			})
-			context.Widget(s).RequestRedraw()
+			guigui.RequestRedraw(s)
 			return guigui.HandleInputByWidget(s)
 		}
 		return guigui.HandleInputResult{}
@@ -277,12 +277,12 @@ func (s *ScrollOverlay) Update(context *guigui.Context) error {
 		prevOffsetY := s.offsetY
 		s.adjustOffset(context)
 		if prevOffsetX != s.offsetX || prevOffsetY != s.offsetY {
-			context.Widget(s).RequestRedraw()
+			guigui.RequestRedraw(s)
 		}
 		s.needsAdjustOffset = false
 	}
 	if s.needsRedraw {
-		context.Widget(s).RequestRedraw()
+		guigui.RequestRedraw(s)
 		s.needsRedraw = false
 	}
 	if s.contentSizeChanged {
@@ -290,14 +290,14 @@ func (s *ScrollOverlay) Update(context *guigui.Context) error {
 		s.contentSizeChanged = false
 	}
 
-	if !context.Widget(s).IsVisible() {
+	if !guigui.IsVisible(s) {
 		s.setHovering(false)
 	}
 
 	if s.isBarVisible(context) || (s.barVisibleTime == barShowingTime() && s.barOpacity < barMaxOpacity()) {
 		if s.barOpacity < barMaxOpacity() {
 			s.barOpacity++
-			context.Widget(s).RequestRedraw()
+			guigui.RequestRedraw(s)
 		}
 		s.barVisibleTime = barShowingTime()
 	} else {
@@ -306,7 +306,7 @@ func (s *ScrollOverlay) Update(context *guigui.Context) error {
 		}
 		if s.barVisibleTime == 0 && s.barOpacity > 0 {
 			s.barOpacity--
-			context.Widget(s).RequestRedraw()
+			guigui.RequestRedraw(s)
 		}
 	}
 
@@ -348,7 +348,7 @@ func (s *ScrollOverlay) Size(context *guigui.Context) (int, int) {
 }
 
 func (s *ScrollOverlay) bounds(context *guigui.Context) image.Rectangle {
-	p := context.Widget(s).Position()
+	p := guigui.Position(s)
 	w, h := s.Size(context)
 	return image.Rectangle{
 		Min: p,

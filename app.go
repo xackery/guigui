@@ -284,12 +284,12 @@ func (a *app) propagateEvents(widget *Widget) {
 	}
 
 	for _, child := range widget.children {
-		for ev := range child.DequeueEvents() {
+		for ev := range child.dequeueEvents() {
 			ev, ok = w.PropagateEvent(a.context, ev)
 			if !ok {
 				continue
 			}
-			widget.EnqueueEvent(ev)
+			widget.enqueueEvent(ev)
 		}
 	}
 }
@@ -392,12 +392,12 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget *Widget) {
 	if widget.hidden {
 		return
 	}
-	if widget.Opacity() == 0 {
+	if widget.opacity() == 0 {
 		return
 	}
 
 	var origDst *ebiten.Image
-	if widget.Opacity() < 1 {
+	if widget.opacity() < 1 {
 		origDst = dst
 		dst = widget.ensureOffscreen(dst.Bounds())
 		dst.Clear()
@@ -408,10 +408,10 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget *Widget) {
 		a.doDrawWidget(dst, child)
 	}
 
-	if widget.Opacity() < 1 {
+	if widget.opacity() < 1 {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(float64(dst.Bounds().Min.X), float64(dst.Bounds().Min.Y))
-		op.ColorScale.ScaleAlpha(float32(widget.Opacity()))
+		op.ColorScale.ScaleAlpha(float32(widget.opacity()))
 		origDst.DrawImage(dst, op)
 	}
 }

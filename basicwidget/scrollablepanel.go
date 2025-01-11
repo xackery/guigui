@@ -76,14 +76,14 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, appender *
 		appender.AppendChildWidget(childWidget.widget, p)
 	}
 
-	appender.AppendChildWidget(&s.scollOverlay, context.Widget(s).Position())
+	appender.AppendChildWidget(&s.scollOverlay, guigui.Position(s))
 
 	s.border.scrollOverlay = &s.scollOverlay
-	appender.AppendChildWidget(&s.border, context.Widget(s).Position())
+	appender.AppendChildWidget(&s.border, guigui.Position(s))
 }
 
 func (s *ScrollablePanel) Update(context *guigui.Context) error {
-	p := context.Widget(s).Position()
+	p := guigui.Position(s)
 	var w, h int
 	for _, childWidget := range s.childWidgets {
 		b := childWidget.bounds(context)
@@ -137,7 +137,7 @@ func (s *scrollablePanelBorder) Size(context *guigui.Context) (int, int) {
 }
 
 func (s *scrollablePanelBorder) bounds(context *guigui.Context) image.Rectangle {
-	p := context.Widget(s).Position()
+	p := guigui.Position(s)
 	w, h := s.Size(context)
 	return image.Rectangle{
 		Min: p,

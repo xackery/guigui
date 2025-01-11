@@ -30,7 +30,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 		w -= 2 * basicwidget.UnitSize(context)
 		h -= 4 * basicwidget.UnitSize(context)
 		r.counterText.SetSize(w, h)
-		p := context.Widget(r).Position()
+		p := guigui.Position(r)
 		p.X += basicwidget.UnitSize(context)
 		p.Y += basicwidget.UnitSize(context)
 		appender.AppendChildWidget(&r.counterText, p)
@@ -39,7 +39,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 	r.resetButton.SetText("Reset")
 	r.resetButton.SetWidth(6 * basicwidget.UnitSize(context))
 	{
-		p := context.Widget(r).Position()
+		p := guigui.Position(r)
 		_, h := r.Size(context)
 		p.X += basicwidget.UnitSize(context)
 		p.Y += h - 2*basicwidget.UnitSize(context)
@@ -49,7 +49,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 	r.incButton.SetText("Increment")
 	r.incButton.SetWidth(6 * basicwidget.UnitSize(context))
 	{
-		p := context.Widget(r).Position()
+		p := guigui.Position(r)
 		w, h := r.Size(context)
 		p.X += w - 7*basicwidget.UnitSize(context)
 		p.Y += h - 2*basicwidget.UnitSize(context)
@@ -59,7 +59,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 	r.decButton.SetText("Decrement")
 	r.decButton.SetWidth(6 * basicwidget.UnitSize(context))
 	{
-		p := context.Widget(r).Position()
+		p := guigui.Position(r)
 		w, h := r.Size(context)
 		p.X += w - int(13.5*float64(basicwidget.UnitSize(context)))
 		p.Y += h - 2*basicwidget.UnitSize(context)
@@ -68,19 +68,19 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 }
 
 func (r *Root) Update(context *guigui.Context) error {
-	for e := range context.Widget(&r.incButton).DequeueEvents() {
+	for e := range guigui.DequeueEvents(&r.incButton) {
 		args := e.(basicwidget.ButtonEvent)
 		if args.Type == basicwidget.ButtonEventTypeUp {
 			r.counter++
 		}
 	}
-	for e := range context.Widget(&r.decButton).DequeueEvents() {
+	for e := range guigui.DequeueEvents(&r.decButton) {
 		args := e.(basicwidget.ButtonEvent)
 		if args.Type == basicwidget.ButtonEventTypeUp {
 			r.counter--
 		}
 	}
-	for e := range context.Widget(&r.resetButton).DequeueEvents() {
+	for e := range guigui.DequeueEvents(&r.resetButton) {
 		args := e.(basicwidget.ButtonEvent)
 		if args.Type == basicwidget.ButtonEventTypeUp {
 			r.counter = 0
@@ -88,9 +88,9 @@ func (r *Root) Update(context *guigui.Context) error {
 	}
 
 	if r.counter == 0 {
-		context.Widget(&r.resetButton).Disable()
+		guigui.Disable(&r.resetButton)
 	} else {
-		context.Widget(&r.resetButton).Enable()
+		guigui.Enable(&r.resetButton)
 	}
 	r.counterText.SetSelectable(true)
 	r.counterText.SetBold(true)

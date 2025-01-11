@@ -91,13 +91,13 @@ type Text struct {
 
 func (t *Text) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	if t.selectable || t.editable {
-		p := context.Widget(t).Position()
+		p := guigui.Position(t)
 		p.X -= cursorWidth(context)
 		appender.AppendChildWidget(&t.cursor, p)
 	}
 
-	context.Widget(&t.scrollOverlay).Hide()
-	appender.AppendChildWidget(&t.scrollOverlay, context.Widget(t).Position())
+	guigui.Hide(&t.scrollOverlay)
+	appender.AppendChildWidget(&t.scrollOverlay, guigui.Position(t))
 }
 
 func (t *Text) SetSelectable(selectable bool) {
@@ -222,9 +222,9 @@ func (t *Text) SetEditable(editable bool) {
 
 func (t *Text) SetScrollable(context *guigui.Context, scrollable bool) {
 	if scrollable {
-		context.Widget(&t.scrollOverlay).Show()
+		guigui.Show(&t.scrollOverlay)
 	} else {
-		context.Widget(&t.scrollOverlay).Hide()
+		guigui.Hide(&t.scrollOverlay)
 	}
 }
 
@@ -242,7 +242,7 @@ func (t *Text) SetMultiline(multiline bool) {
 }
 
 func (t *Text) bounds(context *guigui.Context) image.Rectangle {
-	p := context.Widget(t).Position()
+	p := guigui.Position(t)
 	w, h := t.Size(context)
 	return image.Rectangle{
 		Min: p,
@@ -321,23 +321,23 @@ func (t *Text) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 	}
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		if image.Pt(x, y).In(context.Widget(t).VisibleBounds()) {
+		if image.Pt(x, y).In(guigui.VisibleBounds(t)) {
 			t.dragging = true
 			idx := textIndexFromPosition(textBounds, x, y, t.field.Text(), face, t.lineHeight(context), t.hAlign, t.vAlign)
 			t.selectionDragStart = idx
-			context.Widget(t).Focus()
+			guigui.Focus(t)
 			if start, end := t.field.Selection(); start != idx || end != idx {
 				t.setTextAndSelection(t.field.Text(), idx, idx, -1)
 			}
 			return guigui.HandleInputByWidget(t)
 		}
-		context.Widget(t).Blur()
+		guigui.Blur(t)
 	}
 
-	if !context.Widget(t).IsFocused() {
+	if !guigui.IsFocused(t) {
 		if t.field.IsFocused() {
 			t.field.Blur()
-			context.Widget(t).RequestRedraw()
+			guigui.RequestRedraw(t)
 		}
 		return guigui.HandleInputResult{}
 	}
@@ -358,7 +358,7 @@ func (t *Text) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 		}
 	}
 	if processed {
-		context.Widget(t).RequestRedraw()
+		guigui.RequestRedraw(t)
 		t.adjustScrollOffset(context)
 		return guigui.HandleInputByWidget(t)
 	}
@@ -382,7 +382,7 @@ func (t *Text) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 			}
 			t.applyFilter()
 			// TODO: This is not reached on browsers. Fix this.
-			context.Widget(t).EnqueueEvent(TextEvent{
+			guigui.EnqueueEvent(t, TextEvent{
 				Type: TextEventTypeEnterPressed,
 				Text: t.field.Text(),
 			})
@@ -625,7 +625,7 @@ func (t *Text) selectionToDraw(context *guigui.Context) (start, end int, ok bool
 	if !t.editable {
 		return s, e, true
 	}
-	if !context.Widget(t).IsFocused() {
+	if !guigui.IsFocused(t) {
 		return s, e, true
 	}
 	cs, ce, ok := t.field.CompositionSelection()
@@ -645,7 +645,7 @@ func (t *Text) compositionSelectionToDraw(context *guigui.Context) (uStart, cSta
 	if !t.editable {
 		return 0, 0, 0, 0, false
 	}
-	if !context.Widget(t).IsFocused() {
+	if !guigui.IsFocused(t) {
 		return 0, 0, 0, 0, false
 	}
 	s, _ := t.field.Selection()
@@ -664,28 +664,28 @@ func (t *Text) compositionSelectionToDraw(context *guigui.Context) (uStart, cSta
 }
 
 func (t *Text) Update(context *guigui.Context) error {
-	if !t.prevFocused && context.Widget(t).IsFocused() {
+	if !t.prevFocused && guigui.IsFocused(t) {
 		t.field.Focus()
 		t.cursor.resetCounter()
 		start, end := t.field.Selection()
 		if start < 0 || end < 0 {
 			t.selectAll()
 		}
-	} else if t.prevFocused && !context.Widget(t).IsFocused() {
+	} else if t.prevFocused && !guigui.IsFocused(t) {
 		t.applyFilter()
 	}
 
 	if t.needsRedraw {
-		context.Widget(t).RequestRedraw()
+		guigui.RequestRedraw(t)
 		t.needsRedraw = false
 	}
 
-	if t.toAdjustScrollOffset && !context.Widget(t).VisibleBounds().Empty() {
+	if t.toAdjustScrollOffset && !guigui.VisibleBounds(t).Empty() {
 		t.adjustScrollOffset(context)
 		t.toAdjustScrollOffset = false
 	}
 
-	t.prevFocused = context.Widget(t).IsFocused()
+	t.prevFocused = guigui.IsFocused(t)
 
 	return nil
 }
@@ -705,7 +705,7 @@ func (t *Text) updateContentSize(context *guigui.Context) {
 
 func (t *Text) Draw(context *guigui.Context, dst *ebiten.Image) {
 	textBounds := t.textBounds(context)
-	if !textBounds.Overlaps(context.Widget(t).VisibleBounds()) {
+	if !textBounds.Overlaps(guigui.VisibleBounds(t)) {
 		return
 	}
 
@@ -840,7 +840,7 @@ func (t *Text) CursorShape(context *guigui.Context) (ebiten.CursorShapeType, boo
 }
 
 func (t *Text) cursorPosition(context *guigui.Context) (x, top, bottom float64, ok bool) {
-	if !context.Widget(t).IsFocused() {
+	if !guigui.IsFocused(t) {
 		return 0, 0, 0, false
 	}
 	if !t.editable {
@@ -855,7 +855,7 @@ func (t *Text) cursorPosition(context *guigui.Context) (x, top, bottom float64, 
 	}
 
 	textBounds := t.textBounds(context)
-	if !textBounds.Overlaps(context.Widget(t).VisibleBounds()) {
+	if !textBounds.Overlaps(guigui.VisibleBounds(t)) {
 		return 0, 0, 0, false
 	}
 
@@ -912,7 +912,7 @@ func (t *textCursor) Update(context *guigui.Context) error {
 	if r := t.shouldRenderCursor(context, text); t.prevShown != r {
 		t.prevShown = r
 		// TODO: This is not efficient. Improve this.
-		context.Widget(t).RequestRedraw()
+		guigui.RequestRedraw(t)
 	}
 	return nil
 }

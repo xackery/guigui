@@ -58,7 +58,7 @@ func (g *Group) itemBounds(context *guigui.Context, childIndex int) image.Rectan
 		if item.PrimaryWidget == nil && item.SecondaryWidget == nil {
 			continue
 		}
-		if !context.Widget(item.SecondaryWidget).IsVisible() {
+		if !guigui.IsVisible(item.SecondaryWidget) {
 			continue
 		}
 		_, kh := item.PrimaryWidget.Size(context)
@@ -116,8 +116,8 @@ func (g *Group) height(context *guigui.Context) int {
 
 	var y int
 	for _, item := range g.items {
-		if (item.PrimaryWidget == nil || !context.Widget(item.PrimaryWidget).IsVisible()) &&
-			(item.SecondaryWidget == nil || !context.Widget(item.SecondaryWidget).IsVisible()) {
+		if (item.PrimaryWidget == nil || !guigui.IsVisible(item.PrimaryWidget)) &&
+			(item.SecondaryWidget == nil || !guigui.IsVisible(item.SecondaryWidget)) {
 			continue
 		}
 		_, kh := item.PrimaryWidget.Size(context)
@@ -129,7 +129,7 @@ func (g *Group) height(context *guigui.Context) int {
 }
 
 func (g *Group) bounds(context *guigui.Context) image.Rectangle {
-	p := context.Widget(g).Position()
+	p := guigui.Position(g)
 	w, h := g.Size(context)
 	return image.Rectangle{
 		Min: p,

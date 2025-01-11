@@ -23,7 +23,7 @@ type Sidebar struct {
 func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	w, h := s.Size(context)
 	s.scrollablePanel.SetSize(context, w, h)
-	appender.AppendChildWidget(&s.scrollablePanel, context.Widget(s).Position())
+	appender.AppendChildWidget(&s.scrollablePanel, guigui.Position(s))
 }
 
 func (s *Sidebar) SetContent(context *guigui.Context, f func(context *guigui.Context, childAppender *ScrollablePanelChildWidgetAppender)) {
@@ -53,7 +53,7 @@ func (s *Sidebar) SetSize(context *guigui.Context, width, height int) {
 }
 
 func (s *Sidebar) bounds(context *guigui.Context) image.Rectangle {
-	p := context.Widget(s).Position()
+	p := guigui.Position(s)
 	w, h := s.Size(context)
 	return image.Rectangle{
 		Min: p,

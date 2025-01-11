@@ -163,7 +163,3 @@ func (c *Context) SetAppLocales(locales []language.Tag) {
 	c.locales = append([]language.Tag(nil), locales...)
 	c.app.requestRedraw(c.app.bounds())
 }
-
-func (c *Context) Widget(behavior WidgetBehavior) *Widget {
-	return behavior.internalWidget(behavior)
-}

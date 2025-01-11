@@ -47,7 +47,7 @@ func (w *widgetsAndBounds) equals(currentWidgets []*Widget) bool {
 func (w *widgetsAndBounds) redrawPopupRegions() {
 	for widget, bounds := range w.bounds {
 		if widget.behavior.IsPopup() {
-			widget.requestRedraw(bounds)
+			widget.requestRedrawWithRegion(bounds)
 		}
 	}
 }
@@ -76,12 +76,12 @@ type Widget struct {
 	offscreen *ebiten.Image
 }
 
-func (w *Widget) Position() image.Point {
-	return w.position
+func Position(widgetBehavior WidgetBehavior) image.Point {
+	return widgetBehavior.internalWidget(widgetBehavior).position
 }
 
-func (w *Widget) SetPosition(position image.Point) {
-	w.position = position
+func SetPosition(widgetBehavior WidgetBehavior, position image.Point) {
+	widgetBehavior.internalWidget(widgetBehavior).position = position
 	// Rerendering happens at a.addInvalidatedRegions if necessary.
 }
 
@@ -93,15 +93,23 @@ func (w *Widget) bounds() image.Rectangle {
 	}
 }
 
-func (w *Widget) VisibleBounds() image.Rectangle {
-	return w.visibleBounds
+func VisibleBounds(widgetBehavior WidgetBehavior) image.Rectangle {
+	return widgetBehavior.internalWidget(widgetBehavior).visibleBounds
 }
 
-func (w *Widget) EnqueueEvent(event Event) {
+func EnqueueEvent(widgetBehavior WidgetBehavior, event Event) {
+	widgetBehavior.internalWidget(widgetBehavior).enqueueEvent(event)
+}
+
+func (w *Widget) enqueueEvent(event Event) {
 	w.eventQueue.Enqueue(event)
 }
 
-func (w *Widget) DequeueEvents() iter.Seq[Event] {
+func DequeueEvents(widgetBehavior WidgetBehavior) iter.Seq[Event] {
+	return widgetBehavior.internalWidget(widgetBehavior).dequeueEvents()
+}
+
+func (w *Widget) dequeueEvents() iter.Seq[Event] {
 	return func(yield func(event Event) bool) {
 		for {
 			e, ok := w.eventQueue.Dequeue()
@@ -137,11 +145,15 @@ func (w *Widget) currentState() state {
 		hidden:       w.hidden,
 		disabled:     w.disabled,
 		transparency: w.transparency,
-		focused:      w.IsFocused(),
+		focused:      w.isFocused(),
 	}
 }
 
-func (w *Widget) Show() {
+func Show(widgetBehavior WidgetBehavior) {
+	widgetBehavior.internalWidget(widgetBehavior).show()
+}
+
+func (w *Widget) show() {
 	if !w.hidden {
 		return
 	}
@@ -150,24 +162,36 @@ func (w *Widget) Show() {
 	w.requestRedrawIfNeeded(oldState, w.visibleBounds)
 }
 
-func (w *Widget) Hide() {
+func Hide(widgetBehavior WidgetBehavior) {
+	widgetBehavior.internalWidget(widgetBehavior).hide()
+}
+
+func (w *Widget) hide() {
 	if w.hidden {
 		return
 	}
 	oldState := w.currentState()
 	w.hidden = true
-	w.Blur()
+	w.blur()
 	w.requestRedrawIfNeeded(oldState, w.visibleBounds)
 }
 
-func (w *Widget) IsVisible() bool {
+func IsVisible(widgetBehavior WidgetBehavior) bool {
+	return widgetBehavior.internalWidget(widgetBehavior).isVisible()
+}
+
+func (w *Widget) isVisible() bool {
 	if w.parent != nil {
-		return !w.hidden && w.parent.IsVisible()
+		return !w.hidden && w.parent.isVisible()
 	}
 	return !w.hidden
 }
 
-func (w *Widget) Enable() {
+func Enable(widgetBehavior WidgetBehavior) {
+	widgetBehavior.internalWidget(widgetBehavior).enable()
+}
+
+func (w *Widget) enable() {
 	if !w.disabled {
 		return
 	}
@@ -176,28 +200,40 @@ func (w *Widget) Enable() {
 	w.requestRedrawIfNeeded(oldState, w.visibleBounds)
 }
 
-func (w *Widget) Disable() {
+func Disable(widgetBehavior WidgetBehavior) {
+	widgetBehavior.internalWidget(widgetBehavior).disable()
+}
+
+func (w *Widget) disable() {
 	if w.disabled {
 		return
 	}
 	oldState := w.currentState()
 	w.disabled = true
-	w.Blur()
+	w.blur()
 	w.requestRedrawIfNeeded(oldState, w.visibleBounds)
 }
 
-func (w *Widget) IsEnabled() bool {
+func IsEnabled(widgetBehavior WidgetBehavior) bool {
+	return widgetBehavior.internalWidget(widgetBehavior).isEnabled()
+}
+
+func (w *Widget) isEnabled() bool {
 	if w.parent != nil {
-		return !w.disabled && w.parent.IsEnabled()
+		return !w.disabled && w.parent.isEnabled()
 	}
 	return !w.disabled
 }
 
-func (w *Widget) Focus() {
-	if !w.IsVisible() {
+func Focus(widgetBehavior WidgetBehavior) {
+	widgetBehavior.internalWidget(widgetBehavior).focus()
+}
+
+func (w *Widget) focus() {
+	if !w.isVisible() {
 		return
 	}
-	if !w.IsEnabled() {
+	if !w.isEnabled() {
 		return
 	}
 
@@ -227,7 +263,11 @@ func (w *Widget) Focus() {
 	}
 }
 
-func (w *Widget) Blur() {
+func Blur(widgetBehavior WidgetBehavior) {
+	widgetBehavior.internalWidget(widgetBehavior).blur()
+}
+
+func (w *Widget) blur() {
 	a := w.app()
 	if a == nil {
 		return
@@ -240,28 +280,44 @@ func (w *Widget) Blur() {
 	w.requestRedrawIfNeeded(oldState, w.visibleBounds)
 }
 
-func (w *Widget) IsFocused() bool {
-	a := w.app()
-	return a != nil && a.focusedWidget == w && w.IsVisible()
+func IsFocused(widgetBehavior WidgetBehavior) bool {
+	return widgetBehavior.internalWidget(widgetBehavior).isFocused()
 }
 
-func (w *Widget) HasFocusedChildWidget() bool {
-	if w.IsFocused() {
+func (w *Widget) isFocused() bool {
+	a := w.app()
+	return a != nil && a.focusedWidget == w && w.isVisible()
+}
+
+func HasFocusedChildWidget(widgetBehavior WidgetBehavior) bool {
+	return widgetBehavior.internalWidget(widgetBehavior).hasFocusedChildWidget()
+}
+
+func (w *Widget) hasFocusedChildWidget() bool {
+	if w.isFocused() {
 		return true
 	}
 	for _, child := range w.children {
-		if child.HasFocusedChildWidget() {
+		if child.hasFocusedChildWidget() {
 			return true
 		}
 	}
 	return false
 }
 
-func (w *Widget) Opacity() float64 {
+func Opacity(widgetBehavior WidgetBehavior) float64 {
+	return widgetBehavior.internalWidget(widgetBehavior).opacity()
+}
+
+func (w *Widget) opacity() float64 {
 	return 1 - w.transparency
 }
 
-func (w *Widget) SetOpacity(opacity float64) {
+func SetOpacity(widgetBehavior WidgetBehavior, opacity float64) {
+	widgetBehavior.internalWidget(widgetBehavior).setOpacity(opacity)
+}
+
+func (w *Widget) setOpacity(opacity float64) {
 	if 1-w.transparency == opacity {
 		return
 	}
@@ -276,8 +332,12 @@ func (w *Widget) SetOpacity(opacity float64) {
 	w.requestRedrawIfNeeded(oldState, w.visibleBounds)
 }
 
-func (w *Widget) RequestRedraw() {
-	w.requestRedraw(w.visibleBounds)
+func RequestRedraw(widgetBehavior WidgetBehavior) {
+	widgetBehavior.internalWidget(widgetBehavior).requestRedraw()
+}
+
+func (w *Widget) requestRedraw() {
+	w.requestRedrawWithRegion(w.visibleBounds)
 	for _, child := range w.children {
 		child.requestRedrawIfPopup()
 	}
@@ -285,14 +345,14 @@ func (w *Widget) RequestRedraw() {
 
 func (w *Widget) requestRedrawIfPopup() {
 	if w.behavior.IsPopup() {
-		w.requestRedraw(w.visibleBounds)
+		w.requestRedrawWithRegion(w.visibleBounds)
 	}
 	for _, child := range w.children {
 		child.requestRedrawIfPopup()
 	}
 }
 
-func (w *Widget) requestRedraw(region image.Rectangle) {
+func (w *Widget) requestRedrawWithRegion(region image.Rectangle) {
 	w.requestRedrawIfNeeded(state{
 		nan: math.NaN(),
 	}, region)
@@ -338,8 +398,4 @@ func (w *Widget) ensureOffscreen(bounds image.Rectangle) *ebiten.Image {
 		w.offscreen = ebiten.NewImage(bounds.Max.X, bounds.Max.Y)
 	}
 	return w.offscreen.SubImage(bounds).(*ebiten.Image)
-}
-
-func (w *Widget) Behavior() WidgetBehavior {
-	return w.behavior
 }
