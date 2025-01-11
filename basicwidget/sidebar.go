@@ -4,8 +4,6 @@
 package basicwidget
 
 import (
-	"image"
-
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"github.com/hajimehoshi/guigui"
@@ -32,7 +30,7 @@ func (s *Sidebar) SetContent(context *guigui.Context, f func(context *guigui.Con
 
 func (s *Sidebar) Draw(context *guigui.Context, dst *ebiten.Image) {
 	dst.Fill(Color(context.ColorMode(), ColorTypeBase, 0.875))
-	b := s.bounds(context)
+	b := guigui.Bounds(s)
 	b.Min.X = b.Max.X - int(1*context.Scale())
 	dst.SubImage(b).(*ebiten.Image).Fill(Color(context.ColorMode(), ColorTypeBase, 0.85))
 }
@@ -50,13 +48,4 @@ func (s *Sidebar) SetSize(context *guigui.Context, width, height int) {
 	dw, dh := defaultSidebarWidth(context)
 	s.widthMinusDefault = width - dw
 	s.heightMinusDefault = height - dh
-}
-
-func (s *Sidebar) bounds(context *guigui.Context) image.Rectangle {
-	p := guigui.Position(s)
-	w, h := s.Size(context)
-	return image.Rectangle{
-		Min: p,
-		Max: p.Add(image.Pt(w, h)),
-	}
 }

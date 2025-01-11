@@ -37,7 +37,7 @@ func (w *widgetsAndBounds) equals(currentWidgets []Widget) bool {
 		if !ok {
 			return false
 		}
-		if b != bounds(widget) {
+		if b != Bounds(widget) {
 			return false
 		}
 	}
@@ -84,7 +84,7 @@ func SetPosition(widget Widget, position image.Point) {
 	// Rerendering happens at a.addInvalidatedRegions if necessary.
 }
 
-func bounds(widget Widget) image.Rectangle {
+func Bounds(widget Widget) image.Rectangle {
 	widgetState := widget.widgetState(widget)
 	width, height := widget.Size(widgetState.app().context)
 	return image.Rectangle{

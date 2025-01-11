@@ -65,7 +65,7 @@ func (g *Group) itemBounds(context *guigui.Context, childIndex int) image.Rectan
 		_, vh := item.SecondaryWidget.Size(context)
 		h := max(kh, vh, int(LineHeight(context)))
 		if i == childIndex {
-			bounds := g.bounds(context)
+			bounds := guigui.Bounds(g)
 			bounds.Min.X += paddingX
 			bounds.Max.X -= paddingX
 			bounds.Min.Y += y + paddingY
@@ -79,7 +79,7 @@ func (g *Group) itemBounds(context *guigui.Context, childIndex int) image.Rectan
 }
 
 func (g *Group) Draw(context *guigui.Context, dst *ebiten.Image) {
-	bounds := g.bounds(context)
+	bounds := guigui.Bounds(g)
 	bounds.Max.Y = bounds.Min.Y + g.height(context)
 	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.925), RoundedCornerRadius(context))
 
@@ -126,13 +126,4 @@ func (g *Group) height(context *guigui.Context) int {
 		y += h + 2*paddingY
 	}
 	return y
-}
-
-func (g *Group) bounds(context *guigui.Context) image.Rectangle {
-	p := guigui.Position(g)
-	w, h := g.Size(context)
-	return image.Rectangle{
-		Min: p,
-		Max: p.Add(image.Pt(w, h)),
-	}
 }

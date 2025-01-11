@@ -241,19 +241,10 @@ func (t *Text) SetMultiline(multiline bool) {
 	t.needsRedraw = true
 }
 
-func (t *Text) bounds(context *guigui.Context) image.Rectangle {
-	p := guigui.Position(t)
-	w, h := t.Size(context)
-	return image.Rectangle{
-		Min: p,
-		Max: p.Add(image.Pt(w, h)),
-	}
-}
-
 func (t *Text) textBounds(context *guigui.Context) image.Rectangle {
 	offsetX, offsetY := t.scrollOverlay.Offset()
 
-	b := t.bounds(context)
+	b := guigui.Bounds(t)
 
 	tw, _ := text.Measure(t.textToDraw(), t.face(context), t.lineHeight(context))
 	if b.Dx() < int(tw) {
@@ -593,7 +584,7 @@ func (t *Text) adjustScrollOffset(context *guigui.Context) {
 
 	tb := t.textBounds(context)
 	face := t.face(context)
-	bounds := t.bounds(context)
+	bounds := guigui.Bounds(t)
 	if x, _, y, ok := textPosition(tb, text, end, face, t.lineHeight(context), t.hAlign, t.vAlign); ok {
 		var dx, dy float64
 		if max := float64(bounds.Max.X); x > max {

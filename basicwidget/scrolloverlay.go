@@ -226,7 +226,7 @@ func (s *ScrollOverlay) Offset() (float64, float64) {
 }
 
 func (s *ScrollOverlay) adjustOffset(context *guigui.Context) {
-	bounds := s.bounds(context)
+	bounds := guigui.Bounds(s)
 
 	// Adjust offsets.
 	if s.offsetX > 0 {
@@ -261,7 +261,7 @@ func (s *ScrollOverlay) isBarVisible(context *guigui.Context) bool {
 		return true
 	}
 
-	bounds := s.bounds(context)
+	bounds := guigui.Bounds(s)
 	if s.contentWidth > bounds.Dx() && bounds.Max.Y-UnitSize(context) <= s.lastCursorY {
 		return true
 	}
@@ -347,22 +347,13 @@ func (s *ScrollOverlay) Size(context *guigui.Context) (int, int) {
 	return guigui.Parent(s).Size(context)
 }
 
-func (s *ScrollOverlay) bounds(context *guigui.Context) image.Rectangle {
-	p := guigui.Position(s)
-	w, h := s.Size(context)
-	return image.Rectangle{
-		Min: p,
-		Max: p.Add(image.Pt(w, h)),
-	}
-}
-
 func (s *ScrollOverlay) barWidth(scale float64) float64 {
 	const scrollBarStrokeWidthInDIP = 8
 	return scrollBarStrokeWidthInDIP * scale
 }
 
 func (s *ScrollOverlay) barSize(context *guigui.Context) (float64, float64) {
-	bounds := s.bounds(context)
+	bounds := guigui.Bounds(s)
 
 	var w, h float64
 	if s.contentWidth > bounds.Dx() {
@@ -381,7 +372,7 @@ func (s *ScrollOverlay) barSize(context *guigui.Context) (float64, float64) {
 }
 
 func (s *ScrollOverlay) barBounds(context *guigui.Context) (image.Rectangle, image.Rectangle) {
-	bounds := s.bounds(context)
+	bounds := guigui.Bounds(s)
 
 	offsetX, offsetY := s.Offset()
 	barWidth, barHeight := s.barSize(context)

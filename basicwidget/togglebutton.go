@@ -84,7 +84,7 @@ func (t *ToggleButton) CursorShape(context *guigui.Context) (ebiten.CursorShapeT
 func (t *ToggleButton) Draw(context *guigui.Context, dst *ebiten.Image) {
 	rate := 1 - float64(t.count)/float64(toggleButtonMaxCount())
 
-	bounds := t.bounds(context)
+	bounds := guigui.Bounds(t)
 
 	cm := context.ColorMode()
 	backgroundColor := Color(context.ColorMode(), ColorTypeBase, 0.8)
@@ -141,15 +141,6 @@ func (t *ToggleButton) Draw(context *guigui.Context, dst *ebiten.Image) {
 
 func (t *ToggleButton) isActive() bool {
 	return guigui.IsEnabled(t) && t.mouseEventHandler.IsHovering() && t.mouseEventHandler.IsPressing()
-}
-
-func (t *ToggleButton) bounds(context *guigui.Context) image.Rectangle {
-	cw, ch := t.Size(context)
-	p := guigui.Position(t)
-	return image.Rectangle{
-		Min: p,
-		Max: p.Add(image.Pt(cw, ch)),
-	}
 }
 
 func (t *ToggleButton) Size(context *guigui.Context) (int, int) {

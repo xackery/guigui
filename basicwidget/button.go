@@ -85,7 +85,7 @@ func (b *Button) Draw(context *guigui.Context, dst *ebiten.Image) {
 		borderColor = Color2(cm, ColorTypeBase, 0.8, 0.1)
 	}
 
-	bounds := b.bounds(context)
+	bounds := guigui.Bounds(b)
 	r := min(RoundedCornerRadius(context), bounds.Dx()/4, bounds.Dy()/4)
 	border := !b.borderInvisible
 	if b.mouseEventHandler.IsHovering() && guigui.IsEnabled(&b.mouseEventHandler) {
@@ -109,15 +109,6 @@ func (b *Button) Draw(context *guigui.Context, dst *ebiten.Image) {
 
 func (b *Button) isActive() bool {
 	return guigui.IsEnabled(b) && b.mouseEventHandler.IsHovering() && b.mouseEventHandler.IsPressing()
-}
-
-func (b *Button) bounds(context *guigui.Context) image.Rectangle {
-	w, h := b.Size(context)
-	p := guigui.Position(b)
-	return image.Rectangle{
-		Min: p,
-		Max: p.Add(image.Pt(w, h)),
-	}
 }
 
 func defaultButtonSize(context *guigui.Context) (int, int) {

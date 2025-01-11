@@ -13,12 +13,12 @@ import (
 	"github.com/hajimehoshi/guigui"
 )
 
-type widgetWithBounds struct {
+type widgetWithPosition struct {
 	widget   guigui.Widget
 	position image.Point
 }
 
-func (w *widgetWithBounds) bounds(context *guigui.Context) image.Rectangle {
+func (w *widgetWithPosition) bounds(context *guigui.Context) image.Rectangle {
 	return image.Rectangle{
 		Min: w.position,
 		Max: w.position.Add(image.Pt(w.widget.Size(context))),
@@ -29,7 +29,7 @@ type ScrollablePanel struct {
 	guigui.DefaultWidget
 
 	setContentFunc func(context *guigui.Context, childAppender *ScrollablePanelChildWidgetAppender)
-	childWidgets   []widgetWithBounds
+	childWidgets   []widgetWithPosition
 	scollOverlay   ScrollOverlay
 	border         scrollablePanelBorder
 
@@ -45,7 +45,7 @@ type ScrollablePanelChildWidgetAppender struct {
 }
 
 func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget guigui.Widget, position image.Point) {
-	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widgetWithBounds{
+	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widgetWithPosition{
 		widget:   widget,
 		position: position,
 	})
@@ -118,7 +118,7 @@ type scrollablePanelBorder struct {
 func (s *scrollablePanelBorder) Draw(context *guigui.Context, dst *ebiten.Image) {
 	// Render borders.
 	strokeWidth := float32(1 * context.Scale())
-	bounds := s.bounds(context)
+	bounds := guigui.Bounds(s)
 	x0 := float32(bounds.Min.X)
 	x1 := float32(bounds.Max.X)
 	y0 := float32(bounds.Min.Y)
@@ -134,13 +134,4 @@ func (s *scrollablePanelBorder) Draw(context *guigui.Context, dst *ebiten.Image)
 
 func (s *scrollablePanelBorder) Size(context *guigui.Context) (int, int) {
 	return guigui.Parent(s).Size(context)
-}
-
-func (s *scrollablePanelBorder) bounds(context *guigui.Context) image.Rectangle {
-	p := guigui.Position(s)
-	w, h := s.Size(context)
-	return image.Rectangle{
-		Min: p,
-		Max: p.Add(image.Pt(w, h)),
-	}
 }

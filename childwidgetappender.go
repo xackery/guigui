@@ -15,9 +15,9 @@ func (c *ChildWidgetAppender) AppendChildWidget(widget Widget, position image.Po
 	widgetState.parent = c.widget
 	widgetState.position = position
 	if widget.IsPopup() {
-		widgetState.visibleBounds = bounds(widget)
+		widgetState.visibleBounds = Bounds(widget)
 	} else {
-		widgetState.visibleBounds = c.widget.widgetState(c.widget).visibleBounds.Intersect(bounds(widget))
+		widgetState.visibleBounds = c.widget.widgetState(c.widget).visibleBounds.Intersect(Bounds(widget))
 	}
 	cWidgetState := c.widget.widgetState(c.widget)
 	cWidgetState.children = append(cWidgetState.children, widget)
