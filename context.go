@@ -163,3 +163,7 @@ func (c *Context) SetAppLocales(locales []language.Tag) {
 	c.locales = append([]language.Tag(nil), locales...)
 	c.app.requestRedraw(c.app.bounds())
 }
+
+func (c *Context) AppSize() (int, int) {
+	return c.app.bounds().Dx(), c.app.bounds().Dy()
+}

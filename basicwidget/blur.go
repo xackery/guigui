@@ -41,7 +41,7 @@ func init() {
 	blurShader = s
 }
 
-func Blur(dst *ebiten.Image, src *ebiten.Image, rate float64) {
+func DrawBlurredImage(dst *ebiten.Image, src *ebiten.Image, rate float64) {
 	if rate == 0 {
 		return
 	}

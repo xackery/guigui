@@ -21,6 +21,7 @@ type Root struct {
 	settings Settings
 	basic    Basic
 	lists    Lists
+	popups   Popups
 }
 
 func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
@@ -33,6 +34,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 	guigui.SetPosition(&r.settings, p)
 	guigui.SetPosition(&r.basic, p)
 	guigui.SetPosition(&r.lists, p)
+	guigui.SetPosition(&r.popups, p)
 
 	switch r.sidebar.SelectedItemTag() {
 	case "settings":
@@ -41,6 +43,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 		appender.AppendChildWidget(&r.basic)
 	case "lists":
 		appender.AppendChildWidget(&r.lists)
+	case "popups":
+		appender.AppendChildWidget(&r.popups)
 	}
 }
 
