@@ -331,32 +331,30 @@ func requestRedrawWithRegion(widget Widget, region image.Rectangle) {
 }
 
 func requestRedrawIfNeeded(widget Widget, oldState stateForRedraw, region image.Rectangle) {
-	if region.Empty() {
-		return
-	}
-
 	newState := widgetStateForRedraw(widget)
 	if oldState == newState {
 		return
 	}
 
-	if theDebugMode.showRenderingRegions {
-		slog.Info("Request redrawing", "requester", fmt.Sprintf("%T", widget), "region", region)
+	if !region.Empty() {
+		if theDebugMode.showRenderingRegions {
+			slog.Info("Request redrawing", "requester", fmt.Sprintf("%T", widget), "region", region)
+		}
+
+		widgetState := widget.widgetState()
+		widgetState.redrawBounds = widgetState.redrawBounds.Union(region)
+
+		if !widgetState.mightNeedRedraw {
+			widgetState.mightNeedRedraw = true
+			widgetState.origState = oldState
+		} else if widgetState.origState == newState {
+			widgetState.mightNeedRedraw = false
+			widgetState.origState = stateForRedraw{}
+		}
 	}
 
-	widgetState := widget.widgetState()
-	widgetState.redrawBounds = widgetState.redrawBounds.Union(region)
-
-	if !widgetState.mightNeedRedraw {
-		widgetState.mightNeedRedraw = true
-		widgetState.origState = oldState
-		return
-	}
-
-	if widgetState.origState == newState {
-		widgetState.mightNeedRedraw = false
-		widgetState.origState = stateForRedraw{}
-		return
+	for _, child := range widget.widgetState().children {
+		requestRedrawIfPopup(child)
 	}
 }
 
