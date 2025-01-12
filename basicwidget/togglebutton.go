@@ -50,7 +50,8 @@ func toggleButtonMaxCount() int {
 }
 
 func (t *ToggleButton) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	appender.AppendChildWidget(&t.mouseEventHandler, guigui.Position(t))
+	guigui.SetPosition(&t.mouseEventHandler, guigui.Position(t))
+	appender.AppendChildWidget(&t.mouseEventHandler)
 }
 
 func (t *ToggleButton) Update(context *guigui.Context) error {

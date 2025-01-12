@@ -84,7 +84,8 @@ func listItemPadding(context *guigui.Context) int {
 
 func (l *List) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	if l.style != ListStyleSidebar {
-		appender.AppendChildWidget(&l.listFrame, guigui.Position(l))
+		guigui.SetPosition(&l.listFrame, guigui.Position(l))
+		appender.AppendChildWidget(&l.listFrame)
 	}
 
 	_, offsetY := l.scrollOverlay.Offset()
@@ -98,13 +99,17 @@ func (l *List) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 			r.Max.X += l.list.settings.SmallUnitSize(args.Scale)
 		}
 		return r*/
-		appender.AppendChildWidget(item.Content, p)
+		guigui.SetPosition(item.Content, p)
+		appender.AppendChildWidget(item.Content)
 		_, h := item.Content.Size(context)
 		p.Y += h
 	}
 
-	appender.AppendChildWidget(&l.scrollOverlay, guigui.Position(l))
-	appender.AppendChildWidget(&l.dragDropOverlay, guigui.Position(l))
+	p = guigui.Position(l)
+	guigui.SetPosition(&l.scrollOverlay, p)
+	appender.AppendChildWidget(&l.scrollOverlay)
+	guigui.SetPosition(&l.dragDropOverlay, p)
+	appender.AppendChildWidget(&l.dragDropOverlay)
 }
 
 func (l *List) SelectedItem() (ListItem, bool) {

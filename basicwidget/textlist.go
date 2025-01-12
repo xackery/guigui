@@ -86,7 +86,8 @@ func (t *TextListItem) selectable() bool {
 }*/
 
 func (t *TextList) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	appender.AppendChildWidget(&t.list, guigui.Position(t))
+	guigui.SetPosition(&t.list, guigui.Position(t))
+	appender.AppendChildWidget(&t.list)
 }
 
 func (t *TextList) SelectedItemIndex() int {
@@ -253,7 +254,8 @@ func (t *textListItemWidget) AppendChildWidgets(context *guigui.Context, appende
 	}
 	t.text.SetText(t.textString())
 	t.text.SetVerticalAlign(VerticalAlignMiddle)
-	appender.AppendChildWidget(&t.text, p)
+	guigui.SetPosition(&t.text, p)
+	appender.AppendChildWidget(&t.text)
 }
 
 func (t *textListItemWidget) textString() string {

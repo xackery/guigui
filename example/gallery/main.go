@@ -24,19 +24,23 @@ type Root struct {
 }
 
 func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	appender.AppendChildWidget(&r.sidebar, guigui.Position(r))
+	guigui.SetPosition(&r.sidebar, guigui.Position(r))
+	appender.AppendChildWidget(&r.sidebar)
 
 	sw, _ := r.sidebar.Size(context)
 	p := guigui.Position(r)
 	p.X += sw
+	guigui.SetPosition(&r.settings, p)
+	guigui.SetPosition(&r.basic, p)
+	guigui.SetPosition(&r.lists, p)
 
 	switch r.sidebar.SelectedItemTag() {
 	case "settings":
-		appender.AppendChildWidget(&r.settings, p)
+		appender.AppendChildWidget(&r.settings)
 	case "basic":
-		appender.AppendChildWidget(&r.basic, p)
+		appender.AppendChildWidget(&r.basic)
 	case "lists":
-		appender.AppendChildWidget(&r.lists, p)
+		appender.AppendChildWidget(&r.lists)
 	}
 }
 

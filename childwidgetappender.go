@@ -3,17 +3,14 @@
 
 package guigui
 
-import "image"
-
 type ChildWidgetAppender struct {
 	app    *app
 	widget Widget
 }
 
-func (c *ChildWidgetAppender) AppendChildWidget(widget Widget, position image.Point) {
+func (c *ChildWidgetAppender) AppendChildWidget(widget Widget) {
 	widgetState := widget.widgetState()
 	widgetState.parent = c.widget
-	widgetState.position = position
 	if widget.IsPopup() {
 		widgetState.visibleBounds = Bounds(widget)
 	} else {

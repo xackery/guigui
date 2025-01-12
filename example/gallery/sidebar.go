@@ -27,7 +27,8 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.C
 		s.list.SetSize(context, sidebarWidth(context), h)
 		childAppender.AppendChildWidget(&s.list, guigui.Position(s))
 	})
-	appender.AppendChildWidget(&s.sidebar, guigui.Position(s))
+	guigui.SetPosition(&s.sidebar, guigui.Position(s))
+	appender.AppendChildWidget(&s.sidebar)
 
 	s.list.SetStyle(basicwidget.ListStyleSidebar)
 	if len(s.listItemWidgets) == 0 {

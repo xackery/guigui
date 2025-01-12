@@ -50,7 +50,8 @@ func (s *Settings) AppendChildWidgets(context *guigui.Context, appender *guigui.
 	})
 	{
 		p := guigui.Position(s).Add(image.Pt(int(0.5*u), int(0.5*u)))
-		appender.AppendChildWidget(&s.group, p)
+		guigui.SetPosition(&s.group, p)
+		appender.AppendChildWidget(&s.group)
 	}
 }
 

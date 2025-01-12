@@ -40,10 +40,12 @@ func (g *Group) AppendChildWidgets(context *guigui.Context, appender *guigui.Chi
 			continue
 		}
 		bounds := g.itemBounds(context, i)
-		appender.AppendChildWidget(item.PrimaryWidget, bounds.Min)
+		guigui.SetPosition(item.PrimaryWidget, bounds.Min)
+		appender.AppendChildWidget(item.PrimaryWidget)
 		w, _ := item.SecondaryWidget.Size(context)
 		bounds.Min.X = bounds.Max.X - w
-		appender.AppendChildWidget(item.SecondaryWidget, bounds.Min)
+		guigui.SetPosition(item.SecondaryWidget, bounds.Min)
+		appender.AppendChildWidget(item.SecondaryWidget)
 	}
 }
 

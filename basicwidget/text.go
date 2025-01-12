@@ -93,11 +93,13 @@ func (t *Text) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 	if t.selectable || t.editable {
 		p := guigui.Position(t)
 		p.X -= cursorWidth(context)
-		appender.AppendChildWidget(&t.cursor, p)
+		guigui.SetPosition(&t.cursor, p)
+		appender.AppendChildWidget(&t.cursor)
 	}
 
 	guigui.Hide(&t.scrollOverlay)
-	appender.AppendChildWidget(&t.scrollOverlay, guigui.Position(t))
+	guigui.SetPosition(&t.scrollOverlay, guigui.Position(t))
+	appender.AppendChildWidget(&t.scrollOverlay)
 }
 
 func (t *Text) SetSelectable(selectable bool) {

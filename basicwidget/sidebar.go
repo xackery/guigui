@@ -21,7 +21,8 @@ type Sidebar struct {
 func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	w, h := s.Size(context)
 	s.scrollablePanel.SetSize(context, w, h)
-	appender.AppendChildWidget(&s.scrollablePanel, guigui.Position(s))
+	guigui.SetPosition(&s.scrollablePanel, guigui.Position(s))
+	appender.AppendChildWidget(&s.scrollablePanel)
 }
 
 func (s *Sidebar) SetContent(context *guigui.Context, f func(context *guigui.Context, childAppender *ScrollablePanelChildWidgetAppender)) {

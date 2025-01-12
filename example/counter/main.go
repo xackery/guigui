@@ -33,7 +33,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 		p := guigui.Position(r)
 		p.X += basicwidget.UnitSize(context)
 		p.Y += basicwidget.UnitSize(context)
-		appender.AppendChildWidget(&r.counterText, p)
+		guigui.SetPosition(&r.counterText, p)
+		appender.AppendChildWidget(&r.counterText)
 	}
 
 	r.resetButton.SetText("Reset")
@@ -43,7 +44,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 		_, h := r.Size(context)
 		p.X += basicwidget.UnitSize(context)
 		p.Y += h - 2*basicwidget.UnitSize(context)
-		appender.AppendChildWidget(&r.resetButton, p)
+		guigui.SetPosition(&r.resetButton, p)
+		appender.AppendChildWidget(&r.resetButton)
 	}
 
 	r.incButton.SetText("Increment")
@@ -53,7 +55,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 		w, h := r.Size(context)
 		p.X += w - 7*basicwidget.UnitSize(context)
 		p.Y += h - 2*basicwidget.UnitSize(context)
-		appender.AppendChildWidget(&r.incButton, p)
+		guigui.SetPosition(&r.incButton, p)
+		appender.AppendChildWidget(&r.incButton)
 	}
 
 	r.decButton.SetText("Decrement")
@@ -63,7 +66,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 		w, h := r.Size(context)
 		p.X += w - int(13.5*float64(basicwidget.UnitSize(context)))
 		p.Y += h - 2*basicwidget.UnitSize(context)
-		appender.AppendChildWidget(&r.decButton, p)
+		guigui.SetPosition(&r.decButton, p)
+		appender.AppendChildWidget(&r.decButton)
 	}
 }
 

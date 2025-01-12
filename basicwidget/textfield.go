@@ -65,12 +65,14 @@ func (t *TextField) AppendChildWidgets(context *guigui.Context, appender *guigui
 	if !t.text.IsMultiline() {
 		t.text.SetVerticalAlign(VerticalAlignMiddle)
 	}
-	appender.AppendChildWidget(&t.text, b.Min)
+	guigui.SetPosition(&t.text, b.Min)
+	appender.AppendChildWidget(&t.text)
 
 	if guigui.HasFocusedChildWidget(t) {
 		w := textFieldFocusBorderWidth(context)
 		p := guigui.Position(t).Add(image.Pt(-w, -w))
-		appender.AppendChildWidget(&t.focus, p)
+		guigui.SetPosition(&t.focus, p)
+		appender.AppendChildWidget(&t.focus)
 	}
 }
 

@@ -56,8 +56,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 	w := width - int(6.5*u)
 	r.textField.SetSize(context, w, int(u))
 	{
-		p := guigui.Position(r).Add(image.Pt(int(0.5*u), int(0.5*u)))
-		appender.AppendChildWidget(&r.textField, p)
+		guigui.SetPosition(&r.textField, guigui.Position(r).Add(image.Pt(int(0.5*u), int(0.5*u))))
+		appender.AppendChildWidget(&r.textField)
 	}
 
 	r.createButton.SetText("Create")
@@ -67,7 +67,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 		w, _ := r.Size(context)
 		p.X += w - int(0.5*u) - int(5*u)
 		p.Y += int(0.5 * u)
-		appender.AppendChildWidget(&r.createButton, p)
+		guigui.SetPosition(&r.createButton, p)
+		appender.AppendChildWidget(&r.createButton)
 	}
 
 	w, h := r.Size(context)
@@ -98,7 +99,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 		}
 	})
 	r.tasksPanel.SetPadding(0, int(0.5*u))
-	appender.AppendChildWidget(&r.tasksPanel, image.Pt(0, int(2*u)))
+	guigui.SetPosition(&r.tasksPanel, guigui.Position(r).Add(image.Pt(0, int(2*u))))
+	appender.AppendChildWidget(&r.tasksPanel)
 
 	// GC widgets
 	for id := range r.taskWidgets {

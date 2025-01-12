@@ -34,7 +34,8 @@ type ButtonEvent struct {
 }
 
 func (b *Button) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	appender.AppendChildWidget(&b.mouseEventHandler, guigui.Position(b))
+	guigui.SetPosition(&b.mouseEventHandler, guigui.Position(b))
+	appender.AppendChildWidget(&b.mouseEventHandler)
 }
 
 func (b *Button) PropagateEvent(context *guigui.Context, event guigui.Event) (guigui.Event, bool) {
@@ -156,12 +157,14 @@ func (t *TextButton) AppendChildWidgets(context *guigui.Context, appender *guigu
 	w, h := t.Size(context)
 
 	t.button.SetSize(context, w, h)
-	appender.AppendChildWidget(&t.button, guigui.Position(t))
+	guigui.SetPosition(&t.button, guigui.Position(t))
+	appender.AppendChildWidget(&t.button)
 
 	t.text.SetHorizontalAlign(HorizontalAlignCenter)
 	t.text.SetVerticalAlign(VerticalAlignMiddle)
 	t.text.SetSize(w, h)
-	appender.AppendChildWidget(&t.text, guigui.Position(t))
+	guigui.SetPosition(&t.text, guigui.Position(t))
+	appender.AppendChildWidget(&t.text)
 }
 
 func (t *TextButton) PropagateEvent(context *guigui.Context, event guigui.Event) (guigui.Event, bool) {

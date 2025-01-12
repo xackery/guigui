@@ -73,13 +73,17 @@ func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, appender *
 	for _, childWidget := range s.childWidgets {
 		p := childWidget.position
 		p = p.Add(image.Pt(int(offsetX), int(offsetY)))
-		appender.AppendChildWidget(childWidget.widget, p)
+		guigui.SetPosition(childWidget.widget, p)
+		appender.AppendChildWidget(childWidget.widget)
 	}
 
-	appender.AppendChildWidget(&s.scollOverlay, guigui.Position(s))
+	p := guigui.Position(s)
+	guigui.SetPosition(&s.scollOverlay, p)
+	appender.AppendChildWidget(&s.scollOverlay)
 
 	s.border.scrollOverlay = &s.scollOverlay
-	appender.AppendChildWidget(&s.border, guigui.Position(s))
+	guigui.SetPosition(&s.border, p)
+	appender.AppendChildWidget(&s.border)
 }
 
 func (s *ScrollablePanel) Update(context *guigui.Context) error {
