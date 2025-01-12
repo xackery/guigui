@@ -171,7 +171,7 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context) guigui.HandleInputR
 				offsetPerPixel := float64(s.contentHeight-h) / (float64(h) - barHeight)
 				s.offsetY = s.draggingStartOffsetY + float64(-dy)*offsetPerPixel
 			}
-			s.adjustOffset(context)
+			s.adjustOffset()
 			if prevOffsetX != s.offsetX || prevOffsetY != s.offsetY {
 				guigui.EnqueueEvent(s, ScrollEvent{
 					OffsetX: s.offsetX,
@@ -197,7 +197,7 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context) guigui.HandleInputR
 		prevOffsetY := s.offsetY
 		s.offsetX += dx * 4 * context.Scale()
 		s.offsetY += dy * 4 * context.Scale()
-		s.adjustOffset(context)
+		s.adjustOffset()
 		if prevOffsetX != s.offsetX || prevOffsetY != s.offsetY {
 			guigui.EnqueueEvent(s, ScrollEvent{
 				OffsetX: s.offsetX,
@@ -225,7 +225,7 @@ func (s *ScrollOverlay) Offset() (float64, float64) {
 	return s.offsetX, s.offsetY
 }
 
-func (s *ScrollOverlay) adjustOffset(context *guigui.Context) {
+func (s *ScrollOverlay) adjustOffset() {
 	bounds := guigui.Bounds(s)
 
 	// Adjust offsets.
@@ -275,7 +275,7 @@ func (s *ScrollOverlay) Update(context *guigui.Context) error {
 	if s.needsAdjustOffset {
 		prevOffsetX := s.offsetX
 		prevOffsetY := s.offsetY
-		s.adjustOffset(context)
+		s.adjustOffset()
 		if prevOffsetX != s.offsetX || prevOffsetY != s.offsetY {
 			guigui.RequestRedraw(s)
 		}

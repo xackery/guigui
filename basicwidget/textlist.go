@@ -293,14 +293,14 @@ func (t *textListItemWidget) Size(context *guigui.Context) (int, int) {
 	return w, int(LineHeight(context))
 }
 
-func (t *textListItemWidget) index() int {
+/*func (t *textListItemWidget) index() int {
 	for i, tt := range t.textList.textListItemWidgets {
 		if tt == t {
 			return i
 		}
 	}
 	return -1
-}
+}*/
 
 func (t *textListItemWidget) selectable() bool {
 	return t.textListItem.selectable() && !t.textListItem.Border

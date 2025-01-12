@@ -486,9 +486,9 @@ func (l *List) Draw(context *guigui.Context, dst *ebiten.Image) {
 	}
 }
 
-func (l *List) onDrop(data any) {
+/*func (l *List) onDrop(data any) {
 	l.dropSrcIndex = data.(int)
-}
+}*/
 
 func defaultListSize(context *guigui.Context) (int, int) {
 	return 6 * UnitSize(context), 6 * UnitSize(context)
