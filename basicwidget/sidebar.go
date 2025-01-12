@@ -25,7 +25,7 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.C
 	appender.AppendChildWidget(&s.scrollablePanel)
 }
 
-func (s *Sidebar) SetContent(context *guigui.Context, f func(context *guigui.Context, childAppender *ScrollablePanelChildWidgetAppender, offsetX, offsetY float64)) {
+func (s *Sidebar) SetContent(context *guigui.Context, f func(context *guigui.Context, childAppender *ContainerChildWidgetAppender, offsetX, offsetY float64)) {
 	s.scrollablePanel.SetContent(f)
 }
 

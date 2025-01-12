@@ -73,7 +73,7 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 
 	w, h := r.Size(context)
 	r.tasksPanel.SetSize(context, w, h-int(2*u))
-	r.tasksPanel.SetContent(func(context *guigui.Context, childAppender *basicwidget.ScrollablePanelChildWidgetAppender, offsetX, offsetY float64) {
+	r.tasksPanel.SetContent(func(context *guigui.Context, childAppender *basicwidget.ContainerChildWidgetAppender, offsetX, offsetY float64) {
 		p := guigui.Position(&r.tasksPanel).Add(image.Pt(int(offsetX), int(offsetY)))
 		minX := p.X + int(0.5*u)
 		y := p.Y

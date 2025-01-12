@@ -4,8 +4,6 @@
 package basicwidget
 
 import (
-	"slices"
-
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 
@@ -15,8 +13,8 @@ import (
 type ScrollablePanel struct {
 	guigui.DefaultWidget
 
-	setContentFunc func(context *guigui.Context, childAppender *ScrollablePanelChildWidgetAppender, offsetX, offsetY float64)
-	childWidgets   []guigui.Widget
+	setContentFunc func(context *guigui.Context, childAppender *ContainerChildWidgetAppender, offsetX, offsetY float64)
+	childWidgets   ContainerChildWidgetAppender
 	scollOverlay   ScrollOverlay
 	border         scrollablePanelBorder
 
@@ -26,16 +24,7 @@ type ScrollablePanel struct {
 	heightMinusDefault int
 }
 
-type ScrollablePanelChildWidgetAppender struct {
-	context         *guigui.Context
-	scrollablePanel *ScrollablePanel
-}
-
-func (s *ScrollablePanelChildWidgetAppender) AppendChildWidget(widget guigui.Widget) {
-	s.scrollablePanel.childWidgets = append(s.scrollablePanel.childWidgets, widget)
-}
-
-func (s *ScrollablePanel) SetContent(f func(context *guigui.Context, childAppender *ScrollablePanelChildWidgetAppender, offsetX, offsetY float64)) {
+func (s *ScrollablePanel) SetContent(f func(context *guigui.Context, childAppender *ContainerChildWidgetAppender, offsetX, offsetY float64)) {
 	s.setContentFunc = f
 }
 
@@ -45,16 +34,13 @@ func (s *ScrollablePanel) SetPadding(paddingX, paddingY int) {
 }
 
 func (s *ScrollablePanel) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	s.childWidgets = slices.Delete(s.childWidgets, 0, len(s.childWidgets))
+	s.childWidgets.reset()
 	if s.setContentFunc != nil {
 		offsetX, offsetY := s.scollOverlay.Offset()
-		s.setContentFunc(context, &ScrollablePanelChildWidgetAppender{
-			context:         context,
-			scrollablePanel: s,
-		}, offsetX, offsetY)
+		s.setContentFunc(context, &s.childWidgets, offsetX, offsetY)
 	}
 
-	for _, childWidget := range s.childWidgets {
+	for _, childWidget := range s.childWidgets.iter() {
 		appender.AppendChildWidget(childWidget)
 	}
 
@@ -71,7 +57,7 @@ func (s *ScrollablePanel) Update(context *guigui.Context) error {
 	p := guigui.Position(s)
 	var w, h int
 	offsetX, offsetY := s.scollOverlay.Offset()
-	for _, childWidget := range s.childWidgets {
+	for _, childWidget := range s.childWidgets.iter() {
 		b := guigui.Bounds(childWidget)
 		w = max(w, b.Max.X-int(offsetX)-p.X+s.paddingX)
 		h = max(h, b.Max.Y-int(offsetY)-p.Y+s.paddingY)
