@@ -73,8 +73,8 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 
 	w, h := r.Size(context)
 	r.tasksPanel.SetSize(context, w, h-int(2*u))
-	r.tasksPanel.SetContent(func(context *guigui.Context, childAppender *basicwidget.ScrollablePanelChildWidgetAppender) {
-		p := guigui.Position(&r.tasksPanel)
+	r.tasksPanel.SetContent(func(context *guigui.Context, childAppender *basicwidget.ScrollablePanelChildWidgetAppender, offsetX, offsetY float64) {
+		p := guigui.Position(&r.tasksPanel).Add(image.Pt(int(offsetX), int(offsetY)))
 		minX := p.X + int(0.5*u)
 		y := p.Y
 		for i, t := range r.tasks {
@@ -92,9 +92,11 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 			if i > 0 {
 				y += int(u / 4)
 			}
-			childAppender.AppendChildWidget(&r.taskWidgets[t.ID].doneButton, image.Pt(minX, y))
+			guigui.SetPosition(&r.taskWidgets[t.ID].doneButton, image.Pt(minX, y))
+			childAppender.AppendChildWidget(&r.taskWidgets[t.ID].doneButton)
 			r.taskWidgets[t.ID].text.SetSize(w-int(4.5*u), int(u))
-			childAppender.AppendChildWidget(&r.taskWidgets[t.ID].text, image.Pt(minX+int(3.5*u), y))
+			guigui.SetPosition(&r.taskWidgets[t.ID].text, image.Pt(minX+int(3.5*u), y))
+			childAppender.AppendChildWidget(&r.taskWidgets[t.ID].text)
 			y += int(u)
 		}
 	})
