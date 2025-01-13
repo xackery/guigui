@@ -5,6 +5,7 @@ package basicwidget
 
 import (
 	"image"
+	"sync"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -18,13 +19,9 @@ func easeOutQuad(t float64) float64 {
 	return t * (2 - t)
 }
 
-const popupMaxOpacity = 10
-
-/*type PopupCallback struct {
-	OnUpdated           func() (ok bool)
-	OnClosing           func(applied bool)
-	OnClosingWithDelete func(applied bool, delete bool)
-}*/
+func popupMaxOpacity() int {
+	return ebiten.TPS() / 6
+}
 
 type Popup struct {
 	guigui.DefaultWidget
@@ -37,8 +34,9 @@ type Popup struct {
 	opacity           int
 	showing           bool
 	hiding            bool
-	toClose           bool
 	backgroundBlurred bool
+
+	initOnce sync.Once
 }
 
 func (p *Popup) IsPopup() bool {
@@ -59,63 +57,48 @@ func (p *Popup) SetBackgroundBlurred(blurBackground bool) {
 }
 
 func (p *Popup) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	p.initOnce.Do(func() {
+		guigui.Hide(p)
+	})
+
 	if p.backgroundBlurred {
 		p.background.popup = p
 		appender.AppendChildWidget(&p.background)
 	}
 	appender.AppendChildWidget(&p.content)
 
-	//p.content.SetOpacity(0)
 }
 
 func (p *Popup) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 	// As this editor is a modal dialog, do not let other widgets to handle inputs.
 	if image.Pt(ebiten.CursorPosition()).In(guigui.VisibleBounds(p)) {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
-			p.close()
+			guigui.Hide(p)
 		}
 		return guigui.AbortHandlingInput()
 	}
 	return guigui.HandleInputResult{}
 }
 
-/*func (p *Popup) Show() {
+func (p *Popup) Open() {
+	guigui.Show(p)
 	p.showing = true
 	p.hiding = false
-	guigui.Show(p)
 }
 
-func (p *Popup) Hide() {
+func (p *Popup) Close() {
 	p.showing = false
 	p.hiding = true
-}*/
-
-/*func (p *Popup) Close() {
-	p.close(false, false)
-}*/
-
-func (p *Popup) close() {
-	if p.toClose {
-		return
-	}
-	/*if p.callback != nil && p.callback.OnClosing != nil {
-		p.callback.OnClosing(applied)
-	}
-	if p.callback != nil && p.callback.OnClosingWithDelete != nil {
-		p.callback.OnClosingWithDelete(applied, deleted)
-	}*/
-	guigui.Hide(p)
-	p.toClose = true
 }
 
 func (p *Popup) Update(context *guigui.Context) error {
 	if p.showing {
-		if p.opacity < popupMaxOpacity {
+		if p.opacity < popupMaxOpacity() {
 			p.opacity++
 		}
-		guigui.SetOpacity(&p.content, easeOutQuad(float64(p.opacity)/popupMaxOpacity))
+		guigui.SetOpacity(&p.content, easeOutQuad(float64(p.opacity)/float64(popupMaxOpacity())))
 		guigui.RequestRedraw(&p.background)
-		if p.opacity == popupMaxOpacity {
+		if p.opacity == popupMaxOpacity() {
 			p.showing = false
 		}
 	}
@@ -123,15 +106,12 @@ func (p *Popup) Update(context *guigui.Context) error {
 		if 0 < p.opacity {
 			p.opacity--
 		}
-		guigui.SetOpacity(&p.content, easeOutQuad(float64(p.opacity)/popupMaxOpacity))
+		guigui.SetOpacity(&p.content, easeOutQuad(float64(p.opacity)/float64(popupMaxOpacity())))
 		guigui.RequestRedraw(&p.background)
 		if p.opacity == 0 {
 			p.hiding = false
 			guigui.Hide(p)
 		}
-	}
-	if !guigui.IsVisible(p) && p.toClose {
-		// p.RemoveSelf()
 	}
 	return nil
 }
@@ -171,7 +151,7 @@ func (p *popupContent) HandleInput(context *guigui.Context) guigui.HandleInputRe
 func (p *popupContent) Draw(context *guigui.Context, dst *ebiten.Image) {
 	bounds := guigui.Bounds(p)
 	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 1), RoundedCornerRadius(context))
-	DrawRoundedRectBorder(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.875), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeOutset)
+	DrawRoundedRectBorder(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.7), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeOutset)
 }
 
 func (p *popupContent) setSize(width, height int) {
@@ -202,8 +182,7 @@ func (p *popupBackground) Draw(context *guigui.Context, dst *ebiten.Image) {
 		p.backgroundCache = ebiten.NewImageWithOptions(bounds, nil)
 	}
 
-	//rate := easeOutQuad(float64(p.popup.opacity) / popupMaxOpacity)
-	rate := 1.0
+	rate := easeOutQuad(float64(p.popup.opacity) / float64(popupMaxOpacity()))
 	if p.lastRate != rate {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(float64(dst.Bounds().Min.X), float64(dst.Bounds().Min.Y))

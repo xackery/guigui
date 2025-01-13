@@ -74,23 +74,20 @@ func (b *Popups) AppendChildWidgets(context *guigui.Context, appender *guigui.Ch
 		b.simplePopup.SetBackgroundBlurred(b.blurBackgroundToggleButton.Value())
 		appender.AppendChildWidget(&b.simplePopup)
 	}
-
-	b.initOnce.Do(func() {
-		guigui.Hide(&b.simplePopup)
-	})
 }
 
 func (p *Popups) Update(context *guigui.Context) error {
 	for e := range guigui.DequeueEvents(&p.showButton) {
 		args := e.(basicwidget.ButtonEvent)
 		if args.Type == basicwidget.ButtonEventTypeUp {
-			guigui.Show(&p.simplePopup)
+			p.simplePopup.Open()
 		}
 	}
 	for e := range guigui.DequeueEvents(&p.simplePopupCloseButton) {
 		args := e.(basicwidget.ButtonEvent)
 		if args.Type == basicwidget.ButtonEventTypeUp {
-			guigui.Hide(&p.simplePopup)
+			// Use Close() instead of Hide() to gradually close the popup.
+			p.simplePopup.Close()
 		}
 	}
 	return nil
