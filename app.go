@@ -40,9 +40,11 @@ func invalidatedRegionForDebugMaxTime() int {
 	return ebiten.TPS() / 5
 }
 
+var theApp *app
+
 type app struct {
 	root    Widget
-	context *Context
+	context Context
 
 	invalidated                image.Rectangle
 	invalidatedRegionsForDebug []invalidatedRegionsForDebugItem
@@ -97,10 +99,9 @@ func Run(root Widget, options *RunOptions) error {
 	a := &app{
 		root: root,
 	}
-	a.root.widgetState().app_ = a
-	a.context = &Context{
-		app: a,
-	}
+	theApp = a
+	a.root.widgetState().root = true
+	a.context.app = a
 	if options.AppScale > 0 {
 		a.context.appScaleMinus1 = options.AppScale - 1
 	}
@@ -226,7 +227,7 @@ func (a *app) appendChildWidgets() {
 func (a *app) doAppendChildWidgets(widget Widget) {
 	widgetState := widget.widgetState()
 	widgetState.children = slices.Delete(widgetState.children, 0, len(widgetState.children))
-	widget.AppendChildWidgets(a.context, &ChildWidgetAppender{
+	widget.AppendChildWidgets(&a.context, &ChildWidgetAppender{
 		app:    a,
 		widget: widget,
 	})
@@ -249,7 +250,7 @@ func (a *app) handleInputWidget(widget Widget) HandleInputResult {
 		}
 	}
 
-	return widget.HandleInput(a.context)
+	return widget.HandleInput(&a.context)
 }
 
 func (a *app) cursorShape(widget Widget) bool {
@@ -269,7 +270,7 @@ func (a *app) cursorShape(widget Widget) bool {
 	if !image.Pt(ebiten.CursorPosition()).In(widgetState.visibleBounds) {
 		return false
 	}
-	shape, ok := widget.CursorShape(a.context)
+	shape, ok := widget.CursorShape(&a.context)
 	if !ok {
 		return false
 	}
@@ -290,7 +291,7 @@ func (a *app) propagateEvents(widget Widget) {
 
 	for _, child := range widgetState.children {
 		for ev := range DequeueEvents(child) {
-			ev, ok = w.PropagateEvent(a.context, ev)
+			ev, ok = w.PropagateEvent(&a.context, ev)
 			if !ok {
 				continue
 			}
@@ -301,7 +302,7 @@ func (a *app) propagateEvents(widget Widget) {
 
 func (a *app) updateWidget(widget Widget) error {
 	widgetState := widget.widgetState()
-	if err := widget.Update(a.context); err != nil {
+	if err := widget.Update(&a.context); err != nil {
 		return err
 	}
 
@@ -412,7 +413,7 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget) {
 		dst = widgetState.ensureOffscreen(dst.Bounds())
 		dst.Clear()
 	}
-	widget.Draw(a.context, dst.SubImage(widgetState.visibleBounds).(*ebiten.Image))
+	widget.Draw(&a.context, dst.SubImage(widgetState.visibleBounds).(*ebiten.Image))
 
 	for _, child := range widgetState.children {
 		a.doDrawWidget(dst, child)

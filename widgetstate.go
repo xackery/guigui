@@ -53,7 +53,7 @@ func (w *widgetsAndBounds) redrawPopupRegions() {
 }
 
 type widgetState struct {
-	app_ *app
+	root bool
 
 	position      image.Point
 	visibleBounds image.Rectangle
@@ -86,7 +86,7 @@ func SetPosition(widget Widget, position image.Point) {
 
 func Bounds(widget Widget) image.Rectangle {
 	widgetState := widget.widgetState()
-	width, height := widget.Size(widgetState.app().context)
+	width, height := widget.Size(&theApp.context)
 	return image.Rectangle{
 		Min: widgetState.position,
 		Max: widgetState.position.Add(image.Point{width, height}),
@@ -133,11 +133,11 @@ type stateForRedraw struct {
 	nan float64
 }
 
-func (w *widgetState) app() *app {
+func (w *widgetState) isInTree() bool {
 	p := w
 	for ; p.parent != nil; p = p.parent.widgetState() {
 	}
-	return p.app_
+	return p.root
 }
 
 func widgetStateForRedraw(widget Widget) stateForRedraw {
@@ -223,17 +223,16 @@ func Focus(widget Widget) {
 		return
 	}
 
-	a := widgetState.app()
-	if a == nil {
+	if !widgetState.isInTree() {
 		return
 	}
-	if a.focusedWidget == widget {
+	if theApp.focusedWidget == widget {
 		return
 	}
 
 	var oldWidget Widget
-	if a.focusedWidget != nil {
-		oldWidget = a.focusedWidget
+	if theApp.focusedWidget != nil {
+		oldWidget = theApp.focusedWidget
 	}
 
 	newWidgetOldState := widgetStateForRedraw(widget)
@@ -242,8 +241,8 @@ func Focus(widget Widget) {
 		oldWidgetOldState = widgetStateForRedraw(oldWidget)
 	}
 
-	a.focusedWidget = widget
-	requestRedrawIfNeeded(a.focusedWidget, newWidgetOldState, VisibleBounds(a.focusedWidget))
+	theApp.focusedWidget = widget
+	requestRedrawIfNeeded(theApp.focusedWidget, newWidgetOldState, VisibleBounds(theApp.focusedWidget))
 	if oldWidget != nil {
 		requestRedrawIfNeeded(oldWidget, oldWidgetOldState, VisibleBounds(oldWidget))
 	}
@@ -251,22 +250,20 @@ func Focus(widget Widget) {
 
 func Blur(widget Widget) {
 	widgetState := widget.widgetState()
-	a := widgetState.app()
-	if a == nil {
+	if !widgetState.isInTree() {
 		return
 	}
-	if a.focusedWidget != widget {
+	if theApp.focusedWidget != widget {
 		return
 	}
 	oldState := widgetStateForRedraw(widget)
-	a.focusedWidget = nil
+	theApp.focusedWidget = nil
 	requestRedrawIfNeeded(widget, oldState, widgetState.visibleBounds)
 }
 
 func IsFocused(widget Widget) bool {
 	widgetState := widget.widgetState()
-	a := widgetState.app()
-	return a != nil && a.focusedWidget == widget && widgetState.isVisible()
+	return widgetState.isInTree() && theApp.focusedWidget == widget && widgetState.isVisible()
 }
 
 func HasFocusedChildWidget(widget Widget) bool {
