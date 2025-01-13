@@ -60,6 +60,7 @@ func (p *Popup) SetBackgroundBlurred(blurBackground bool) {
 
 func (p *Popup) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	if p.backgroundBlurred {
+		p.background.popup = p
 		appender.AppendChildWidget(&p.background)
 	}
 	appender.AppendChildWidget(&p.content)
@@ -201,7 +202,8 @@ func (p *popupBackground) Draw(context *guigui.Context, dst *ebiten.Image) {
 		p.backgroundCache = ebiten.NewImageWithOptions(bounds, nil)
 	}
 
-	rate := easeOutQuad(float64(p.popup.opacity) / popupMaxOpacity)
+	//rate := easeOutQuad(float64(p.popup.opacity) / popupMaxOpacity)
+	rate := 1.0
 	if p.lastRate != rate {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(float64(dst.Bounds().Min.X), float64(dst.Bounds().Min.Y))

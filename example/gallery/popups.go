@@ -14,9 +14,11 @@ import (
 type Popups struct {
 	guigui.DefaultWidget
 
-	group                  basicwidget.Group
-	simpleButtonText       basicwidget.Text
-	simpleButton           basicwidget.TextButton
+	group                      basicwidget.Group
+	blurBackgroundText         basicwidget.Text
+	blurBackgroundToggleButton basicwidget.ToggleButton
+	showButton                 basicwidget.TextButton
+
 	simplePopup            basicwidget.Popup
 	simplePopupTitleText   basicwidget.Text
 	simplePopupCloseButton basicwidget.TextButton
@@ -25,23 +27,23 @@ type Popups struct {
 }
 
 func (b *Popups) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	b.simpleButtonText.SetText("Simple Popup")
-	b.simpleButton.SetText("Show")
-
+	b.blurBackgroundText.SetText("Blur Background")
+	b.showButton.SetText("Show")
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := b.Size(context)
 	b.group.SetWidth(context, w-int(1*u))
 	b.group.SetItems([]*basicwidget.GroupItem{
 		{
-			PrimaryWidget:   &b.simpleButtonText,
-			SecondaryWidget: &b.simpleButton,
+			PrimaryWidget:   &b.blurBackgroundText,
+			SecondaryWidget: &b.blurBackgroundToggleButton,
+		},
+		{
+			SecondaryWidget: &b.showButton,
 		},
 	})
-	{
-		p := guigui.Position(b).Add(image.Pt(int(0.5*u), int(0.5*u)))
-		guigui.SetPosition(&b.group, p)
-		appender.AppendChildWidget(&b.group)
-	}
+	p := guigui.Position(b).Add(image.Pt(int(0.5*u), int(0.5*u)))
+	guigui.SetPosition(&b.group, p)
+	appender.AppendChildWidget(&b.group)
 
 	{
 		contentWidth := int(12 * u)
@@ -69,6 +71,7 @@ func (b *Popups) AppendChildWidgets(context *guigui.Context, appender *guigui.Ch
 			appender.AppendChildWidget(&b.simplePopupCloseButton)
 		})
 		b.simplePopup.SetContentBounds(contentBounds)
+		b.simplePopup.SetBackgroundBlurred(b.blurBackgroundToggleButton.Value())
 		appender.AppendChildWidget(&b.simplePopup)
 	}
 
@@ -78,7 +81,7 @@ func (b *Popups) AppendChildWidgets(context *guigui.Context, appender *guigui.Ch
 }
 
 func (p *Popups) Update(context *guigui.Context) error {
-	for e := range guigui.DequeueEvents(&p.simpleButton) {
+	for e := range guigui.DequeueEvents(&p.showButton) {
 		args := e.(basicwidget.ButtonEvent)
 		if args.Type == basicwidget.ButtonEventTypeUp {
 			guigui.Show(&p.simplePopup)

@@ -39,13 +39,18 @@ func (g *Group) AppendChildWidgets(context *guigui.Context, appender *guigui.Chi
 		if item.PrimaryWidget == nil && item.SecondaryWidget == nil {
 			continue
 		}
-		bounds := g.itemBounds(context, i)
-		guigui.SetPosition(item.PrimaryWidget, bounds.Min)
-		appender.AppendChildWidget(item.PrimaryWidget)
-		w, _ := item.SecondaryWidget.Size(context)
-		bounds.Min.X = bounds.Max.X - w
-		guigui.SetPosition(item.SecondaryWidget, bounds.Min)
-		appender.AppendChildWidget(item.SecondaryWidget)
+		if item.PrimaryWidget != nil {
+			bounds := g.itemBounds(context, i)
+			guigui.SetPosition(item.PrimaryWidget, bounds.Min)
+			appender.AppendChildWidget(item.PrimaryWidget)
+		}
+		if item.SecondaryWidget != nil {
+			bounds := g.itemBounds(context, i)
+			w, _ := item.SecondaryWidget.Size(context)
+			bounds.Min.X = bounds.Max.X - w
+			guigui.SetPosition(item.SecondaryWidget, bounds.Min)
+			appender.AppendChildWidget(item.SecondaryWidget)
+		}
 	}
 }
 
@@ -63,8 +68,14 @@ func (g *Group) itemBounds(context *guigui.Context, childIndex int) image.Rectan
 		if !guigui.IsVisible(item.SecondaryWidget) {
 			continue
 		}
-		_, kh := item.PrimaryWidget.Size(context)
-		_, vh := item.SecondaryWidget.Size(context)
+		var kh int
+		var vh int
+		if item.PrimaryWidget != nil {
+			_, kh = item.PrimaryWidget.Size(context)
+		}
+		if item.SecondaryWidget != nil {
+			_, vh = item.SecondaryWidget.Size(context)
+		}
 		h := max(kh, vh, int(LineHeight(context)))
 		if i == childIndex {
 			bounds := guigui.Bounds(g)
@@ -122,8 +133,14 @@ func (g *Group) height(context *guigui.Context) int {
 			(item.SecondaryWidget == nil || !guigui.IsVisible(item.SecondaryWidget)) {
 			continue
 		}
-		_, kh := item.PrimaryWidget.Size(context)
-		_, vh := item.SecondaryWidget.Size(context)
+		var kh int
+		var vh int
+		if item.PrimaryWidget != nil {
+			_, kh = item.PrimaryWidget.Size(context)
+		}
+		if item.SecondaryWidget != nil {
+			_, vh = item.SecondaryWidget.Size(context)
+		}
 		h := max(kh, vh, int(LineHeight(context)))
 		y += h + 2*paddingY
 	}
