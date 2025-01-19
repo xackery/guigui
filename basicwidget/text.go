@@ -97,7 +97,6 @@ func (t *Text) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 		appender.AppendChildWidget(&t.cursor)
 	}
 
-	guigui.Hide(&t.scrollOverlay)
 	guigui.SetPosition(&t.scrollOverlay, guigui.Position(t))
 	appender.AppendChildWidget(&t.scrollOverlay)
 }
@@ -657,6 +656,8 @@ func (t *Text) compositionSelectionToDraw() (uStart, cStart, cEnd, uEnd int, ok 
 }
 
 func (t *Text) Update(context *guigui.Context) error {
+	guigui.Hide(&t.scrollOverlay)
+
 	if !t.prevFocused && guigui.IsFocused(t) {
 		t.field.Focus()
 		t.cursor.resetCounter()
