@@ -169,7 +169,6 @@ type popupBackground struct {
 	popup *Popup
 
 	backgroundCache *ebiten.Image
-	lastRate        float64
 }
 
 func (p *popupBackground) Draw(context *guigui.Context, dst *ebiten.Image) {
@@ -183,12 +182,9 @@ func (p *popupBackground) Draw(context *guigui.Context, dst *ebiten.Image) {
 	}
 
 	rate := easeOutQuad(float64(p.popup.opacity) / float64(popupMaxOpacity()))
-	if p.lastRate != rate {
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64(dst.Bounds().Min.X), float64(dst.Bounds().Min.Y))
-		p.backgroundCache.DrawImage(dst, op)
-		p.lastRate = rate
-	}
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(float64(dst.Bounds().Min.X), float64(dst.Bounds().Min.Y))
+	p.backgroundCache.DrawImage(dst, op)
 
 	DrawBlurredImage(dst, p.backgroundCache, rate)
 }
