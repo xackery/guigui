@@ -48,7 +48,6 @@ type ScrollOverlay struct {
 	barVisibleTime int
 
 	needsAdjustOffset  bool
-	needsRedraw        bool
 	contentSizeChanged bool
 }
 
@@ -71,8 +70,8 @@ func (s *ScrollOverlay) SetContentSize(contentWidth, contentHeight int) {
 	s.contentHeight = contentHeight
 	s.needsAdjustOffset = true
 	if s.onceRendered {
-		s.needsRedraw = true
 		s.contentSizeChanged = true
+		guigui.RequestRedraw(s)
 	}
 }
 
@@ -88,7 +87,7 @@ func (s *ScrollOverlay) SetOffset(x, y float64) {
 	s.offsetY = y
 	if s.onceRendered {
 		s.needsAdjustOffset = true
-		s.needsRedraw = true
+		guigui.RequestRedraw(s)
 	}
 }
 
@@ -285,10 +284,6 @@ func (s *ScrollOverlay) Update(context *guigui.Context) error {
 			guigui.RequestRedraw(s)
 		}
 		s.needsAdjustOffset = false
-	}
-	if s.needsRedraw {
-		guigui.RequestRedraw(s)
-		s.needsRedraw = false
 	}
 	if s.contentSizeChanged {
 		s.barVisibleTime = barShowingTime()

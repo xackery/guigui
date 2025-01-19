@@ -25,8 +25,6 @@ type ToggleButton struct {
 	onceRendered bool
 
 	count int
-
-	needsRedraw bool
 }
 
 func (t *ToggleButton) Value() bool {
@@ -42,7 +40,7 @@ func (t *ToggleButton) SetValue(value bool) {
 	if t.onceRendered {
 		t.count = toggleButtonMaxCount() - t.count
 	}
-	t.needsRedraw = true
+	guigui.RequestRedraw(t)
 }
 
 func toggleButtonMaxCount() int {
@@ -64,10 +62,6 @@ func (t *ToggleButton) Update(context *guigui.Context) error {
 		}
 	}
 
-	if t.needsRedraw {
-		guigui.RequestRedraw(t)
-		t.needsRedraw = false
-	}
 	if t.count > 0 {
 		t.count--
 		guigui.RequestRedraw(t)

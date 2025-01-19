@@ -85,8 +85,6 @@ type Text struct {
 	scrollOverlay ScrollOverlay
 
 	temporaryClipboard string
-
-	needsRedraw bool
 }
 
 func (t *Text) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
@@ -108,7 +106,7 @@ func (t *Text) SetSelectable(selectable bool) {
 	t.selectable = selectable
 	t.selectionDragStart = -1
 	t.selectionShiftIndex = -1
-	t.needsRedraw = true
+	guigui.RequestRedraw(t)
 }
 
 func (t *Text) Text() string {
@@ -142,7 +140,7 @@ func (t *Text) setTextAndSelection(text string, start, end int, shiftIndex int) 
 	}
 	t.field.SetTextAndSelection(text, start, end)
 	t.toAdjustScrollOffset = true
-	t.needsRedraw = true
+	guigui.RequestRedraw(t)
 }
 
 func (t *Text) SetLocales(locales []language.Tag) {
@@ -151,7 +149,7 @@ func (t *Text) SetLocales(locales []language.Tag) {
 	}
 
 	t.locales = append([]language.Tag(nil), locales...)
-	t.needsRedraw = true
+	guigui.RequestRedraw(t)
 }
 
 func (t *Text) SetBold(bold bool) {
@@ -160,7 +158,7 @@ func (t *Text) SetBold(bold bool) {
 	}
 
 	t.bold = bold
-	t.needsRedraw = true
+	guigui.RequestRedraw(t)
 }
 
 func (t *Text) SetScale(scale float64) {
@@ -169,7 +167,7 @@ func (t *Text) SetScale(scale float64) {
 	}
 
 	t.scaleMinus1 = scale - 1
-	t.needsRedraw = true
+	guigui.RequestRedraw(t)
 }
 
 func (t *Text) SetHorizontalAlign(align HorizontalAlign) {
@@ -178,7 +176,7 @@ func (t *Text) SetHorizontalAlign(align HorizontalAlign) {
 	}
 
 	t.hAlign = align
-	t.needsRedraw = true
+	guigui.RequestRedraw(t)
 }
 
 func (t *Text) SetVerticalAlign(align VerticalAlign) {
@@ -187,7 +185,7 @@ func (t *Text) SetVerticalAlign(align VerticalAlign) {
 	}
 
 	t.vAlign = align
-	t.needsRedraw = true
+	guigui.RequestRedraw(t)
 }
 
 func (t *Text) SetColor(color color.Color) {
@@ -196,7 +194,7 @@ func (t *Text) SetColor(color color.Color) {
 	}
 
 	t.color = color
-	t.needsRedraw = true
+	guigui.RequestRedraw(t)
 }
 
 func (t *Text) SetOpacity(opacity float64) {
@@ -205,7 +203,7 @@ func (t *Text) SetOpacity(opacity float64) {
 	}
 
 	t.transparent = 1 - opacity
-	t.needsRedraw = true
+	guigui.RequestRedraw(t)
 }
 
 func (t *Text) SetEditable(editable bool) {
@@ -218,7 +216,7 @@ func (t *Text) SetEditable(editable bool) {
 		t.selectionShiftIndex = -1
 	}
 	t.editable = editable
-	t.needsRedraw = true
+	guigui.RequestRedraw(t)
 }
 
 func (t *Text) SetScrollable(context *guigui.Context, scrollable bool) {
@@ -239,7 +237,7 @@ func (t *Text) SetMultiline(multiline bool) {
 	}
 
 	t.multiline = multiline
-	t.needsRedraw = true
+	guigui.RequestRedraw(t)
 }
 
 func (t *Text) textBounds(context *guigui.Context) image.Rectangle {
@@ -667,11 +665,6 @@ func (t *Text) Update(context *guigui.Context) error {
 		}
 	} else if t.prevFocused && !guigui.IsFocused(t) {
 		t.applyFilter()
-	}
-
-	if t.needsRedraw {
-		guigui.RequestRedraw(t)
-		t.needsRedraw = false
 	}
 
 	if t.toAdjustScrollOffset && !guigui.VisibleBounds(t).Empty() {

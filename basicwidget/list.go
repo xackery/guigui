@@ -65,8 +65,6 @@ type List struct {
 
 	widthMinusDefault  int
 	heightMinusDefault int
-
-	needsRedraw bool
 }
 
 /*l := &List{
@@ -165,7 +163,7 @@ func (l *List) SetSelectedItemIndex(index int) {
 	changed := l.selectedItemIndex != index
 	l.selectedItemIndex = index
 	if changed {
-		l.needsRedraw = true
+		guigui.RequestRedraw(l)
 	}
 	/*if index >= 0 && l.callback != nil && l.callback.OnItemSelected != nil {
 		l.callback.OnItemSelected(index)
@@ -188,7 +186,7 @@ func (l *List) setHoveredItemIndex(index int) {
 		index = -1
 	}
 	l.hoveredItemIndex = index
-	l.needsRedraw = true
+	guigui.RequestRedraw(l)
 }
 
 func (l *List) ShowItemBorders(show bool) {
@@ -196,7 +194,7 @@ func (l *List) ShowItemBorders(show bool) {
 		return
 	}
 	l.showItemBorders = true
-	l.needsRedraw = true
+	guigui.RequestRedraw(l)
 }
 
 func (l *List) IsHoveringVisible() bool {
@@ -208,7 +206,7 @@ func (l *List) SetStyle(style ListStyle) {
 		return
 	}
 	l.style = style
-	l.needsRedraw = true
+	guigui.RequestRedraw(l)
 }
 
 func (l *List) calcDropDstIndex(context *guigui.Context) int {
@@ -335,11 +333,6 @@ func (l *List) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 }
 
 func (l *List) Update(context *guigui.Context) error {
-	if l.needsRedraw {
-		guigui.RequestRedraw(l)
-		l.needsRedraw = false
-	}
-
 	w, _ := l.Size(context)
 	l.scrollOverlay.SetContentSize(w, l.ContentHeight(context))
 

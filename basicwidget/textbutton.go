@@ -22,8 +22,6 @@ type TextButton struct {
 
 	width    int
 	widthSet bool
-
-	needsRedraw bool
 }
 
 func (t *TextButton) SetText(text string) {
@@ -39,7 +37,7 @@ func (t *TextButton) SetTextColor(clr color.Color) {
 		return
 	}
 	t.textColor = clr
-	t.needsRedraw = true
+	guigui.RequestRedraw(t)
 }
 
 func (t *TextButton) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
@@ -56,11 +54,6 @@ func (t *TextButton) Update(context *guigui.Context) error {
 	w, h := t.Size(context)
 	t.button.SetSize(context, w, h)
 	guigui.SetPosition(&t.button, guigui.Position(t))
-
-	if t.needsRedraw {
-		guigui.RequestRedraw(t)
-		t.needsRedraw = false
-	}
 
 	imgSize := int(LineHeight(context))
 	t.image.SetSize(context, imgSize, imgSize)

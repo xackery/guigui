@@ -16,16 +16,6 @@ type Image struct {
 
 	widthMinusDefault  int
 	heightMinusDefault int
-
-	needsRedraw bool
-}
-
-func (i *Image) Update(context *guigui.Context) error {
-	if i.needsRedraw {
-		guigui.RequestRedraw(i)
-		i.needsRedraw = false
-	}
-	return nil
 }
 
 func (i *Image) Draw(context *guigui.Context, dst *ebiten.Image) {
@@ -57,7 +47,7 @@ func (i *Image) SetImage(image *ebiten.Image) {
 		return
 	}
 	i.image = image
-	i.needsRedraw = true
+	guigui.RequestRedraw(i)
 }
 
 func defaultImageSize(context *guigui.Context) (int, int) {

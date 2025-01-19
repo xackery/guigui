@@ -15,8 +15,6 @@ type MouseEventHandler struct {
 
 	hovering bool
 	pressing bool
-
-	needsRedraw bool
 }
 
 type MouseEvent struct {
@@ -68,10 +66,6 @@ func (m *MouseEventHandler) HandleInput(context *Context) HandleInputResult {
 }
 
 func (m *MouseEventHandler) Update(context *Context) error {
-	if m.needsRedraw {
-		RequestRedraw(m)
-		m.needsRedraw = false
-	}
 	if !IsVisible(m) {
 		m.setHovering(false)
 	}
