@@ -186,7 +186,7 @@ func (l *List) setHoveredItemIndex(index int) {
 		index = -1
 	}
 	l.hoveredItemIndex = index
-	guigui.RequestRedraw(l)
+	// TODO: request redraw when rendering a hover effect.
 }
 
 func (l *List) ShowItemBorders(show bool) {
