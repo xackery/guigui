@@ -59,6 +59,17 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.C
 		}
 		{
 			var t basicwidget.Text
+			t.SetText("Buttons")
+			t.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
+			t.SetSize(s.list.ItemWidth(context), basicwidget.UnitSize(context))
+			s.listItemWidgets = append(s.listItemWidgets, basicwidget.ListItem{
+				Content:    &t,
+				Selectable: true,
+				Tag:        "buttons",
+			})
+		}
+		{
+			var t basicwidget.Text
 			t.SetText("Lists")
 			t.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
 			t.SetSize(s.list.ItemWidth(context), basicwidget.UnitSize(context))
