@@ -150,8 +150,8 @@ func (p *popupContent) HandleInput(context *guigui.Context) guigui.HandleInputRe
 
 func (p *popupContent) Draw(context *guigui.Context, dst *ebiten.Image) {
 	bounds := guigui.Bounds(p)
-	DrawRoundedRect(context, dst, bounds, Color2(context.ColorMode(), ColorTypeBase, 1, 0.05), RoundedCornerRadius(context))
-	DrawRoundedRectBorder(context, dst, bounds, Color2(context.ColorMode(), ColorTypeBase, 0.7, 0), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeOutset)
+	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 1), RoundedCornerRadius(context))
+	DrawRoundedRectBorder(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.7), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeOutset)
 }
 
 func (p *popupContent) setSize(width, height int) {
