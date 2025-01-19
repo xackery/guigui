@@ -5,7 +5,6 @@ package main
 
 import (
 	"image"
-	"sync"
 
 	"github.com/hajimehoshi/guigui"
 	"github.com/hajimehoshi/guigui/basicwidget"
@@ -22,8 +21,6 @@ type Popups struct {
 	simplePopup            basicwidget.Popup
 	simplePopupTitleText   basicwidget.Text
 	simplePopupCloseButton basicwidget.TextButton
-
-	initOnce sync.Once
 }
 
 func (b *Popups) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
@@ -86,7 +83,6 @@ func (p *Popups) Update(context *guigui.Context) error {
 	for e := range guigui.DequeueEvents(&p.simplePopupCloseButton) {
 		args := e.(basicwidget.ButtonEvent)
 		if args.Type == basicwidget.ButtonEventTypeUp {
-			// Use Close() instead of Hide() to gradually close the popup.
 			p.simplePopup.Close()
 		}
 	}
