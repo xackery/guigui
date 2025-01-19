@@ -66,10 +66,6 @@ type widgetState struct {
 	disabled     bool
 	transparency float64
 
-	mightNeedRedraw bool
-	origState       stateForRedraw
-	redrawBounds    image.Rectangle
-
 	eventQueue EventQueue
 
 	offscreen *ebiten.Image
@@ -337,17 +333,7 @@ func requestRedrawIfNeeded(widget Widget, oldState stateForRedraw, region image.
 		if theDebugMode.showRenderingRegions {
 			slog.Info("Request redrawing", "requester", fmt.Sprintf("%T", widget), "region", region)
 		}
-
-		widgetState := widget.widgetState()
-		widgetState.redrawBounds = widgetState.redrawBounds.Union(region)
-
-		if !widgetState.mightNeedRedraw {
-			widgetState.mightNeedRedraw = true
-			widgetState.origState = oldState
-		} else if widgetState.origState == newState {
-			widgetState.mightNeedRedraw = false
-			widgetState.origState = stateForRedraw{}
-		}
+		theApp.requestRedraw(widget.widgetState().visibleBounds.Union(region))
 	}
 
 	for _, child := range widget.widgetState().children {

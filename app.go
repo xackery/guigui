@@ -312,13 +312,6 @@ func (a *app) updateWidget(widget Widget) error {
 		}
 	}
 
-	if widgetState.mightNeedRedraw {
-		b := widgetState.visibleBounds.Union(widgetState.redrawBounds)
-		a.requestRedraw(b)
-		widgetState.mightNeedRedraw = false
-		widgetState.redrawBounds = image.Rectangle{}
-	}
-
 	return nil
 }
 
