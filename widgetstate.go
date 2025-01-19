@@ -8,7 +8,6 @@ import (
 	"image"
 	"iter"
 	"log/slog"
-	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -119,16 +118,6 @@ func (w *widgetState) dequeueEvents() iter.Seq[Event] {
 	}
 }
 
-type stateForRedraw struct {
-	hidden       bool
-	disabled     bool
-	transparency float64
-	focused      bool
-
-	// nan is NaN if you want to make this state never equal to any other states.
-	nan float64
-}
-
 func (w *widgetState) isInTree() bool {
 	p := w
 	for ; p.parent != nil; p = p.parent.widgetState() {
@@ -136,24 +125,13 @@ func (w *widgetState) isInTree() bool {
 	return p.root
 }
 
-func widgetStateForRedraw(widget Widget) stateForRedraw {
-	widgetState := widget.widgetState()
-	return stateForRedraw{
-		hidden:       widgetState.hidden,
-		disabled:     widgetState.disabled,
-		transparency: widgetState.transparency,
-		focused:      IsFocused(widget),
-	}
-}
-
 func Show(widget Widget) {
 	widgetState := widget.widgetState()
 	if !widgetState.hidden {
 		return
 	}
-	oldState := widgetStateForRedraw(widget)
 	widgetState.hidden = false
-	requestRedrawIfNeeded(widget, oldState, widgetState.visibleBounds)
+	RequestRedraw(widget)
 }
 
 func Hide(widget Widget) {
@@ -161,10 +139,9 @@ func Hide(widget Widget) {
 	if widgetState.hidden {
 		return
 	}
-	oldState := widgetStateForRedraw(widget)
 	widgetState.hidden = true
 	Blur(widget)
-	requestRedrawIfNeeded(widget, oldState, widgetState.visibleBounds)
+	RequestRedraw(widget)
 }
 
 func IsVisible(widget Widget) bool {
@@ -183,9 +160,8 @@ func Enable(widget Widget) {
 	if !widgetState.disabled {
 		return
 	}
-	oldState := widgetStateForRedraw(widget)
 	widgetState.disabled = false
-	requestRedrawIfNeeded(widget, oldState, widgetState.visibleBounds)
+	RequestRedraw(widget)
 }
 
 func Disable(widget Widget) {
@@ -193,10 +169,9 @@ func Disable(widget Widget) {
 	if widgetState.disabled {
 		return
 	}
-	oldState := widgetStateForRedraw(widget)
 	widgetState.disabled = true
 	Blur(widget)
-	requestRedrawIfNeeded(widget, oldState, widgetState.visibleBounds)
+	RequestRedraw(widget)
 }
 
 func IsEnabled(widget Widget) bool {
@@ -231,16 +206,10 @@ func Focus(widget Widget) {
 		oldWidget = theApp.focusedWidget
 	}
 
-	newWidgetOldState := widgetStateForRedraw(widget)
-	var oldWidgetOldState stateForRedraw
-	if oldWidget != nil {
-		oldWidgetOldState = widgetStateForRedraw(oldWidget)
-	}
-
 	theApp.focusedWidget = widget
-	requestRedrawIfNeeded(theApp.focusedWidget, newWidgetOldState, VisibleBounds(theApp.focusedWidget))
+	RequestRedraw(theApp.focusedWidget)
 	if oldWidget != nil {
-		requestRedrawIfNeeded(oldWidget, oldWidgetOldState, VisibleBounds(oldWidget))
+		RequestRedraw(oldWidget)
 	}
 }
 
@@ -252,9 +221,8 @@ func Blur(widget Widget) {
 	if theApp.focusedWidget != widget {
 		return
 	}
-	oldState := widgetStateForRedraw(widget)
 	theApp.focusedWidget = nil
-	requestRedrawIfNeeded(widget, oldState, widgetState.visibleBounds)
+	RequestRedraw(widget)
 }
 
 func IsFocused(widget Widget) bool {
@@ -284,58 +252,41 @@ func (w *widgetState) opacity() float64 {
 }
 
 func SetOpacity(widget Widget, opacity float64) {
-	widgetState := widget.widgetState()
-	if 1-widgetState.transparency == opacity {
-		return
-	}
-	oldState := widgetStateForRedraw(widget)
 	if opacity < 0 {
 		opacity = 0
 	}
 	if opacity > 1 {
 		opacity = 1
 	}
+	widgetState := widget.widgetState()
+	if widgetState.transparency == 1-opacity {
+		return
+	}
 	widgetState.transparency = 1 - opacity
-	requestRedrawIfNeeded(widget, oldState, widgetState.visibleBounds)
+	RequestRedraw(widget)
 }
 
 func RequestRedraw(widget Widget) {
 	widgetState := widget.widgetState()
 	requestRedrawWithRegion(widget, widgetState.visibleBounds)
-	for _, child := range widgetState.children {
-		requestRedrawIfPopup(child)
-	}
 }
 
 func requestRedrawIfPopup(widget Widget) {
-	widgetState := widget.widgetState()
 	if widget.IsPopup() {
-		requestRedrawWithRegion(widget, widgetState.visibleBounds)
+		RequestRedraw(widget)
 	}
-	for _, child := range widgetState.children {
+	for _, child := range widget.widgetState().children {
 		requestRedrawIfPopup(child)
 	}
 }
 
 func requestRedrawWithRegion(widget Widget, region image.Rectangle) {
-	requestRedrawIfNeeded(widget, stateForRedraw{
-		nan: math.NaN(),
-	}, region)
-}
-
-func requestRedrawIfNeeded(widget Widget, oldState stateForRedraw, region image.Rectangle) {
-	newState := widgetStateForRedraw(widget)
-	if oldState == newState {
-		return
-	}
-
 	if !region.Empty() {
 		if theDebugMode.showRenderingRegions {
 			slog.Info("Request redrawing", "requester", fmt.Sprintf("%T", widget), "region", region)
 		}
 		theApp.requestRedraw(widget.widgetState().visibleBounds.Union(region))
 	}
-
 	for _, child := range widget.widgetState().children {
 		requestRedrawIfPopup(child)
 	}
