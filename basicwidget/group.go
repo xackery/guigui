@@ -26,7 +26,7 @@ type Group struct {
 }
 
 func groupItemPadding(context *guigui.Context) (int, int) {
-	return UnitSize(context) / 2, UnitSize(context) / 2
+	return UnitSize(context) / 2, UnitSize(context) / 4
 }
 
 func (g *Group) SetItems(items []*GroupItem) {
