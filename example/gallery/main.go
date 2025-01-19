@@ -27,6 +27,17 @@ type Root struct {
 
 func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	appender.AppendChildWidget(&r.sidebar)
+
+	guigui.SetPosition(&r.sidebar, guigui.Position(r))
+	sw, _ := r.sidebar.Size(context)
+	p := guigui.Position(r)
+	p.X += sw
+	guigui.SetPosition(&r.settings, p)
+	guigui.SetPosition(&r.basic, p)
+	guigui.SetPosition(&r.buttons, p)
+	guigui.SetPosition(&r.lists, p)
+	guigui.SetPosition(&r.popups, p)
+
 	switch r.sidebar.SelectedItemTag() {
 	case "settings":
 		appender.AppendChildWidget(&r.settings)
@@ -39,19 +50,6 @@ func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.Chil
 	case "popups":
 		appender.AppendChildWidget(&r.popups)
 	}
-}
-
-func (r *Root) Update(context *guigui.Context) error {
-	guigui.SetPosition(&r.sidebar, guigui.Position(r))
-	sw, _ := r.sidebar.Size(context)
-	p := guigui.Position(r)
-	p.X += sw
-	guigui.SetPosition(&r.settings, p)
-	guigui.SetPosition(&r.basic, p)
-	guigui.SetPosition(&r.buttons, p)
-	guigui.SetPosition(&r.lists, p)
-	guigui.SetPosition(&r.popups, p)
-	return nil
 }
 
 func (r *Root) Draw(context *guigui.Context, dst *ebiten.Image) {

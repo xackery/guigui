@@ -30,11 +30,6 @@ func (s *Settings) AppendChildWidgets(context *guigui.Context, appender *guigui.
 		}
 	})
 
-	s.colorModeToggleText.SetText("Color Mode")
-	s.localeText.SetText("Locale")
-	// TODO: Make this a selector
-	s.localeSelector.SetText("(TODO)")
-
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := s.Size(context)
 	s.group.SetWidth(context, w-int(1*u))
@@ -56,6 +51,11 @@ func (s *Settings) AppendChildWidgets(context *guigui.Context, appender *guigui.
 }
 
 func (s *Settings) Update(context *guigui.Context) error {
+	s.colorModeToggleText.SetText("Color Mode")
+	s.localeText.SetText("Locale")
+	// TODO: Make this a selector
+	s.localeSelector.SetText("(TODO)")
+
 	if s.colorModeToggle.Value() {
 		context.SetColorMode(guigui.ColorModeDark)
 	} else {

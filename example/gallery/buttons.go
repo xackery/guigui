@@ -21,6 +21,12 @@ type Buttons struct {
 }
 
 func (b *Buttons) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	u := float64(basicwidget.UnitSize(context))
+	w, _ := b.Size(context)
+	b.group.SetWidth(context, w-int(1*u))
+	p := guigui.Position(b).Add(image.Pt(int(0.5*u), int(0.5*u)))
+	guigui.SetPosition(&b.group, p)
+
 	b.group.SetItems([]*basicwidget.GroupItem{
 		{
 			PrimaryWidget:   &b.textButtonText,
@@ -44,12 +50,6 @@ func (b *Buttons) Update(context *guigui.Context) error {
 		return err
 	}
 	b.textImageButton.SetImage(img)
-
-	u := float64(basicwidget.UnitSize(context))
-	w, _ := b.Size(context)
-	b.group.SetWidth(context, w-int(1*u))
-	p := guigui.Position(b).Add(image.Pt(int(0.5*u), int(0.5*u)))
-	guigui.SetPosition(&b.group, p)
 
 	return nil
 }

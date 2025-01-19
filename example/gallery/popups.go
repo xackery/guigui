@@ -23,54 +23,24 @@ type Popups struct {
 	simplePopupCloseButton basicwidget.TextButton
 }
 
-func (b *Popups) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	b.blurBackgroundText.SetText("Blur Background")
-	b.showButton.SetText("Show")
+func (p *Popups) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	u := float64(basicwidget.UnitSize(context))
-	w, _ := b.Size(context)
-	b.group.SetWidth(context, w-int(1*u))
-	b.group.SetItems([]*basicwidget.GroupItem{
+	w, _ := p.Size(context)
+	p.group.SetWidth(context, w-int(1*u))
+	p.group.SetItems([]*basicwidget.GroupItem{
 		{
-			PrimaryWidget:   &b.blurBackgroundText,
-			SecondaryWidget: &b.blurBackgroundToggleButton,
+			PrimaryWidget:   &p.blurBackgroundText,
+			SecondaryWidget: &p.blurBackgroundToggleButton,
 		},
 		{
-			SecondaryWidget: &b.showButton,
+			SecondaryWidget: &p.showButton,
 		},
 	})
-	p := guigui.Position(b).Add(image.Pt(int(0.5*u), int(0.5*u)))
-	guigui.SetPosition(&b.group, p)
-	appender.AppendChildWidget(&b.group)
+	pt := guigui.Position(p).Add(image.Pt(int(0.5*u), int(0.5*u)))
+	guigui.SetPosition(&p.group, pt)
+	appender.AppendChildWidget(&p.group)
 
-	{
-		contentWidth := int(12 * u)
-		contentHeight := int(6 * u)
-		bounds := guigui.Bounds(&b.simplePopup)
-		contentPosition := image.Point{
-			X: bounds.Min.X + (bounds.Dx()-contentWidth)/2,
-			Y: bounds.Min.Y + (bounds.Dy()-contentHeight)/2,
-		}
-		contentBounds := image.Rectangle{
-			Min: contentPosition,
-			Max: contentPosition.Add(image.Pt(contentWidth, contentHeight)),
-		}
-		b.simplePopup.SetContent(func(context *guigui.Context, appender *basicwidget.ContainerChildWidgetAppender) {
-			b.simplePopupTitleText.SetText("Hello!")
-			b.simplePopupTitleText.SetBold(true)
-			p := contentBounds.Min.Add(image.Pt(int(0.5*u), int(0.5*u)))
-			guigui.SetPosition(&b.simplePopupTitleText, p)
-			appender.AppendChildWidget(&b.simplePopupTitleText)
-
-			b.simplePopupCloseButton.SetText("Close")
-			w, h := b.simplePopupCloseButton.Size(context)
-			p = contentBounds.Max.Add(image.Pt(-int(0.5*u)-w, -int(0.5*u)-h))
-			guigui.SetPosition(&b.simplePopupCloseButton, p)
-			appender.AppendChildWidget(&b.simplePopupCloseButton)
-		})
-		b.simplePopup.SetContentBounds(contentBounds)
-		b.simplePopup.SetBackgroundBlurred(b.blurBackgroundToggleButton.Value())
-		appender.AppendChildWidget(&b.simplePopup)
-	}
+	appender.AppendChildWidget(&p.simplePopup)
 }
 
 func (p *Popups) Update(context *guigui.Context) error {
@@ -86,6 +56,38 @@ func (p *Popups) Update(context *guigui.Context) error {
 			p.simplePopup.Close()
 		}
 	}
+
+	p.blurBackgroundText.SetText("Blur Background")
+	p.showButton.SetText("Show")
+
+	u := float64(basicwidget.UnitSize(context))
+	contentWidth := int(12 * u)
+	contentHeight := int(6 * u)
+	bounds := guigui.Bounds(&p.simplePopup)
+	contentPosition := image.Point{
+		X: bounds.Min.X + (bounds.Dx()-contentWidth)/2,
+		Y: bounds.Min.Y + (bounds.Dy()-contentHeight)/2,
+	}
+	contentBounds := image.Rectangle{
+		Min: contentPosition,
+		Max: contentPosition.Add(image.Pt(contentWidth, contentHeight)),
+	}
+	p.simplePopup.SetContent(func(context *guigui.Context, appender *basicwidget.ContainerChildWidgetAppender) {
+		p.simplePopupTitleText.SetText("Hello!")
+		p.simplePopupTitleText.SetBold(true)
+		pt := contentBounds.Min.Add(image.Pt(int(0.5*u), int(0.5*u)))
+		guigui.SetPosition(&p.simplePopupTitleText, pt)
+		appender.AppendChildWidget(&p.simplePopupTitleText)
+
+		p.simplePopupCloseButton.SetText("Close")
+		w, h := p.simplePopupCloseButton.Size(context)
+		pt = contentBounds.Max.Add(image.Pt(-int(0.5*u)-w, -int(0.5*u)-h))
+		guigui.SetPosition(&p.simplePopupCloseButton, pt)
+		appender.AppendChildWidget(&p.simplePopupCloseButton)
+	})
+	p.simplePopup.SetContentBounds(contentBounds)
+	p.simplePopup.SetBackgroundBlurred(p.blurBackgroundToggleButton.Value())
+
 	return nil
 }
 
