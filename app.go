@@ -58,6 +58,7 @@ type app struct {
 
 	focusedWidget Widget
 
+	offscreen   *ebiten.Image
 	debugScreen *ebiten.Image
 }
 
@@ -354,13 +355,23 @@ func (a *app) resetPrevWidgets(widget Widget) {
 }
 
 func (a *app) drawWidget(screen *ebiten.Image) {
-	if !theDebugMode.showRenderingRegions {
-		if !a.invalidated.Empty() {
-			dst := screen.SubImage(a.invalidated).(*ebiten.Image)
-			a.doDrawWidget(dst, a.root)
+	origScreen := screen
+	if theDebugMode.showRenderingRegions {
+		if a.offscreen != nil {
+			if a.offscreen.Bounds().Dx() != screen.Bounds().Dx() || a.offscreen.Bounds().Dy() != screen.Bounds().Dy() {
+				a.offscreen.Deallocate()
+				a.offscreen = nil
+			}
 		}
-	} else {
-		a.doDrawWidget(screen, a.root)
+		if a.offscreen == nil {
+			a.offscreen = ebiten.NewImage(screen.Bounds().Dx(), screen.Bounds().Dy())
+		}
+		screen = a.offscreen
+	}
+
+	if !a.invalidated.Empty() {
+		dst := screen.SubImage(a.invalidated).(*ebiten.Image)
+		a.doDrawWidget(dst, a.root)
 	}
 
 	if theDebugMode.showRenderingRegions {
@@ -383,7 +394,10 @@ func (a *app) drawWidget(screen *ebiten.Image) {
 				vector.StrokeRect(a.debugScreen, float32(item.region.Min.X)+w/2, float32(item.region.Min.Y)+w/2, float32(item.region.Dx())-w, float32(item.region.Dy())-w, w, clr, false)
 			}
 		}
-		screen.DrawImage(a.debugScreen, nil)
+		op := &ebiten.DrawImageOptions{}
+		op.Blend = ebiten.BlendCopy
+		origScreen.DrawImage(a.offscreen, op)
+		origScreen.DrawImage(a.debugScreen, nil)
 	}
 }
 
