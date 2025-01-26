@@ -22,7 +22,6 @@ const (
 	ListStyleNormal ListStyle = iota
 	ListStyleSidebar
 	ListStyleMenu
-	ListStyleDropdownMenu
 )
 
 type ListItem struct {
@@ -198,7 +197,7 @@ func (l *List) ShowItemBorders(show bool) {
 }
 
 func (l *List) IsHoveringVisible() bool {
-	return l.style == ListStyleMenu || l.style == ListStyleDropdownMenu
+	return l.style == ListStyleMenu
 }
 
 func (l *List) SetStyle(style ListStyle) {
