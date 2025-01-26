@@ -288,6 +288,8 @@ func (t *textListItemWidget) Draw(context *guigui.Context, dst *ebiten.Image) {
 }
 
 func (t *textListItemWidget) Size(context *guigui.Context) (int, int) {
+	// If w is based on the text size, this returns an empty size just when creating this item.
+	// This might cause some troubles.
 	w, _ := guigui.Parent(t).Size(context)
 	if t.textListItem.Border {
 		return w, UnitSize(context) / 2
