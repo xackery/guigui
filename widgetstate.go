@@ -4,10 +4,8 @@
 package guigui
 
 import (
-	"fmt"
 	"image"
 	"iter"
-	"log/slog"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -44,9 +42,9 @@ func (w *widgetsAndBounds) equals(currentWidgets []Widget) bool {
 }
 
 func (w *widgetsAndBounds) redrawPopupRegions() {
-	for widget, bounds := range w.bounds {
+	for widget := range w.bounds {
 		if widget.IsPopup() {
-			requestRedrawWithRegion(widget, bounds)
+			RequestRedraw(widget)
 		}
 	}
 }
@@ -267,29 +265,7 @@ func SetOpacity(widget Widget, opacity float64) {
 }
 
 func RequestRedraw(widget Widget) {
-	widgetState := widget.widgetState()
-	requestRedrawWithRegion(widget, widgetState.visibleBounds)
-}
-
-func requestRedrawIfPopup(widget Widget) {
-	if widget.IsPopup() {
-		RequestRedraw(widget)
-	}
-	for _, child := range widget.widgetState().children {
-		requestRedrawIfPopup(child)
-	}
-}
-
-func requestRedrawWithRegion(widget Widget, region image.Rectangle) {
-	if !region.Empty() {
-		if theDebugMode.showRenderingRegions {
-			slog.Info("Request redrawing", "requester", fmt.Sprintf("%T", widget), "region", region)
-		}
-		theApp.requestRedraw(widget.widgetState().visibleBounds.Union(region))
-	}
-	for _, child := range widget.widgetState().children {
-		requestRedrawIfPopup(child)
-	}
+	theApp.requestRedrawWidget(widget)
 }
 
 func (w *widgetState) ensureOffscreen(bounds image.Rectangle) *ebiten.Image {

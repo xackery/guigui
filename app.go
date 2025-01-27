@@ -4,8 +4,10 @@
 package guigui
 
 import (
+	"fmt"
 	"image"
 	"image/color"
+	"log/slog"
 	"math"
 	"os"
 	"slices"
@@ -46,7 +48,9 @@ type app struct {
 	root    Widget
 	context Context
 
-	invalidated                image.Rectangle
+	invalidatedRegions image.Rectangle
+	invalidatedWidgets []Widget
+
 	invalidatedRegionsForDebug []invalidatedRegionsForDebugItem
 
 	screenWidth  float64
@@ -166,6 +170,20 @@ func (a *app) Update() error {
 	}
 	a.resetPrevWidgets(a.root)
 
+	// Resolve invalidatedWidgets.
+	if len(a.invalidatedWidgets) > 0 {
+		for _, widget := range a.invalidatedWidgets {
+			if VisibleBounds(widget).Empty() {
+				continue
+			}
+			if theDebugMode.showRenderingRegions {
+				slog.Info("Request redrawing", "requester", fmt.Sprintf("%T", widget), "region", VisibleBounds(widget))
+			}
+			a.invalidatedRegions = a.invalidatedRegions.Union(VisibleBounds(widget))
+		}
+		a.invalidatedWidgets = slices.Delete(a.invalidatedWidgets, 0, len(a.invalidatedWidgets))
+	}
+
 	if theDebugMode.showRenderingRegions {
 		// Update the regions in the reversed order to remove items.
 		for idx := len(a.invalidatedRegionsForDebug) - 1; idx >= 0; idx-- {
@@ -176,13 +194,13 @@ func (a *app) Update() error {
 			}
 		}
 
-		if !a.invalidated.Empty() {
+		if !a.invalidatedRegions.Empty() {
 			idx := slices.IndexFunc(a.invalidatedRegionsForDebug, func(i invalidatedRegionsForDebugItem) bool {
-				return i.region.Eq(a.invalidated)
+				return i.region.Eq(a.invalidatedRegions)
 			})
 			if idx < 0 {
 				a.invalidatedRegionsForDebug = append(a.invalidatedRegionsForDebug, invalidatedRegionsForDebugItem{
-					region: a.invalidated,
+					region: a.invalidatedRegions,
 					time:   invalidatedRegionForDebugMaxTime(),
 				})
 			} else {
@@ -196,7 +214,8 @@ func (a *app) Update() error {
 
 func (a *app) Draw(screen *ebiten.Image) {
 	a.drawWidget(screen)
-	a.invalidated = image.Rectangle{}
+	a.invalidatedRegions = image.Rectangle{}
+	a.invalidatedWidgets = slices.Delete(a.invalidatedWidgets, 0, len(a.invalidatedWidgets))
 }
 
 func (a *app) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -211,7 +230,24 @@ func (a *app) LayoutF(outsideWidth, outsideHeight float64) (float64, float64) {
 }
 
 func (a *app) requestRedraw(region image.Rectangle) {
-	a.invalidated = a.invalidated.Union(region)
+	a.invalidatedRegions = a.invalidatedRegions.Union(region)
+}
+
+func (a *app) requestRedrawWidget(widget Widget) {
+	a.invalidatedWidgets = append(a.invalidatedWidgets, widget)
+	for _, child := range widget.widgetState().children {
+		theApp.requestRedrawIfPopup(child)
+	}
+}
+
+func (a *app) requestRedrawIfPopup(widget Widget) {
+	if widget.IsPopup() {
+		a.requestRedrawWidget(widget)
+		return
+	}
+	for _, child := range widget.widgetState().children {
+		a.requestRedrawIfPopup(child)
+	}
 }
 
 type WidgetType int
@@ -369,8 +405,8 @@ func (a *app) drawWidget(screen *ebiten.Image) {
 		screen = a.offscreen
 	}
 
-	if !a.invalidated.Empty() {
-		dst := screen.SubImage(a.invalidated).(*ebiten.Image)
+	if !a.invalidatedRegions.Empty() {
+		dst := screen.SubImage(a.invalidatedRegions).(*ebiten.Image)
 		a.doDrawWidget(dst, a.root)
 	}
 
