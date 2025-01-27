@@ -47,15 +47,7 @@ func (t *TextButton) AppendChildWidgets(context *guigui.Context, appender *guigu
 	appender.AppendChildWidget(&t.button)
 
 	imgSize := int(LineHeight(context))
-	t.image.SetSize(context, imgSize, imgSize)
 
-	if !guigui.IsEnabled(&t.button) {
-		t.text.SetColor(Color(context.ColorMode(), ColorTypeBase, 0.5))
-	} else {
-		t.text.SetColor(t.textColor)
-	}
-	t.text.SetHorizontalAlign(HorizontalAlignCenter)
-	t.text.SetVerticalAlign(VerticalAlignMiddle)
 	tw, _ := t.text.TextSize(context)
 	t.text.SetSize(tw, h)
 	textP := guigui.Position(t)
@@ -71,6 +63,7 @@ func (t *TextButton) AppendChildWidgets(context *guigui.Context, appender *guigu
 	guigui.SetPosition(&t.text, textP)
 	appender.AppendChildWidget(&t.text)
 
+	t.image.SetSize(context, imgSize, imgSize)
 	imgP := guigui.Position(t)
 	imgP.X = textP.X + tw + t.textImagePadding(context)
 	imgP.Y += (h - imgSize) / 2
@@ -86,6 +79,15 @@ func (t *TextButton) PropagateEvent(context *guigui.Context, event guigui.Event)
 }
 
 func (t *TextButton) Update(context *guigui.Context) error {
+	if !guigui.IsEnabled(&t.button) {
+		t.text.SetColor(Color(context.ColorMode(), ColorTypeBase, 0.5))
+	} else {
+		t.text.SetColor(t.textColor)
+	}
+
+	t.text.SetHorizontalAlign(HorizontalAlignCenter)
+	t.text.SetVerticalAlign(VerticalAlignMiddle)
+
 	return nil
 }
 
