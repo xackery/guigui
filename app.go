@@ -162,7 +162,7 @@ func (a *app) Update() error {
 	} else {
 		// Invalidate regions if a widget's children state is changed.
 		// A widget's bounds might be changed in Update, so do this after updating.
-		a.addInvalidatedRegions(a.root)
+		a.requestRedrawIfTreeChanged(a.root)
 	}
 	a.resetPrevWidgets(a.root)
 
@@ -324,7 +324,7 @@ func clearEventQueues(widget Widget) {
 	}
 }
 
-func (a *app) addInvalidatedRegions(widget Widget) {
+func (a *app) requestRedrawIfTreeChanged(widget Widget) {
 	widgetState := widget.widgetState()
 	// If the children and/or children's bounds are changed, request redraw.
 	if !widgetState.prev.equals(widgetState.children) {
@@ -338,7 +338,7 @@ func (a *app) addInvalidatedRegions(widget Widget) {
 		}
 	}
 	for _, child := range widgetState.children {
-		a.addInvalidatedRegions(child)
+		a.requestRedrawIfTreeChanged(child)
 	}
 }
 
