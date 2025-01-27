@@ -123,7 +123,6 @@ func (a app) bounds() image.Rectangle {
 func (a *app) Update() error {
 	rootState := a.root.widgetState()
 	rootState.position = image.Point{}
-	rootState.visibleBounds = a.bounds()
 
 	a.context.setDeviceScale(ebiten.Monitor().DeviceScaleFactor())
 
@@ -304,7 +303,7 @@ func (a *app) cursorShape(widget Widget) bool {
 		}
 	}
 
-	if !image.Pt(ebiten.CursorPosition()).In(widgetState.visibleBounds) {
+	if !image.Pt(ebiten.CursorPosition()).In(VisibleBounds(widget)) {
 		return false
 	}
 	shape, ok := widget.CursorShape(&a.context)
@@ -366,7 +365,7 @@ func (a *app) requestRedrawIfTreeChanged(widget Widget) {
 	if !widgetState.prev.equals(widgetState.children) {
 		// Popups are outside of widget, so redraw the regions explicitly.
 		widgetState.prev.redrawPopupRegions()
-		a.requestRedraw(widgetState.visibleBounds)
+		a.requestRedraw(VisibleBounds(widget))
 		for _, child := range widgetState.children {
 			if child.IsPopup() {
 				a.requestRedraw(VisibleBounds(child))
@@ -438,11 +437,12 @@ func (a *app) drawWidget(screen *ebiten.Image) {
 }
 
 func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget) {
-	widgetState := widget.widgetState()
-	if widgetState.visibleBounds.Empty() {
+	vb := VisibleBounds(widget)
+	if vb.Empty() {
 		return
 	}
 
+	widgetState := widget.widgetState()
 	if widgetState.hidden {
 		return
 	}
@@ -456,7 +456,7 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget) {
 		dst = widgetState.ensureOffscreen(dst.Bounds())
 		dst.Clear()
 	}
-	widget.Draw(&a.context, dst.SubImage(widgetState.visibleBounds).(*ebiten.Image))
+	widget.Draw(&a.context, dst.SubImage(vb).(*ebiten.Image))
 
 	for _, child := range widgetState.children {
 		a.doDrawWidget(dst, child)

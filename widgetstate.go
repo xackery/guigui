@@ -52,8 +52,7 @@ func (w *widgetsAndBounds) redrawPopupRegions() {
 type widgetState struct {
 	root bool
 
-	position      image.Point
-	visibleBounds image.Rectangle
+	position image.Point
 
 	parent   Widget
 	children []Widget
@@ -87,7 +86,14 @@ func Bounds(widget Widget) image.Rectangle {
 }
 
 func VisibleBounds(widget Widget) image.Rectangle {
-	return widget.widgetState().visibleBounds
+	if widget.IsPopup() {
+		return Bounds(widget)
+	}
+	parent := widget.widgetState().parent
+	if parent == nil {
+		return theApp.bounds()
+	}
+	return VisibleBounds(parent).Intersect(Bounds(widget))
 }
 
 func EnqueueEvent(widget Widget, event Event) {
