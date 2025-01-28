@@ -348,13 +348,6 @@ func (l *List) Update(context *guigui.Context) error {
 	return nil
 }
 
-func (l *List) ItemWidth(context *guigui.Context) int {
-	w, _ := l.Size(context)
-	w -= 2 * RoundedCornerRadius(context)
-	w -= 2 * listItemPadding(context)
-	return w
-}
-
 func (l *List) ContentHeight(context *guigui.Context) int {
 	var h int
 	h += RoundedCornerRadius(context)
