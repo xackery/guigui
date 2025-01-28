@@ -62,8 +62,10 @@ type List struct {
 	startPressingIndex int
 	startPressingLeft  bool
 
-	widthMinusDefault  int
-	heightMinusDefault int
+	widthSet  bool
+	heightSet bool
+	width     int
+	height    int
 }
 
 /*l := &List{
@@ -492,14 +494,34 @@ func defaultListSize(context *guigui.Context) (int, int) {
 }
 
 func (l *List) Size(context *guigui.Context) (int, int) {
-	dw, dh := defaultListSize(context)
-	return l.widthMinusDefault + dw, l.heightMinusDefault + dh
+	w, h := defaultListSize(context)
+	if l.widthSet {
+		w = l.width
+	}
+	if l.heightSet {
+		h = l.height
+	}
+	return w, h
 }
 
-func (l *List) SetSize(context *guigui.Context, width, height int) {
-	dw, dh := defaultListSize(context)
-	l.widthMinusDefault = width - dw
-	l.heightMinusDefault = height - dh
+func (l *List) SetWidth(width int) {
+	l.width = width
+	l.widthSet = true
+}
+
+func (l *List) SetHeight(height int) {
+	l.height = height
+	l.heightSet = true
+}
+
+func (l *List) ResetWidth() {
+	l.widthSet = false
+	l.width = 0
+}
+
+func (l *List) ResetHeight() {
+	l.heightSet = false
+	l.height = 0
 }
 
 type listFrame struct {

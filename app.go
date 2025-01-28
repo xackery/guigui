@@ -172,13 +172,14 @@ func (a *app) Update() error {
 	// Resolve invalidatedWidgets.
 	if len(a.invalidatedWidgets) > 0 {
 		for _, widget := range a.invalidatedWidgets {
-			if VisibleBounds(widget).Empty() {
+			vb := VisibleBounds(widget)
+			if vb.Empty() {
 				continue
 			}
 			if theDebugMode.showRenderingRegions {
-				slog.Info("Request redrawing", "requester", fmt.Sprintf("%T", widget), "region", VisibleBounds(widget))
+				slog.Info("Request redrawing", "requester", fmt.Sprintf("%T", widget), "region", vb)
 			}
-			a.invalidatedRegions = a.invalidatedRegions.Union(VisibleBounds(widget))
+			a.invalidatedRegions = a.invalidatedRegions.Union(vb)
 		}
 		a.invalidatedWidgets = slices.Delete(a.invalidatedWidgets, 0, len(a.invalidatedWidgets))
 	}

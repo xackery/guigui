@@ -26,7 +26,8 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.C
 	_, h := s.Size(context)
 	s.sidebar.SetSize(context, sidebarWidth(context), h)
 	s.sidebar.SetContent(context, func(context *guigui.Context, childAppender *basicwidget.ContainerChildWidgetAppender, offsetX, offsetY float64) {
-		s.list.SetSize(context, sidebarWidth(context), h)
+		s.list.SetWidth(sidebarWidth(context))
+		s.list.SetHeight(h)
 		guigui.SetPosition(&s.list, guigui.Position(s).Add(image.Pt(int(offsetX), int(offsetY))))
 		childAppender.AppendChildWidget(&s.list)
 	})
