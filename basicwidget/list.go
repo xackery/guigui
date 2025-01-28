@@ -337,7 +337,7 @@ func (l *List) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 
 func (l *List) Update(context *guigui.Context) error {
 	w, _ := l.Size(context)
-	l.scrollOverlay.SetContentSize(w, l.ContentHeight(context))
+	l.scrollOverlay.SetContentSize(w, l.contentHeight(context))
 
 	if l.indexToJump >= 0 {
 		y := l.itemYFromIndex(context, l.indexToJump) - RoundedCornerRadius(context)
@@ -348,7 +348,7 @@ func (l *List) Update(context *guigui.Context) error {
 	return nil
 }
 
-func (l *List) ContentHeight(context *guigui.Context) int {
+func (l *List) contentHeight(context *guigui.Context) int {
 	var h int
 	h += RoundedCornerRadius(context)
 	for _, w := range l.items {
