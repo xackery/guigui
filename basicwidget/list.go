@@ -62,11 +62,12 @@ type List struct {
 	startPressingIndex int
 	startPressingLeft  bool
 
-	widthSet           bool
-	heightSet          bool
-	width              int
-	height             int
-	cachedDefaultWidth int
+	widthSet            bool
+	heightSet           bool
+	width               int
+	height              int
+	cachedDefaultWidth  int
+	cachedDefaultHeight int
 }
 
 /*l := &List{
@@ -138,6 +139,7 @@ func (l *List) SetItems(items []ListItem) {
 	l.items = make([]ListItem, len(items))
 	copy(l.items, items)
 	l.cachedDefaultWidth = 0
+	l.cachedDefaultHeight = 0
 }
 
 func (l *List) SetItem(item ListItem, index int) {
@@ -349,6 +351,10 @@ func (l *List) Update(context *guigui.Context) error {
 }
 
 func (l *List) contentHeight(context *guigui.Context) int {
+	if l.cachedDefaultHeight > 0 {
+		return l.cachedDefaultHeight
+	}
+
 	var h int
 	h += RoundedCornerRadius(context)
 	for _, w := range l.items {
@@ -356,6 +362,7 @@ func (l *List) contentHeight(context *guigui.Context) int {
 		h += wh
 	}
 	h += RoundedCornerRadius(context)
+	l.cachedDefaultHeight = h
 	return h
 }
 
@@ -499,7 +506,7 @@ func (l *List) defaultWidth(context *guigui.Context) int {
 }
 
 func (l *List) defaultHeight(context *guigui.Context) int {
-	return 6 * UnitSize(context)
+	return l.contentHeight(context)
 }
 
 func (l *List) Size(context *guigui.Context) (int, int) {

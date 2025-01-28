@@ -202,19 +202,25 @@ func (t *TextList) Size(context *guigui.Context) (int, int) {
 	return t.list.Size(context)
 }
 
-/*func (t *TextList) MinimumWidth(scale float64) int {
-	var w int
-	for _, item := range t.textListItems {
-		if ww, ok := item.listItem.WidgetWithHeight.(view.WidgetWithWidth); ok {
-			w = max(w, ww.Width(scale))
-		}
-	}
-	return w + 4*t.settings.SmallUnitSize(scale)
+func (t *TextList) SetSize(width, height int) {
+	t.list.SetSize(width, height)
 }
 
-func (t *TextList) ContentHeight(context *guigui.Context) int {
-	return t.list().ContentHeight(context)
-}*/
+func (t *TextList) SetWidth(width int) {
+	t.list.SetWidth(width)
+}
+
+func (t *TextList) SetHeight(height int) {
+	t.list.SetHeight(height)
+}
+
+func (t *TextList) ResetWidth() {
+	t.list.ResetWidth()
+}
+
+func (t *TextList) ResetHeight() {
+	t.list.ResetHeight()
+}
 
 type textListItemWidget struct {
 	guigui.DefaultWidget

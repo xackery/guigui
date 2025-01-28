@@ -28,6 +28,7 @@ func (l *Lists) AppendChildWidgets(context *guigui.Context, appender *guigui.Chi
 		})
 	}
 	l.textList.SetItems(items)
+	l.textList.SetHeight(6 * basicwidget.UnitSize(context))
 
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := l.Size(context)
