@@ -489,17 +489,25 @@ func (l *List) Draw(context *guigui.Context, dst *ebiten.Image) {
 	l.dropSrcIndex = data.(int)
 }*/
 
-func defaultListSize(context *guigui.Context) (int, int) {
-	return 6 * UnitSize(context), 6 * UnitSize(context)
+func (l *List) defaultWidth(context *guigui.Context) int {
+	return 6 * UnitSize(context)
+}
+
+func (l *List) defaultHeight(context *guigui.Context) int {
+	return 6 * UnitSize(context)
 }
 
 func (l *List) Size(context *guigui.Context) (int, int) {
-	w, h := defaultListSize(context)
+	var w, h int
 	if l.widthSet {
 		w = l.width
+	} else {
+		w = l.defaultWidth(context)
 	}
 	if l.heightSet {
 		h = l.height
+	} else {
+		h = l.defaultHeight(context)
 	}
 	return w, h
 }
