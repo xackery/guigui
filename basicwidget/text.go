@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/exp/textinput"
@@ -85,9 +86,22 @@ type Text struct {
 	scrollOverlay ScrollOverlay
 
 	temporaryClipboard string
+
+	cachedWidth  int
+	cachedHeight int
+	initOnce     sync.Once
+}
+
+func (t *Text) resetCachedSize() {
+	t.cachedWidth = -1
+	t.cachedHeight = -1
 }
 
 func (t *Text) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	t.initOnce.Do(func() {
+		t.resetCachedSize()
+	})
+
 	if t.selectable || t.editable {
 		p := guigui.Position(t)
 		p.X -= cursorWidth(context)
@@ -118,6 +132,7 @@ func (t *Text) SetText(text string) {
 	start = min(start, len(text))
 	end = min(end, len(text))
 	t.setTextAndSelection(text, start, end, -1)
+	t.resetCachedSize()
 }
 
 func (t *Text) SetFilter(filter TextFilter) {
@@ -141,6 +156,7 @@ func (t *Text) setTextAndSelection(text string, start, end int, shiftIndex int) 
 	t.field.SetTextAndSelection(text, start, end)
 	t.toAdjustScrollOffset = true
 	guigui.RequestRedraw(t)
+	t.resetCachedSize()
 }
 
 func (t *Text) SetLocales(locales []language.Tag) {
@@ -150,6 +166,7 @@ func (t *Text) SetLocales(locales []language.Tag) {
 
 	t.locales = append([]language.Tag(nil), locales...)
 	guigui.RequestRedraw(t)
+	t.resetCachedSize()
 }
 
 func (t *Text) SetBold(bold bool) {
@@ -159,6 +176,7 @@ func (t *Text) SetBold(bold bool) {
 
 	t.bold = bold
 	guigui.RequestRedraw(t)
+	t.resetCachedSize()
 }
 
 func (t *Text) SetScale(scale float64) {
@@ -168,6 +186,7 @@ func (t *Text) SetScale(scale float64) {
 
 	t.scaleMinus1 = scale - 1
 	guigui.RequestRedraw(t)
+	t.resetCachedSize()
 }
 
 func (t *Text) SetHorizontalAlign(align HorizontalAlign) {
@@ -177,6 +196,7 @@ func (t *Text) SetHorizontalAlign(align HorizontalAlign) {
 
 	t.hAlign = align
 	guigui.RequestRedraw(t)
+	t.resetCachedSize()
 }
 
 func (t *Text) SetVerticalAlign(align VerticalAlign) {
@@ -186,6 +206,7 @@ func (t *Text) SetVerticalAlign(align VerticalAlign) {
 
 	t.vAlign = align
 	guigui.RequestRedraw(t)
+	t.resetCachedSize()
 }
 
 func (t *Text) SetColor(color color.Color) {
@@ -238,6 +259,7 @@ func (t *Text) SetMultiline(multiline bool) {
 
 	t.multiline = multiline
 	guigui.RequestRedraw(t)
+	t.resetCachedSize()
 }
 
 func (t *Text) textBounds(context *guigui.Context) image.Rectangle {
@@ -772,6 +794,10 @@ func (t *Text) Draw(context *guigui.Context, dst *ebiten.Image) {
 }
 
 func (t *Text) Size(context *guigui.Context) (int, int) {
+	if t.cachedWidth >= 0 && t.cachedHeight >= 0 {
+		return t.cachedWidth, t.cachedHeight
+	}
+
 	w, h := t.width, t.height
 	if !t.widthSet || !t.heightSet {
 		tw, th := t.TextSize(context)
@@ -782,6 +808,8 @@ func (t *Text) Size(context *guigui.Context) (int, int) {
 			h = th
 		}
 	}
+	t.cachedWidth = w
+	t.cachedHeight = h
 	return w, h
 }
 

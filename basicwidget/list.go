@@ -62,10 +62,11 @@ type List struct {
 	startPressingIndex int
 	startPressingLeft  bool
 
-	widthSet  bool
-	heightSet bool
-	width     int
-	height    int
+	widthSet           bool
+	heightSet          bool
+	width              int
+	height             int
+	cachedDefaultWidth int
 }
 
 /*l := &List{
@@ -136,6 +137,7 @@ func (l *List) HoveredItemIndex() int {
 func (l *List) SetItems(items []ListItem) {
 	l.items = make([]ListItem, len(items))
 	copy(l.items, items)
+	l.cachedDefaultWidth = 0
 }
 
 func (l *List) SetItem(item ListItem, index int) {
@@ -490,7 +492,17 @@ func (l *List) Draw(context *guigui.Context, dst *ebiten.Image) {
 }*/
 
 func (l *List) defaultWidth(context *guigui.Context) int {
-	return 6 * UnitSize(context)
+	if l.cachedDefaultWidth > 0 {
+		return l.cachedDefaultWidth
+	}
+	var w int
+	for _, item := range l.items {
+		iw, _ := item.Content.Size(context)
+		w = max(w, iw)
+	}
+	w += 2*RoundedCornerRadius(context) + 2*listItemPadding(context)
+	l.cachedDefaultWidth = w
+	return w
 }
 
 func (l *List) defaultHeight(context *guigui.Context) int {
@@ -510,6 +522,13 @@ func (l *List) Size(context *guigui.Context) (int, int) {
 		h = l.defaultHeight(context)
 	}
 	return w, h
+}
+
+func (l *List) SetSize(width, height int) {
+	l.width = width
+	l.widthSet = true
+	l.height = height
+	l.heightSet = true
 }
 
 func (l *List) SetWidth(width int) {

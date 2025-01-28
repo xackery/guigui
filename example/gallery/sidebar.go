@@ -40,7 +40,7 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.C
 			var t basicwidget.Text
 			t.SetText("Settings")
 			t.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
-			t.SetSize(s.list.ItemWidth(context), basicwidget.UnitSize(context))
+			t.SetHeight(basicwidget.UnitSize(context))
 			s.listItemWidgets = append(s.listItemWidgets, basicwidget.ListItem{
 				Content:    &t,
 				Selectable: true,
@@ -51,7 +51,7 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.C
 			var t basicwidget.Text
 			t.SetText("Basic")
 			t.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
-			t.SetSize(s.list.ItemWidth(context), basicwidget.UnitSize(context))
+			t.SetHeight(basicwidget.UnitSize(context))
 			s.listItemWidgets = append(s.listItemWidgets, basicwidget.ListItem{
 				Content:    &t,
 				Selectable: true,
@@ -62,7 +62,7 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.C
 			var t basicwidget.Text
 			t.SetText("Buttons")
 			t.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
-			t.SetSize(s.list.ItemWidth(context), basicwidget.UnitSize(context))
+			t.SetHeight(basicwidget.UnitSize(context))
 			s.listItemWidgets = append(s.listItemWidgets, basicwidget.ListItem{
 				Content:    &t,
 				Selectable: true,
@@ -73,7 +73,7 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.C
 			var t basicwidget.Text
 			t.SetText("Lists")
 			t.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
-			t.SetSize(s.list.ItemWidth(context), basicwidget.UnitSize(context))
+			t.SetHeight(basicwidget.UnitSize(context))
 			s.listItemWidgets = append(s.listItemWidgets, basicwidget.ListItem{
 				Content:    &t,
 				Selectable: true,
@@ -84,7 +84,7 @@ func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.C
 			var t basicwidget.Text
 			t.SetText("Popups")
 			t.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
-			t.SetSize(s.list.ItemWidth(context), basicwidget.UnitSize(context))
+			t.SetHeight(basicwidget.UnitSize(context))
 			s.listItemWidgets = append(s.listItemWidgets, basicwidget.ListItem{
 				Content:    &t,
 				Selectable: true,
