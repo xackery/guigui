@@ -22,7 +22,7 @@ type Basic struct {
 	textField        basicwidget.TextField
 }
 
-func (b *Basic) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (b *Basic) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := b.Size(context)
 	b.group.SetWidth(context, w-int(1*u))

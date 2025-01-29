@@ -32,7 +32,7 @@ type ButtonEvent struct {
 	Type ButtonEventType
 }
 
-func (b *Button) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (b *Button) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	guigui.SetPosition(&b.mouseEventHandler, guigui.Position(b))
 	appender.AppendChildWidget(&b.mouseEventHandler)
 }

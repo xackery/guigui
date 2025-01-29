@@ -264,7 +264,7 @@ func (a *app) appendChildWidgets() {
 func (a *app) doAppendChildWidgets(widget Widget) {
 	widgetState := widget.widgetState()
 	widgetState.children = slices.Delete(widgetState.children, 0, len(widgetState.children))
-	widget.AppendChildWidgets(&a.context, &ChildWidgetAppender{
+	widget.Layout(&a.context, &ChildWidgetAppender{
 		app:    a,
 		widget: widget,
 	})

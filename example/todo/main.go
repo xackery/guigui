@@ -49,7 +49,7 @@ type Root struct {
 	tasks []Task
 }
 
-func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (r *Root) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	u := float64(basicwidget.UnitSize(context))
 
 	width, _ := r.Size(context)

@@ -8,7 +8,7 @@ import (
 )
 
 type Widget interface {
-	AppendChildWidgets(context *Context, appender *ChildWidgetAppender)
+	Layout(context *Context, appender *ChildWidgetAppender)
 	HandleInput(context *Context) HandleInputResult
 	Update(context *Context) error
 	CursorShape(context *Context) (ebiten.CursorShapeType, bool)
@@ -52,7 +52,7 @@ type DefaultWidget struct {
 	widgetState_ widgetState
 }
 
-func (*DefaultWidget) AppendChildWidgets(context *Context, appender *ChildWidgetAppender) {
+func (*DefaultWidget) Layout(context *Context, appender *ChildWidgetAppender) {
 }
 
 func (*DefaultWidget) HandleInput(context *Context) HandleInputResult {

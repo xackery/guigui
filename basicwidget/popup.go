@@ -56,7 +56,7 @@ func (p *Popup) SetBackgroundBlurred(blurBackground bool) {
 	p.backgroundBlurred = blurBackground
 }
 
-func (p *Popup) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (p *Popup) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	p.initOnce.Do(func() {
 		guigui.Hide(p)
 	})
@@ -134,7 +134,7 @@ func (p *popupContent) setContent(f func(context *guigui.Context, childAppender 
 	p.setContentFunc = f
 }
 
-func (p *popupContent) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (p *popupContent) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	p.childWidgets.reset()
 	if p.setContentFunc != nil {
 		p.setContentFunc(context, &p.childWidgets)

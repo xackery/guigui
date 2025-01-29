@@ -20,7 +20,7 @@ type Buttons struct {
 	textImageButton     basicwidget.TextButton
 }
 
-func (b *Buttons) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (b *Buttons) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := b.Size(context)
 	b.group.SetWidth(context, w-int(1*u))

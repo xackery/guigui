@@ -24,7 +24,7 @@ type Root struct {
 	counter int
 }
 
-func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (r *Root) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	{
 		w, h := r.Size(context)
 		w -= 2 * basicwidget.UnitSize(context)

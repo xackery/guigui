@@ -55,7 +55,7 @@ func (t *TextField) SelectAll() {
 	t.text.selectAll()
 }
 
-func (t *TextField) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (t *TextField) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	t.text.SetEditable(true)
 	b := guigui.Bounds(t)
 	b.Min.X += UnitSize(context) / 2

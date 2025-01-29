@@ -23,7 +23,7 @@ type Settings struct {
 	initOnce sync.Once
 }
 
-func (s *Settings) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (s *Settings) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	s.initOnce.Do(func() {
 		if context.ColorMode() == guigui.ColorModeDark {
 			s.colorModeToggle.SetValue(true)

@@ -25,7 +25,7 @@ type Root struct {
 	popups   Popups
 }
 
-func (r *Root) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (r *Root) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	appender.AppendChildWidget(&r.sidebar)
 
 	guigui.SetPosition(&r.sidebar, guigui.Position(r))

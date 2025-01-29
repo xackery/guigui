@@ -23,7 +23,7 @@ type Popups struct {
 	simplePopupCloseButton basicwidget.TextButton
 }
 
-func (p *Popups) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (p *Popups) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := p.Size(context)
 	p.group.SetWidth(context, w-int(1*u))

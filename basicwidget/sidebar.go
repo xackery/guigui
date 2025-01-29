@@ -18,7 +18,7 @@ type Sidebar struct {
 	heightMinusDefault int
 }
 
-func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (s *Sidebar) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	w, h := s.Size(context)
 	s.scrollablePanel.SetSize(context, w, h)
 	guigui.SetPosition(&s.scrollablePanel, guigui.Position(s))

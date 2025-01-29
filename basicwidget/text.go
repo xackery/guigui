@@ -97,7 +97,7 @@ func (t *Text) resetCachedSize() {
 	t.cachedHeight = -1
 }
 
-func (t *Text) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (t *Text) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	t.initOnce.Do(func() {
 		t.resetCachedSize()
 	})

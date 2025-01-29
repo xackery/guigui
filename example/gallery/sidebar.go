@@ -22,7 +22,7 @@ func sidebarWidth(context *guigui.Context) int {
 	return 8 * basicwidget.UnitSize(context)
 }
 
-func (s *Sidebar) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (s *Sidebar) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	_, h := s.Size(context)
 	s.sidebar.SetSize(context, sidebarWidth(context), h)
 	s.sidebar.SetContent(context, func(context *guigui.Context, childAppender *basicwidget.ContainerChildWidgetAppender, offsetX, offsetY float64) {

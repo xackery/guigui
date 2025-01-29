@@ -83,7 +83,7 @@ func listItemPadding(context *guigui.Context) int {
 	return UnitSize(context) / 4
 }
 
-func (l *List) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (l *List) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	if l.style != ListStyleSidebar {
 		guigui.SetPosition(&l.listFrame, guigui.Position(l))
 		appender.AppendChildWidget(&l.listFrame)

@@ -19,7 +19,7 @@ type Lists struct {
 	textList     basicwidget.TextList
 }
 
-func (l *Lists) AppendChildWidgets(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+func (l *Lists) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	l.textListText.SetText("Text List")
 	var items []basicwidget.TextListItem
 	for i := 0; i < 100; i++ {
