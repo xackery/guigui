@@ -24,39 +24,6 @@ type Popups struct {
 }
 
 func (p *Popups) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	u := float64(basicwidget.UnitSize(context))
-	w, _ := p.Size(context)
-	p.group.SetWidth(context, w-int(1*u))
-	p.group.SetItems([]*basicwidget.GroupItem{
-		{
-			PrimaryWidget:   &p.blurBackgroundText,
-			SecondaryWidget: &p.blurBackgroundToggleButton,
-		},
-		{
-			SecondaryWidget: &p.showButton,
-		},
-	})
-	pt := guigui.Position(p).Add(image.Pt(int(0.5*u), int(0.5*u)))
-	guigui.SetPosition(&p.group, pt)
-	appender.AppendChildWidget(&p.group)
-
-	appender.AppendChildWidget(&p.simplePopup)
-}
-
-func (p *Popups) Update(context *guigui.Context) error {
-	for e := range guigui.DequeueEvents(&p.showButton) {
-		args := e.(basicwidget.ButtonEvent)
-		if args.Type == basicwidget.ButtonEventTypeUp {
-			p.simplePopup.Open()
-		}
-	}
-	for e := range guigui.DequeueEvents(&p.simplePopupCloseButton) {
-		args := e.(basicwidget.ButtonEvent)
-		if args.Type == basicwidget.ButtonEventTypeUp {
-			p.simplePopup.Close()
-		}
-	}
-
 	p.blurBackgroundText.SetText("Blur Background")
 	p.showButton.SetText("Show")
 
@@ -88,6 +55,37 @@ func (p *Popups) Update(context *guigui.Context) error {
 	p.simplePopup.SetContentBounds(contentBounds)
 	p.simplePopup.SetBackgroundBlurred(p.blurBackgroundToggleButton.Value())
 
+	w, _ := p.Size(context)
+	p.group.SetWidth(context, w-int(1*u))
+	p.group.SetItems([]*basicwidget.GroupItem{
+		{
+			PrimaryWidget:   &p.blurBackgroundText,
+			SecondaryWidget: &p.blurBackgroundToggleButton,
+		},
+		{
+			SecondaryWidget: &p.showButton,
+		},
+	})
+	pt := guigui.Position(p).Add(image.Pt(int(0.5*u), int(0.5*u)))
+	guigui.SetPosition(&p.group, pt)
+	appender.AppendChildWidget(&p.group)
+
+	appender.AppendChildWidget(&p.simplePopup)
+}
+
+func (p *Popups) Update(context *guigui.Context) error {
+	for e := range guigui.DequeueEvents(&p.showButton) {
+		args := e.(basicwidget.ButtonEvent)
+		if args.Type == basicwidget.ButtonEventTypeUp {
+			p.simplePopup.Open()
+		}
+	}
+	for e := range guigui.DequeueEvents(&p.simplePopupCloseButton) {
+		args := e.(basicwidget.ButtonEvent)
+		if args.Type == basicwidget.ButtonEventTypeUp {
+			p.simplePopup.Close()
+		}
+	}
 	return nil
 }
 

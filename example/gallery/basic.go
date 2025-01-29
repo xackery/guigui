@@ -23,6 +23,12 @@ type Basic struct {
 }
 
 func (b *Basic) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	b.textButtonText.SetText("Text Button")
+	b.textButton.SetText("Click Me!")
+	b.toggleButtonText.SetText("Toggle Button")
+	b.textFieldText.SetText("Text Field")
+	b.textField.SetHorizontalAlign(basicwidget.HorizontalAlignEnd)
+
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := b.Size(context)
 	b.group.SetWidth(context, w-int(1*u))
@@ -45,15 +51,6 @@ func (b *Basic) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppe
 		guigui.SetPosition(&b.group, p)
 		appender.AppendChildWidget(&b.group)
 	}
-}
-
-func (b *Basic) Update(context *guigui.Context) error {
-	b.textButtonText.SetText("Text Button")
-	b.textButton.SetText("Click Me!")
-	b.toggleButtonText.SetText("Toggle Button")
-	b.textFieldText.SetText("Text Field")
-	b.textField.SetHorizontalAlign(basicwidget.HorizontalAlignEnd)
-	return nil
 }
 
 func (b *Basic) Size(context *guigui.Context) (int, int) {

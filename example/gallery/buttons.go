@@ -18,9 +18,22 @@ type Buttons struct {
 	textButton          basicwidget.TextButton
 	textImageButtonText basicwidget.Text
 	textImageButton     basicwidget.TextButton
+
+	err error
 }
 
 func (b *Buttons) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	b.textButtonText.SetText("Text Button")
+	b.textButton.SetText("Button")
+	b.textImageButtonText.SetText("Text w/ Image Button")
+	b.textImageButton.SetText("Button")
+	img, err := theImageCache.Get("check", context.ColorMode())
+	if err != nil {
+		b.err = err
+		return
+	}
+	b.textImageButton.SetImage(img)
+
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := b.Size(context)
 	b.group.SetWidth(context, w-int(1*u))
@@ -41,16 +54,9 @@ func (b *Buttons) Layout(context *guigui.Context, appender *guigui.ChildWidgetAp
 }
 
 func (b *Buttons) Update(context *guigui.Context) error {
-	b.textButtonText.SetText("Text Button")
-	b.textButton.SetText("Button")
-	b.textImageButtonText.SetText("Text w/ Image Button")
-	b.textImageButton.SetText("Button")
-	img, err := theImageCache.Get("check", context.ColorMode())
-	if err != nil {
-		return err
+	if b.err != nil {
+		return b.err
 	}
-	b.textImageButton.SetImage(img)
-
 	return nil
 }
 
