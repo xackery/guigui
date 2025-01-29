@@ -369,7 +369,7 @@ func (s *ScrollOverlay) barBounds(context *guigui.Context) (image.Rectangle, ima
 	offsetX, offsetY := s.Offset()
 	barWidth, barHeight := s.barSize(context)
 
-	padding := 4 * context.Scale()
+	padding := 2 * context.Scale()
 
 	var horizontalBarBounds, verticalBarBounds image.Rectangle
 	if s.contentWidth > bounds.Dx() {
