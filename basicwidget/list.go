@@ -339,7 +339,7 @@ func (l *List) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 
 func (l *List) Update(context *guigui.Context) error {
 	w, _ := l.Size(context)
-	l.scrollOverlay.SetContentSize(w, l.contentHeight(context))
+	l.scrollOverlay.SetContentSize(w, l.defaultHeight(context))
 
 	if l.indexToJump >= 0 {
 		y := l.itemYFromIndex(context, l.indexToJump) - RoundedCornerRadius(context)
@@ -348,22 +348,6 @@ func (l *List) Update(context *guigui.Context) error {
 	}
 
 	return nil
-}
-
-func (l *List) contentHeight(context *guigui.Context) int {
-	if l.cachedDefaultHeight > 0 {
-		return l.cachedDefaultHeight
-	}
-
-	var h int
-	h += RoundedCornerRadius(context)
-	for _, w := range l.items {
-		_, wh := w.Content.Size(context)
-		h += wh
-	}
-	h += RoundedCornerRadius(context)
-	l.cachedDefaultHeight = h
-	return h
 }
 
 func (l *List) itemYFromIndex(context *guigui.Context, index int) int {
@@ -506,7 +490,19 @@ func (l *List) defaultWidth(context *guigui.Context) int {
 }
 
 func (l *List) defaultHeight(context *guigui.Context) int {
-	return l.contentHeight(context)
+	if l.cachedDefaultHeight > 0 {
+		return l.cachedDefaultHeight
+	}
+
+	var h int
+	h += RoundedCornerRadius(context)
+	for _, w := range l.items {
+		_, wh := w.Content.Size(context)
+		h += wh
+	}
+	h += RoundedCornerRadius(context)
+	l.cachedDefaultHeight = h
+	return h
 }
 
 func (l *List) Size(context *guigui.Context) (int, int) {
