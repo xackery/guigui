@@ -70,6 +70,7 @@ type List struct {
 	cachedDefaultHeight int
 }
 
+// TODO: Use Minus1.
 /*l := &List{
 	selectedItemIndex:  -1,
 	hoveredItemIndex:   -1,
