@@ -25,6 +25,10 @@ type ToggleButton struct {
 	onValueChanged func(value bool)
 }
 
+func (t *ToggleButton) SetOnValueChanged(f func(value bool)) {
+	t.onValueChanged = f
+}
+
 func (t *ToggleButton) Value() bool {
 	return t.value
 }
