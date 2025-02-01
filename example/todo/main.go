@@ -55,6 +55,9 @@ func (r *Root) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppen
 	width, _ := r.Size(context)
 	w := width - int(6.5*u)
 	r.textField.SetSize(context, w, int(u))
+	r.textField.SetOnEnterPressed(func(text string) {
+		r.tryCreateTask()
+	})
 	{
 		guigui.SetPosition(&r.textField, guigui.Position(r).Add(image.Pt(int(0.5*u), int(0.5*u))))
 		appender.AppendChildWidget(&r.textField)
@@ -62,6 +65,9 @@ func (r *Root) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppen
 
 	r.createButton.SetText("Create")
 	r.createButton.SetWidth(int(5 * u))
+	r.createButton.SetOnUp(func() {
+		r.tryCreateTask()
+	})
 	{
 		p := guigui.Position(r)
 		w, _ := r.Size(context)
@@ -82,6 +88,11 @@ func (r *Root) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppen
 				var tw TaskWidgets
 				tw.doneButton.SetText("Done")
 				tw.doneButton.SetWidth(int(3 * u))
+				tw.doneButton.SetOnUp(func() {
+					r.tasks = slices.DeleteFunc(r.tasks, func(task Task) bool {
+						return task.ID == t.ID
+					})
+				})
 				tw.text.SetText(t.Text)
 				tw.text.SetVerticalAlign(basicwidget.VerticalAlignMiddle)
 				if r.taskWidgets == nil {
@@ -116,35 +127,6 @@ func (r *Root) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppen
 }
 
 func (r *Root) Update(context *guigui.Context) error {
-	for event := range guigui.DequeueEvents(&r.createButton) {
-		switch e := event.(type) {
-		case basicwidget.ButtonEvent:
-			if e.Type == basicwidget.ButtonEventTypeUp {
-				r.tryCreateTask()
-			}
-		}
-	}
-	for event := range guigui.DequeueEvents(&r.textField) {
-		switch e := event.(type) {
-		case basicwidget.TextEvent:
-			if e.Type == basicwidget.TextEventTypeEnterPressed {
-				r.tryCreateTask()
-			}
-		}
-	}
-	for id, t := range r.taskWidgets {
-		for event := range guigui.DequeueEvents(&t.doneButton) {
-			switch e := event.(type) {
-			case basicwidget.ButtonEvent:
-				if e.Type == basicwidget.ButtonEventTypeUp {
-					r.tasks = slices.DeleteFunc(r.tasks, func(task Task) bool {
-						return task.ID == id
-					})
-				}
-			}
-		}
-	}
-
 	if r.canCreateTask() {
 		guigui.Enable(&r.createButton)
 	} else {

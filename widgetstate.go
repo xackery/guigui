@@ -5,7 +5,6 @@ package guigui
 
 import (
 	"image"
-	"iter"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -62,8 +61,6 @@ type widgetState struct {
 	disabled     bool
 	transparency float64
 
-	eventQueue EventQueue
-
 	offscreen *ebiten.Image
 }
 
@@ -94,32 +91,6 @@ func VisibleBounds(widget Widget) image.Rectangle {
 		return theApp.bounds()
 	}
 	return VisibleBounds(parent).Intersect(Bounds(widget))
-}
-
-func EnqueueEvent(widget Widget, event Event) {
-	widget.widgetState().enqueueEvent(event)
-}
-
-func (w *widgetState) enqueueEvent(event Event) {
-	w.eventQueue.Enqueue(event)
-}
-
-func DequeueEvents(widget Widget) iter.Seq[Event] {
-	return widget.widgetState().dequeueEvents()
-}
-
-func (w *widgetState) dequeueEvents() iter.Seq[Event] {
-	return func(yield func(event Event) bool) {
-		for {
-			e, ok := w.eventQueue.Dequeue()
-			if !ok {
-				break
-			}
-			if !yield(e) {
-				break
-			}
-		}
-	}
 }
 
 func (w *widgetState) isInTree() bool {

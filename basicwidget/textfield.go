@@ -26,6 +26,10 @@ type TextField struct {
 	prevFocused bool
 }
 
+func (t *TextField) SetOnEnterPressed(f func(text string)) {
+	t.text.SetOnEnterPressed(f)
+}
+
 func (t *TextField) Text() string {
 	return t.text.Text()
 }
@@ -87,10 +91,6 @@ func (t *TextField) HandleInput(context *guigui.Context) guigui.HandleInputResul
 		}
 	}
 	return guigui.HandleInputResult{}
-}
-
-func (t *TextField) PropagateEvent(context *guigui.Context, event guigui.Event) (guigui.Event, bool) {
-	return event, true
 }
 
 func (t *TextField) Update(context *guigui.Context) error {

@@ -19,10 +19,6 @@ type Widget interface {
 	widgetState() *widgetState
 }
 
-type EventPropagator interface {
-	PropagateEvent(context *Context, event Event) (Event, bool)
-}
-
 type HandleInputResult struct {
 	widget  Widget
 	aborted bool

@@ -24,6 +24,14 @@ type TextButton struct {
 	widthSet bool
 }
 
+func (t *TextButton) SetOnDown(f func()) {
+	t.button.SetOnDown(f)
+}
+
+func (t *TextButton) SetOnUp(f func()) {
+	t.button.SetOnUp(f)
+}
+
 func (t *TextButton) SetText(text string) {
 	t.text.SetText(text)
 }
@@ -72,10 +80,6 @@ func (t *TextButton) Layout(context *guigui.Context, appender *guigui.ChildWidge
 	}
 	guigui.SetPosition(&t.image, imgP)
 	appender.AppendChildWidget(&t.image)
-}
-
-func (t *TextButton) PropagateEvent(context *guigui.Context, event guigui.Event) (guigui.Event, bool) {
-	return event, true
 }
 
 func (t *TextButton) Update(context *guigui.Context) error {

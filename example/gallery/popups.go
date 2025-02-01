@@ -26,6 +26,9 @@ type Popups struct {
 func (p *Popups) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	p.blurBackgroundText.SetText("Blur Background")
 	p.showButton.SetText("Show")
+	p.showButton.SetOnUp(func() {
+		p.simplePopup.Open()
+	})
 
 	u := float64(basicwidget.UnitSize(context))
 	contentWidth := int(12 * u)
@@ -47,6 +50,9 @@ func (p *Popups) Layout(context *guigui.Context, appender *guigui.ChildWidgetApp
 		appender.AppendChildWidget(&p.simplePopupTitleText)
 
 		p.simplePopupCloseButton.SetText("Close")
+		p.simplePopupCloseButton.SetOnUp(func() {
+			p.simplePopup.Close()
+		})
 		w, h := p.simplePopupCloseButton.Size(context)
 		pt = contentBounds.Max.Add(image.Pt(-int(0.5*u)-w, -int(0.5*u)-h))
 		guigui.SetPosition(&p.simplePopupCloseButton, pt)
@@ -71,22 +77,6 @@ func (p *Popups) Layout(context *guigui.Context, appender *guigui.ChildWidgetApp
 	appender.AppendChildWidget(&p.group)
 
 	appender.AppendChildWidget(&p.simplePopup)
-}
-
-func (p *Popups) Update(context *guigui.Context) error {
-	for e := range guigui.DequeueEvents(&p.showButton) {
-		args := e.(basicwidget.ButtonEvent)
-		if args.Type == basicwidget.ButtonEventTypeUp {
-			p.simplePopup.Open()
-		}
-	}
-	for e := range guigui.DequeueEvents(&p.simplePopupCloseButton) {
-		args := e.(basicwidget.ButtonEvent)
-		if args.Type == basicwidget.ButtonEventTypeUp {
-			p.simplePopup.Close()
-		}
-	}
-	return nil
 }
 
 func (p *Popups) Size(context *guigui.Context) (int, int) {

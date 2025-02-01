@@ -19,45 +19,39 @@ type Button struct {
 	widthMinusDefault  int
 	heightMinusDefault int
 	borderInvisible    bool
+
+	onDown func()
+	onUp   func()
 }
 
-type ButtonEventType int
+func (b *Button) SetOnDown(f func()) {
+	b.onDown = f
+}
 
-const (
-	ButtonEventTypeDown ButtonEventType = iota
-	ButtonEventTypeUp
-)
-
-type ButtonEvent struct {
-	Type ButtonEventType
+func (b *Button) SetOnUp(f func()) {
+	b.onUp = f
 }
 
 func (b *Button) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	b.mouseOverlay.SetOnDown(func(mouseButton ebiten.MouseButton, cursorPosition image.Point) {
+		if mouseButton != ebiten.MouseButtonLeft {
+			return
+		}
+		if b.onDown != nil {
+			b.onDown()
+		}
+	})
+	b.mouseOverlay.SetOnUp(func(mouseButton ebiten.MouseButton, cursorPosition image.Point) {
+		if mouseButton != ebiten.MouseButtonLeft {
+			return
+		}
+		if b.onUp != nil {
+			b.onUp()
+		}
+	})
+
 	guigui.SetPosition(&b.mouseOverlay, guigui.Position(b))
 	appender.AppendChildWidget(&b.mouseOverlay)
-}
-
-func (b *Button) PropagateEvent(context *guigui.Context, event guigui.Event) (guigui.Event, bool) {
-	args, ok := event.(guigui.MouseEvent)
-	if !ok {
-		return nil, false
-	}
-	if !image.Pt(args.CursorPositionX, args.CursorPositionY).In(guigui.VisibleBounds(b)) {
-		return nil, false
-	}
-	var typ ButtonEventType
-	switch args.Type {
-	case guigui.MouseEventTypeDown:
-		typ = ButtonEventTypeDown
-	case guigui.MouseEventTypeUp:
-		typ = ButtonEventTypeUp
-	default:
-		return nil, false
-	}
-
-	return ButtonEvent{
-		Type: typ,
-	}, true
 }
 
 func (b *Button) CursorShape(context *guigui.Context) (ebiten.CursorShapeType, bool) {

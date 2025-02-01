@@ -23,17 +23,6 @@ import (
 	"github.com/hajimehoshi/guigui/internal/clipboard"
 )
 
-type TextEventType int
-
-const (
-	TextEventTypeEnterPressed TextEventType = iota
-)
-
-type TextEvent struct {
-	Type TextEventType
-	Text string
-}
-
 func isKeyRepeating(key ebiten.Key) bool {
 	d := inpututil.KeyPressDuration(key)
 	// In the current implementation of text, d == 1 might be skipped especially for backspace key.
@@ -90,6 +79,12 @@ type Text struct {
 	cachedWidth  int
 	cachedHeight int
 	initOnce     sync.Once
+
+	onEnterPressed func(text string)
+}
+
+func (t *Text) SetOnEnterPressed(f func(text string)) {
+	t.onEnterPressed = f
 }
 
 func (t *Text) resetCachedSize() {
@@ -394,10 +389,9 @@ func (t *Text) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 			}
 			t.applyFilter()
 			// TODO: This is not reached on browsers. Fix this.
-			guigui.EnqueueEvent(t, TextEvent{
-				Type: TextEventTypeEnterPressed,
-				Text: t.field.Text(),
-			})
+			if t.onEnterPressed != nil {
+				t.onEnterPressed(t.field.Text())
+			}
 		case isKeyRepeating(ebiten.KeyBackspace) ||
 			isDarwin && ebiten.IsKeyPressed(ebiten.KeyControl) && isKeyRepeating(ebiten.KeyH):
 			start, end := t.field.Selection()

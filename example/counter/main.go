@@ -39,6 +39,9 @@ func (r *Root) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppen
 
 	r.resetButton.SetText("Reset")
 	r.resetButton.SetWidth(6 * basicwidget.UnitSize(context))
+	r.resetButton.SetOnUp(func() {
+		r.counter = 0
+	})
 	{
 		p := guigui.Position(r)
 		_, h := r.Size(context)
@@ -50,6 +53,9 @@ func (r *Root) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppen
 
 	r.incButton.SetText("Increment")
 	r.incButton.SetWidth(6 * basicwidget.UnitSize(context))
+	r.incButton.SetOnUp(func() {
+		r.counter++
+	})
 	{
 		p := guigui.Position(r)
 		w, h := r.Size(context)
@@ -61,6 +67,9 @@ func (r *Root) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppen
 
 	r.decButton.SetText("Decrement")
 	r.decButton.SetWidth(6 * basicwidget.UnitSize(context))
+	r.decButton.SetOnUp(func() {
+		r.counter--
+	})
 	{
 		p := guigui.Position(r)
 		w, h := r.Size(context)
@@ -72,25 +81,6 @@ func (r *Root) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppen
 }
 
 func (r *Root) Update(context *guigui.Context) error {
-	for e := range guigui.DequeueEvents(&r.incButton) {
-		args := e.(basicwidget.ButtonEvent)
-		if args.Type == basicwidget.ButtonEventTypeUp {
-			r.counter++
-		}
-	}
-	for e := range guigui.DequeueEvents(&r.decButton) {
-		args := e.(basicwidget.ButtonEvent)
-		if args.Type == basicwidget.ButtonEventTypeUp {
-			r.counter--
-		}
-	}
-	for e := range guigui.DequeueEvents(&r.resetButton) {
-		args := e.(basicwidget.ButtonEvent)
-		if args.Type == basicwidget.ButtonEventTypeUp {
-			r.counter = 0
-		}
-	}
-
 	if r.counter == 0 {
 		guigui.Disable(&r.resetButton)
 	} else {

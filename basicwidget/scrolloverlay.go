@@ -48,11 +48,12 @@ type ScrollOverlay struct {
 	barVisibleTime int
 
 	contentSizeChanged bool
+
+	onScroll func(offsetX, offsetY float64)
 }
 
-type ScrollEvent struct {
-	OffsetX float64
-	OffsetY float64
+func (s *ScrollOverlay) SetOnScroll(f func(offsetX, offsetY float64)) {
+	s.onScroll = f
 }
 
 func (s *ScrollOverlay) Reset() {
@@ -176,10 +177,9 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context) guigui.HandleInputR
 			}
 			s.adjustOffset()
 			if prevOffsetX != s.offsetX || prevOffsetY != s.offsetY {
-				guigui.EnqueueEvent(s, ScrollEvent{
-					OffsetX: s.offsetX,
-					OffsetY: s.offsetY,
-				})
+				if s.onScroll != nil {
+					s.onScroll(s.offsetX, s.offsetY)
+				}
 				guigui.RequestRedraw(s)
 			}
 		}
@@ -202,10 +202,9 @@ func (s *ScrollOverlay) HandleInput(context *guigui.Context) guigui.HandleInputR
 		s.offsetY += dy * 4 * context.Scale()
 		s.adjustOffset()
 		if prevOffsetX != s.offsetX || prevOffsetY != s.offsetY {
-			guigui.EnqueueEvent(s, ScrollEvent{
-				OffsetX: s.offsetX,
-				OffsetY: s.offsetY,
-			})
+			if s.onScroll != nil {
+				s.onScroll(s.offsetX, s.offsetY)
+			}
 			guigui.RequestRedraw(s)
 			return guigui.HandleInputByWidget(s)
 		}

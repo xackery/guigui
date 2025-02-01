@@ -16,17 +16,12 @@ type DragDropOverlay struct {
 	guigui.DefaultWidget
 
 	object any
+
+	onDropped func(object any)
 }
 
-type DragDropOverlayEventType int
-
-const (
-	DragDropOverlayEventTypeDropped DragDropOverlayEventType = iota
-)
-
-type DragDropOverlayEvent struct {
-	Type   DragDropOverlayEventType
-	Object any
+func (d *DragDropOverlay) SetOnDropped(f func(object any)) {
+	d.onDropped = f
 }
 
 func (d *DragDropOverlay) IsDragging() bool {
@@ -41,10 +36,9 @@ func (d *DragDropOverlay) HandleInput(context *guigui.Context) guigui.HandleInpu
 	if d.object != nil {
 		if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
 			if image.Pt(ebiten.CursorPosition()).In(guigui.VisibleBounds(d)) {
-				guigui.EnqueueEvent(d, DragDropOverlayEvent{
-					Type:   DragDropOverlayEventTypeDropped,
-					Object: d.object,
-				})
+				if d.onDropped != nil {
+					d.onDropped(d.object)
+				}
 			}
 			d.object = nil
 			return guigui.HandleInputResult{}

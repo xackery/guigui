@@ -16,23 +16,28 @@ type MouseOverlay struct {
 	hovering      bool
 	pressingLeft  bool
 	pressingRight bool
+
+	onDown  func(mouseButton ebiten.MouseButton, cursorPosition image.Point)
+	onUp    func(mouseButton ebiten.MouseButton, cursorPosition image.Point)
+	onEnter func(cursorPosition image.Point)
+	onLeave func(cursorPosition image.Point)
 }
 
-type MouseEvent struct {
-	Type            MouseEventType
-	MouseButton     ebiten.MouseButton
-	CursorPositionX int
-	CursorPositionY int
+func (m *MouseOverlay) SetOnDown(f func(mouseButton ebiten.MouseButton, cursorPosition image.Point)) {
+	m.onDown = f
 }
 
-type MouseEventType int
+func (m *MouseOverlay) SetOnUp(f func(mouseButton ebiten.MouseButton, cursorPosition image.Point)) {
+	m.onUp = f
+}
 
-const (
-	MouseEventTypeDown MouseEventType = iota
-	MouseEventTypeUp
-	MouseEventTypeEnter
-	MouseEventTypeLeave
-)
+func (m *MouseOverlay) SetOnEnter(f func(cursorPosition image.Point)) {
+	m.onEnter = f
+}
+
+func (m *MouseOverlay) SetOnLeave(f func(cursorPosition image.Point)) {
+	m.onLeave = f
+}
 
 func (m *MouseOverlay) HandleInput(context *Context) HandleInputResult {
 	x, y := ebiten.CursorPosition()
@@ -104,22 +109,18 @@ func (m *MouseOverlay) setPressing(pressing bool, mouseButton ebiten.MouseButton
 	}
 
 	if IsEnabled(m) {
+		p := image.Pt(ebiten.CursorPosition())
+		if !p.In(VisibleBounds(Parent(m))) {
+			return
+		}
 		if pressing {
-			x, y := ebiten.CursorPosition()
-			EnqueueEvent(m, MouseEvent{
-				Type:            MouseEventTypeDown,
-				MouseButton:     mouseButton,
-				CursorPositionX: x,
-				CursorPositionY: y,
-			})
+			if m.onDown != nil {
+				m.onDown(mouseButton, p)
+			}
 		} else {
-			x, y := ebiten.CursorPosition()
-			EnqueueEvent(m, MouseEvent{
-				Type:            MouseEventTypeUp,
-				MouseButton:     mouseButton,
-				CursorPositionX: x,
-				CursorPositionY: y,
-			})
+			if m.onUp != nil {
+				m.onUp(mouseButton, p)
+			}
 		}
 	}
 
@@ -138,19 +139,18 @@ func (m *MouseOverlay) setHovering(hovering bool) {
 	}
 
 	if IsEnabled(m) {
-		x, y := ebiten.CursorPosition()
+		p := image.Pt(ebiten.CursorPosition())
+		if !p.In(VisibleBounds(Parent(m))) {
+			return
+		}
 		if hovering {
-			EnqueueEvent(m, MouseEvent{
-				Type:            MouseEventTypeEnter,
-				CursorPositionX: x,
-				CursorPositionY: y,
-			})
+			if m.onEnter != nil {
+				m.onEnter(p)
+			}
 		} else {
-			EnqueueEvent(m, MouseEvent{
-				Type:            MouseEventTypeLeave,
-				CursorPositionX: x,
-				CursorPositionY: y,
-			})
+			if m.onLeave != nil {
+				m.onLeave(p)
+			}
 		}
 	}
 

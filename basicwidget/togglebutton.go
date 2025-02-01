@@ -12,10 +12,6 @@ import (
 	"github.com/hajimehoshi/guigui"
 )
 
-type ToggleButtonEvent struct {
-	Value bool
-}
-
 type ToggleButton struct {
 	guigui.DefaultWidget
 
@@ -25,6 +21,8 @@ type ToggleButton struct {
 	onceRendered bool
 
 	count int
+
+	onValueChanged func(value bool)
 }
 
 func (t *ToggleButton) Value() bool {
@@ -41,6 +39,10 @@ func (t *ToggleButton) SetValue(value bool) {
 		t.count = toggleButtonMaxCount() - t.count
 	}
 	guigui.RequestRedraw(t)
+
+	if t.onValueChanged != nil {
+		t.onValueChanged(value)
+	}
 }
 
 func toggleButtonMaxCount() int {
@@ -48,20 +50,18 @@ func toggleButtonMaxCount() int {
 }
 
 func (t *ToggleButton) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	t.mouseOverlay.SetOnUp(func(mouseButton ebiten.MouseButton, cursorPosition image.Point) {
+		if mouseButton != ebiten.MouseButtonLeft {
+			return
+		}
+		t.SetValue(!t.value)
+	})
+
 	guigui.SetPosition(&t.mouseOverlay, guigui.Position(t))
 	appender.AppendChildWidget(&t.mouseOverlay)
 }
 
 func (t *ToggleButton) Update(context *guigui.Context) error {
-	for e := range guigui.DequeueEvents(&t.mouseOverlay) {
-		switch e := e.(type) {
-		case guigui.MouseEvent:
-			if e.Type == guigui.MouseEventTypeUp {
-				t.SetValue(!t.value)
-			}
-		}
-	}
-
 	if t.count > 0 {
 		t.count--
 		guigui.RequestRedraw(t)

@@ -137,8 +137,6 @@ func (a *app) Update() error {
 		ebiten.SetCursorShape(ebiten.CursorShapeDefault)
 	}
 
-	a.propagateEvents(a.root)
-
 	// Update
 	if err := a.updateWidget(a.root); err != nil {
 		return err
@@ -315,28 +313,6 @@ func (a *app) cursorShape(widget Widget) bool {
 	return true
 }
 
-func (a *app) propagateEvents(widget Widget) {
-	widgetState := widget.widgetState()
-	for _, child := range widgetState.children {
-		a.propagateEvents(child)
-	}
-
-	w, ok := widget.(EventPropagator)
-	if !ok {
-		return
-	}
-
-	for _, child := range widgetState.children {
-		for ev := range DequeueEvents(child) {
-			ev, ok = w.PropagateEvent(&a.context, ev)
-			if !ok {
-				continue
-			}
-			widgetState.enqueueEvent(ev)
-		}
-	}
-}
-
 func (a *app) updateWidget(widget Widget) error {
 	widgetState := widget.widgetState()
 	if err := widget.Update(&a.context); err != nil {
@@ -354,7 +330,6 @@ func (a *app) updateWidget(widget Widget) error {
 
 func clearEventQueues(widget Widget) {
 	widgetState := widget.widgetState()
-	widgetState.eventQueue.Clear()
 	for _, child := range widgetState.children {
 		clearEventQueues(child)
 	}
