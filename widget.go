@@ -44,40 +44,6 @@ func Parent(widget Widget) Widget {
 	return widget.widgetState().parent
 }
 
-type DefaultWidget struct {
-	widgetState_ widgetState
-}
-
-func (*DefaultWidget) Layout(context *Context, appender *ChildWidgetAppender) {
-}
-
-func (*DefaultWidget) HandleInput(context *Context) HandleInputResult {
-	return HandleInputResult{}
-}
-
-func (*DefaultWidget) Update(context *Context) error {
-	return nil
-}
-
-func (*DefaultWidget) CursorShape(context *Context) (ebiten.CursorShapeType, bool) {
-	return 0, false
-}
-
-func (*DefaultWidget) Draw(context *Context, dst *ebiten.Image) {
-}
-
-func (*DefaultWidget) IsPopup() bool {
-	return false
-}
-
-func (*DefaultWidget) Size(context *Context) (int, int) {
-	return int(16 * context.Scale()), int(16 * context.Scale())
-}
-
-func (d *DefaultWidget) widgetState() *widgetState {
-	return &d.widgetState_
-}
-
 type RootWidget struct {
 	DefaultWidget
 }
