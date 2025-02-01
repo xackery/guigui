@@ -13,10 +13,12 @@ import (
 type Popups struct {
 	guigui.DefaultWidget
 
-	group                      basicwidget.Group
-	blurBackgroundText         basicwidget.Text
-	blurBackgroundToggleButton basicwidget.ToggleButton
-	showButton                 basicwidget.TextButton
+	group                              basicwidget.Group
+	blurBackgroundText                 basicwidget.Text
+	blurBackgroundToggleButton         basicwidget.ToggleButton
+	closeByClickingOutsideText         basicwidget.Text
+	closeByClickingOutsideToggleButton basicwidget.ToggleButton
+	showButton                         basicwidget.TextButton
 
 	simplePopup            basicwidget.Popup
 	simplePopupTitleText   basicwidget.Text
@@ -25,6 +27,7 @@ type Popups struct {
 
 func (p *Popups) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	p.blurBackgroundText.SetText("Blur Background")
+	p.closeByClickingOutsideText.SetText("Close by Clicking Outside")
 	p.showButton.SetText("Show")
 	p.showButton.SetOnUp(func() {
 		p.simplePopup.Open()
@@ -60,6 +63,7 @@ func (p *Popups) Layout(context *guigui.Context, appender *guigui.ChildWidgetApp
 	})
 	p.simplePopup.SetContentBounds(contentBounds)
 	p.simplePopup.SetBackgroundBlurred(p.blurBackgroundToggleButton.Value())
+	p.simplePopup.SetCloseByClickingOutside(p.closeByClickingOutsideToggleButton.Value())
 
 	w, _ := p.Size(context)
 	p.group.SetWidth(context, w-int(1*u))
@@ -67,6 +71,10 @@ func (p *Popups) Layout(context *guigui.Context, appender *guigui.ChildWidgetApp
 		{
 			PrimaryWidget:   &p.blurBackgroundText,
 			SecondaryWidget: &p.blurBackgroundToggleButton,
+		},
+		{
+			PrimaryWidget:   &p.closeByClickingOutsideText,
+			SecondaryWidget: &p.closeByClickingOutsideToggleButton,
 		},
 		{
 			SecondaryWidget: &p.showButton,

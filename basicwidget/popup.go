@@ -31,10 +31,11 @@ type Popup struct {
 	content    popupContent
 	background popupBackground
 
-	opacity           int
-	showing           bool
-	hiding            bool
-	backgroundBlurred bool
+	opacity                int
+	showing                bool
+	hiding                 bool
+	backgroundBlurred      bool
+	closeByClickingOutside bool
 
 	initOnce sync.Once
 }
@@ -56,6 +57,10 @@ func (p *Popup) SetBackgroundBlurred(blurBackground bool) {
 	p.backgroundBlurred = blurBackground
 }
 
+func (p *Popup) SetCloseByClickingOutside(closeByClickingOutside bool) {
+	p.closeByClickingOutside = closeByClickingOutside
+}
+
 func (p *Popup) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
 	p.initOnce.Do(func() {
 		guigui.Hide(p)
@@ -66,18 +71,22 @@ func (p *Popup) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppe
 		appender.AppendChildWidget(&p.background)
 	}
 	appender.AppendChildWidget(&p.content)
-
 }
 
 func (p *Popup) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 	// As this editor is a modal dialog, do not let other widgets to handle inputs.
 	if image.Pt(ebiten.CursorPosition()).In(guigui.VisibleBounds(p)) {
-		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
-			guigui.Hide(p)
+		if p.closeByClickingOutside {
+			if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+				p.Close()
+				// Continue handling inputs so that clicking a right button can be handled by other widgets.
+				if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+					return guigui.HandleInputResult{}
+				}
+			}
 		}
-		return guigui.AbortHandlingInput()
 	}
-	return guigui.HandleInputResult{}
+	return guigui.AbortHandlingInput()
 }
 
 func (p *Popup) Open() {
@@ -145,7 +154,10 @@ func (p *popupContent) Layout(context *guigui.Context, appender *guigui.ChildWid
 }
 
 func (p *popupContent) HandleInput(context *guigui.Context) guigui.HandleInputResult {
-	return guigui.AbortHandlingInput()
+	if image.Pt(ebiten.CursorPosition()).In(guigui.VisibleBounds(p)) {
+		return guigui.AbortHandlingInput()
+	}
+	return guigui.HandleInputResult{}
 }
 
 func (p *popupContent) Draw(context *guigui.Context, dst *ebiten.Image) {
