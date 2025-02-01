@@ -19,7 +19,7 @@ type ToggleButtonEvent struct {
 type ToggleButton struct {
 	guigui.DefaultWidget
 
-	mouseEventHandler guigui.MouseEventHandler
+	mouseOverlay guigui.MouseOverlay
 
 	value        bool
 	onceRendered bool
@@ -48,12 +48,12 @@ func toggleButtonMaxCount() int {
 }
 
 func (t *ToggleButton) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	guigui.SetPosition(&t.mouseEventHandler, guigui.Position(t))
-	appender.AppendChildWidget(&t.mouseEventHandler)
+	guigui.SetPosition(&t.mouseOverlay, guigui.Position(t))
+	appender.AppendChildWidget(&t.mouseOverlay)
 }
 
 func (t *ToggleButton) Update(context *guigui.Context) error {
-	for e := range guigui.DequeueEvents(&t.mouseEventHandler) {
+	for e := range guigui.DequeueEvents(&t.mouseOverlay) {
 		switch e := e.(type) {
 		case guigui.MouseEvent:
 			if e.Type == guigui.MouseEventTypeUp {
@@ -70,7 +70,7 @@ func (t *ToggleButton) Update(context *guigui.Context) error {
 }
 
 func (t *ToggleButton) CursorShape(context *guigui.Context) (ebiten.CursorShapeType, bool) {
-	if guigui.IsEnabled(t) && t.mouseEventHandler.IsHovering() {
+	if guigui.IsEnabled(t) && t.mouseOverlay.IsHovering() {
 		return ebiten.CursorShapePointer, true
 	}
 	return 0, true
@@ -88,7 +88,7 @@ func (t *ToggleButton) Draw(context *guigui.Context, dst *ebiten.Image) {
 	if t.isActive() {
 		thumbColor = Color2(cm, ColorTypeBase, 0.95, 0.55)
 		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
-	} else if t.mouseEventHandler.IsHovering() && guigui.IsEnabled(&t.mouseEventHandler) {
+	} else if t.mouseOverlay.IsHovering() && guigui.IsEnabled(&t.mouseOverlay) {
 		thumbColor = Color2(cm, ColorTypeBase, 0.975, 0.575)
 		borderColor = Color2(cm, ColorTypeBase, 0.7, 0)
 	} else if !guigui.IsEnabled(t) {
@@ -135,7 +135,7 @@ func (t *ToggleButton) Draw(context *guigui.Context, dst *ebiten.Image) {
 }
 
 func (t *ToggleButton) isActive() bool {
-	return guigui.IsEnabled(t) && t.mouseEventHandler.IsHovering() && t.mouseEventHandler.IsPressing()
+	return guigui.IsEnabled(t) && t.mouseOverlay.IsHovering() && t.mouseOverlay.IsPressing()
 }
 
 func (t *ToggleButton) Size(context *guigui.Context) (int, int) {

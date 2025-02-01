@@ -10,7 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-type MouseEventHandler struct {
+type MouseOverlay struct {
 	DefaultWidget
 
 	hovering bool
@@ -33,7 +33,7 @@ const (
 	MouseEventTypeLeave
 )
 
-func (m *MouseEventHandler) HandleInput(context *Context) HandleInputResult {
+func (m *MouseOverlay) HandleInput(context *Context) HandleInputResult {
 	x, y := ebiten.CursorPosition()
 	m.setHovering(image.Pt(x, y).In(VisibleBounds(m)) && IsVisible(m))
 
@@ -65,18 +65,18 @@ func (m *MouseEventHandler) HandleInput(context *Context) HandleInputResult {
 	return HandleInputResult{}
 }
 
-func (m *MouseEventHandler) Update(context *Context) error {
+func (m *MouseOverlay) Update(context *Context) error {
 	if !IsVisible(m) {
 		m.setHovering(false)
 	}
 	return nil
 }
 
-func (m *MouseEventHandler) Size(context *Context) (int, int) {
+func (m *MouseOverlay) Size(context *Context) (int, int) {
 	return Parent(m).Size(context)
 }
 
-func (m *MouseEventHandler) setPressing(pressing bool) {
+func (m *MouseOverlay) setPressing(pressing bool) {
 	if m.pressing == pressing {
 		return
 	}
@@ -105,7 +105,7 @@ func (m *MouseEventHandler) setPressing(pressing bool) {
 	RequestRedraw(m)
 }
 
-func (m *MouseEventHandler) setHovering(hovering bool) {
+func (m *MouseOverlay) setHovering(hovering bool) {
 	if m.hovering == hovering {
 		return
 	}
@@ -131,10 +131,10 @@ func (m *MouseEventHandler) setHovering(hovering bool) {
 	RequestRedraw(m)
 }
 
-func (m *MouseEventHandler) IsPressing() bool {
+func (m *MouseOverlay) IsPressing() bool {
 	return m.pressing
 }
 
-func (m *MouseEventHandler) IsHovering() bool {
+func (m *MouseOverlay) IsHovering() bool {
 	return m.hovering
 }
