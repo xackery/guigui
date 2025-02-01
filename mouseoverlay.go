@@ -13,8 +13,9 @@ import (
 type MouseOverlay struct {
 	DefaultWidget
 
-	hovering bool
-	pressing bool
+	hovering      bool
+	pressingLeft  bool
+	pressingRight bool
 }
 
 type MouseEvent struct {
@@ -37,19 +38,30 @@ func (m *MouseOverlay) HandleInput(context *Context) HandleInputResult {
 	x, y := ebiten.CursorPosition()
 	m.setHovering(image.Pt(x, y).In(VisibleBounds(m)) && IsVisible(m))
 
-	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 		if !image.Pt(ebiten.CursorPosition()).In(VisibleBounds(m)) {
 			return HandleInputResult{}
 		}
 		if IsEnabled(m) {
-			m.setPressing(true)
+			if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+				m.setPressing(true, ebiten.MouseButtonLeft)
+			}
+			if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+				m.setPressing(true, ebiten.MouseButtonRight)
+			}
 		}
 		Focus(m)
 		return HandleInputByWidget(m)
 	}
 
-	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) && m.pressing {
-		m.setPressing(false)
+	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) && m.pressingLeft ||
+		inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonRight) && m.pressingRight {
+		if m.pressingLeft {
+			m.setPressing(false, ebiten.MouseButtonLeft)
+		}
+		if m.pressingRight {
+			m.setPressing(false, ebiten.MouseButtonRight)
+		}
 		if !image.Pt(ebiten.CursorPosition()).In(VisibleBounds(m)) {
 			return HandleInputResult{}
 		}
@@ -59,7 +71,10 @@ func (m *MouseOverlay) HandleInput(context *Context) HandleInputResult {
 	}
 
 	if !ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		m.setPressing(false)
+		m.setPressing(false, ebiten.MouseButtonLeft)
+	}
+	if !ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
+		m.setPressing(false, ebiten.MouseButtonRight)
 	}
 
 	return HandleInputResult{}
@@ -76,9 +91,16 @@ func (m *MouseOverlay) Size(context *Context) (int, int) {
 	return Parent(m).Size(context)
 }
 
-func (m *MouseOverlay) setPressing(pressing bool) {
-	if m.pressing == pressing {
-		return
+func (m *MouseOverlay) setPressing(pressing bool, mouseButton ebiten.MouseButton) {
+	switch mouseButton {
+	case ebiten.MouseButtonLeft:
+		if m.pressingLeft == pressing {
+			return
+		}
+	case ebiten.MouseButtonRight:
+		if m.pressingRight == pressing {
+			return
+		}
 	}
 
 	if IsEnabled(m) {
@@ -86,7 +108,7 @@ func (m *MouseOverlay) setPressing(pressing bool) {
 			x, y := ebiten.CursorPosition()
 			EnqueueEvent(m, MouseEvent{
 				Type:            MouseEventTypeDown,
-				MouseButton:     ebiten.MouseButtonLeft,
+				MouseButton:     mouseButton,
 				CursorPositionX: x,
 				CursorPositionY: y,
 			})
@@ -94,14 +116,19 @@ func (m *MouseOverlay) setPressing(pressing bool) {
 			x, y := ebiten.CursorPosition()
 			EnqueueEvent(m, MouseEvent{
 				Type:            MouseEventTypeUp,
-				MouseButton:     ebiten.MouseButtonLeft,
+				MouseButton:     mouseButton,
 				CursorPositionX: x,
 				CursorPositionY: y,
 			})
 		}
 	}
 
-	m.pressing = pressing
+	switch mouseButton {
+	case ebiten.MouseButtonLeft:
+		m.pressingLeft = pressing
+	case ebiten.MouseButtonRight:
+		m.pressingRight = pressing
+	}
 	RequestRedraw(m)
 }
 
@@ -132,7 +159,7 @@ func (m *MouseOverlay) setHovering(hovering bool) {
 }
 
 func (m *MouseOverlay) IsPressing() bool {
-	return m.pressing
+	return m.pressingLeft || m.pressingRight
 }
 
 func (m *MouseOverlay) IsHovering() bool {
