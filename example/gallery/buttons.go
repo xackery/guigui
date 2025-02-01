@@ -18,6 +18,8 @@ type Buttons struct {
 	textButton          basicwidget.TextButton
 	textImageButtonText basicwidget.Text
 	textImageButton     basicwidget.TextButton
+	toggleButtonText    basicwidget.Text
+	toggleButton        basicwidget.ToggleButton
 
 	err error
 }
@@ -33,6 +35,7 @@ func (b *Buttons) Layout(context *guigui.Context, appender *guigui.ChildWidgetAp
 		return
 	}
 	b.textImageButton.SetImage(img)
+	b.toggleButtonText.SetText("Toggle Button")
 
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := b.Size(context)
@@ -48,6 +51,10 @@ func (b *Buttons) Layout(context *guigui.Context, appender *guigui.ChildWidgetAp
 		{
 			PrimaryWidget:   &b.textImageButtonText,
 			SecondaryWidget: &b.textImageButton,
+		},
+		{
+			PrimaryWidget:   &b.toggleButtonText,
+			SecondaryWidget: &b.toggleButton,
 		},
 	})
 	appender.AppendChildWidget(&b.group)
