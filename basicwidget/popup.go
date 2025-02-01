@@ -20,16 +20,15 @@ func easeOutQuad(t float64) float64 {
 }
 
 func popupMaxOpacity() int {
-	return ebiten.TPS() / 6
+	return ebiten.TPS() / 10
 }
 
 type Popup struct {
 	guigui.DefaultWidget
 
-	//callback *PopupCallback
-
-	content    popupContent
 	background popupBackground
+	content    popupContent
+	frame      popupFrame
 
 	opacity                int
 	showing                bool
@@ -71,6 +70,8 @@ func (p *Popup) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppe
 		appender.AppendChildWidget(&p.background)
 	}
 	appender.AppendChildWidget(&p.content)
+	p.frame.popup = p
+	appender.AppendChildWidget(&p.frame)
 }
 
 func (p *Popup) HandleInput(context *guigui.Context) guigui.HandleInputResult {
@@ -163,7 +164,6 @@ func (p *popupContent) HandleInput(context *guigui.Context) guigui.HandleInputRe
 func (p *popupContent) Draw(context *guigui.Context, dst *ebiten.Image) {
 	bounds := guigui.Bounds(p)
 	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 1), RoundedCornerRadius(context))
-	DrawRoundedRectBorder(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.7), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeOutset)
 }
 
 func (p *popupContent) setSize(width, height int) {
@@ -173,6 +173,21 @@ func (p *popupContent) setSize(width, height int) {
 
 func (p *popupContent) Size(context *guigui.Context) (int, int) {
 	return p.width, p.height
+}
+
+type popupFrame struct {
+	guigui.DefaultWidget
+
+	popup *Popup
+}
+
+func (p *popupFrame) Draw(context *guigui.Context, dst *ebiten.Image) {
+	bounds := guigui.Bounds(&p.popup.content)
+	DrawRoundedRectBorder(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.7), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeOutset)
+}
+
+func (p *popupFrame) Size(context *guigui.Context) (int, int) {
+	return guigui.Parent(p).Size(context)
 }
 
 type popupBackground struct {

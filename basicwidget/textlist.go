@@ -187,7 +187,7 @@ func (t *TextList) Update(context *guigui.Context) error {
 	for i, item := range t.textListItemWidgets {
 		item.text.SetBold(item.textListItem.Header)
 		if guigui.HasFocusedChildWidget(t) && t.list.SelectedItemIndex() == i ||
-			(t.list.IsHoveringVisible() && t.list.HoveredItemIndex() == i) && item.selectable() {
+			(t.list.isHoveringVisible() && t.list.HoveredItemIndex() == i) && item.selectable() {
 			item.text.SetColor(DefaultActiveListItemTextColor(context))
 		} else if !item.selectable() && !item.textListItem.Header {
 			item.text.SetColor(DefaultDisabledListItemTextColor(context))

@@ -68,6 +68,8 @@ type List struct {
 	height              int
 	cachedDefaultWidth  int
 	cachedDefaultHeight int
+
+	onItemSelected func(index int)
 }
 
 // TODO: Use Minus1.
@@ -84,8 +86,12 @@ func listItemPadding(context *guigui.Context) int {
 	return UnitSize(context) / 4
 }
 
+func (l *List) SetOnItemSelected(f func(index int)) {
+	l.onItemSelected = f
+}
+
 func (l *List) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	if l.style != ListStyleSidebar {
+	if l.style != ListStyleSidebar && l.style != ListStyleMenu {
 		guigui.SetPosition(&l.listFrame, guigui.Position(l))
 		appender.AppendChildWidget(&l.listFrame)
 	}
@@ -171,9 +177,9 @@ func (l *List) SetSelectedItemIndex(index int) {
 	if changed {
 		guigui.RequestRedraw(l)
 	}
-	/*if index >= 0 && l.callback != nil && l.callback.OnItemSelected != nil {
-		l.callback.OnItemSelected(index)
-	}*/
+	if l.onItemSelected != nil {
+		l.onItemSelected(index)
+	}
 }
 
 func (l *List) JumpToItemIndex(index int) {
@@ -192,7 +198,9 @@ func (l *List) setHoveredItemIndex(index int) {
 		index = -1
 	}
 	l.hoveredItemIndex = index
-	// TODO: request redraw when rendering a hover effect.
+	if l.isHoveringVisible() {
+		guigui.RequestRedraw(l)
+	}
 }
 
 func (l *List) ShowItemBorders(show bool) {
@@ -203,7 +211,7 @@ func (l *List) ShowItemBorders(show bool) {
 	guigui.RequestRedraw(l)
 }
 
-func (l *List) IsHoveringVisible() bool {
+func (l *List) isHoveringVisible() bool {
 	return l.style == ListStyleMenu
 }
 
@@ -388,6 +396,9 @@ func (l *List) selectedItemColor(context *guigui.Context) color.Color {
 	if guigui.IsFocused(l) || l.style == ListStyleSidebar {
 		return Color(context.ColorMode(), ColorTypeAccent, 0.5)
 	}
+	if l.style == ListStyleMenu {
+		return nil
+	}
 	return Color(context.ColorMode(), ColorTypeBase, 0.8)
 }
 
@@ -395,7 +406,7 @@ func (l *List) Draw(context *guigui.Context, dst *ebiten.Image) {
 	if l.style != ListStyleSidebar {
 		clr := Color(context.ColorMode(), ColorTypeBase, 1)
 		if l.style == ListStyleMenu {
-			clr = Color(context.ColorMode(), ColorTypeBase, 0.8)
+			clr = Color(context.ColorMode(), ColorTypeBase, 0.95)
 		}
 		p := guigui.Position(l)
 		w, h := l.Size(context)
@@ -438,12 +449,16 @@ func (l *List) Draw(context *guigui.Context, dst *ebiten.Image) {
 		}
 	}
 
-	if l.IsHoveringVisible() && l.hoveredItemIndex >= 0 && l.hoveredItemIndex < len(l.items) && l.items[l.hoveredItemIndex].Selectable {
+	if l.isHoveringVisible() && l.hoveredItemIndex >= 0 && l.hoveredItemIndex < len(l.items) && l.items[l.hoveredItemIndex].Selectable {
 		r := l.itemRect(context, l.hoveredItemIndex)
 		r.Min.X -= RoundedCornerRadius(context)
 		r.Max.X += RoundedCornerRadius(context)
 		if r.Overlaps(guigui.VisibleBounds(l)) {
-			DrawRoundedRect(context, dst, r, Color(context.ColorMode(), ColorTypeBase, 0.9), RoundedCornerRadius(context))
+			clr := Color(context.ColorMode(), ColorTypeBase, 0.9)
+			if l.style == ListStyleMenu {
+				clr = Color(context.ColorMode(), ColorTypeAccent, 0.5)
+			}
+			DrawRoundedRect(context, dst, r, clr, RoundedCornerRadius(context))
 		}
 	}
 
