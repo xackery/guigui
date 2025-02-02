@@ -47,20 +47,20 @@ type List struct {
 	scrollOverlay   ScrollOverlay
 	dragDropOverlay DragDropOverlay
 
-	items                 []ListItem
-	selectedItemIndex     int
-	hoveredItemIndex      int
-	showItemBorders       bool
-	style                 ListStyle
-	lastSelectingItemTime time.Time
+	items                  []ListItem
+	selectedItemIndexPlus1 int
+	hoveredItemIndexPlus1  int
+	showItemBorders        bool
+	style                  ListStyle
+	lastSelectingItemTime  time.Time
 
-	indexToJump        int
-	dropSrcIndex       int
-	dropDstIndex       int
-	pressStartX        int
-	pressStartY        int
-	startPressingIndex int
-	startPressingLeft  bool
+	indexToJumpPlus1        int
+	dropSrcIndexPlus1       int
+	dropDstIndexPlus1       int
+	pressStartX             int
+	pressStartY             int
+	startPressingIndexPlus1 int
+	startPressingLeft       bool
 
 	widthSet            bool
 	heightSet           bool
@@ -71,16 +71,6 @@ type List struct {
 
 	onItemSelected func(index int)
 }
-
-// TODO: Use Minus1.
-/*l := &List{
-	selectedItemIndex:  -1,
-	hoveredItemIndex:   -1,
-	indexToJump:        -1,
-	dropSrcIndex:       -1,
-	dropDstIndex:       -1,
-	startPressingIndex: -1,
-}*/
 
 func listItemPadding(context *guigui.Context) int {
 	return UnitSize(context) / 4
@@ -121,10 +111,11 @@ func (l *List) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppen
 }
 
 func (l *List) SelectedItem() (ListItem, bool) {
-	if l.selectedItemIndex < 0 || l.selectedItemIndex >= len(l.items) {
+	idx := l.SelectedItemIndex()
+	if idx < 0 || idx >= len(l.items) {
 		return ListItem{}, false
 	}
-	return l.items[l.selectedItemIndex], true
+	return l.items[idx], true
 }
 
 func (l *List) ItemAt(index int) (ListItem, bool) {
@@ -135,11 +126,11 @@ func (l *List) ItemAt(index int) (ListItem, bool) {
 }
 
 func (l *List) SelectedItemIndex() int {
-	return l.selectedItemIndex
+	return l.selectedItemIndexPlus1 - 1
 }
 
 func (l *List) HoveredItemIndex() int {
-	return l.hoveredItemIndex
+	return l.hoveredItemIndexPlus1 - 1
 }
 
 func (l *List) SetItems(items []ListItem) {
@@ -172,11 +163,11 @@ func (l *List) SetSelectedItemIndex(index int) {
 	if index < 0 || index >= len(l.items) {
 		index = -1
 	}
-	changed := l.selectedItemIndex != index
-	l.selectedItemIndex = index
-	if changed {
-		guigui.RequestRedraw(l)
+	if l.SelectedItemIndex() == index {
+		return
 	}
+	l.selectedItemIndexPlus1 = index + 1
+	guigui.RequestRedraw(l)
 	if l.onItemSelected != nil {
 		l.onItemSelected(index)
 	}
@@ -186,18 +177,17 @@ func (l *List) JumpToItemIndex(index int) {
 	if index < 0 || index >= len(l.items) {
 		return
 	}
-	l.indexToJump = index
+	l.indexToJumpPlus1 = index + 1
 }
 
 func (l *List) setHoveredItemIndex(index int) {
-	if l.hoveredItemIndex == index {
-		return
-	}
-
 	if index < 0 || index >= len(l.items) {
 		index = -1
 	}
-	l.hoveredItemIndex = index
+	if l.HoveredItemIndex() == index {
+		return
+	}
+	l.hoveredItemIndexPlus1 = index + 1
 	if l.isHoveringVisible() {
 		guigui.RequestRedraw(l)
 	}
@@ -248,8 +238,8 @@ func (l *List) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 		}
 		l.scrollOverlay.SetOffsetByDelta(0, dy)
 		i := l.calcDropDstIndex(context)
-		if l.dropDstIndex != i {
-			l.dropDstIndex = i
+		if l.dropDstIndexPlus1-1 != i {
+			l.dropDstIndexPlus1 = i + 1
 			guigui.RequestRedraw(l)
 		}
 		return guigui.HandleInputByWidget(l)
@@ -257,16 +247,16 @@ func (l *List) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 
 	// Process dropping.
 	var dropped bool
-	if l.dropSrcIndex >= 0 && l.dropDstIndex >= 0 {
+	if l.dropSrcIndexPlus1 > 0 && l.dropDstIndexPlus1 > 0 {
 		dropped = true
 		/*if l.callback != nil && l.callback.OnItemDropped != nil {
 			l.callback.OnItemDropped(l.dropSrcIndex, l.dropDstIndex)
 		}*/
 	}
 
-	l.dropSrcIndex = -1
-	if l.dropDstIndex != -1 {
-		l.dropDstIndex = -1
+	l.dropSrcIndexPlus1 = 0
+	if l.dropDstIndexPlus1 != 0 {
+		l.dropDstIndexPlus1 = 0
 		guigui.RequestRedraw(l)
 	}
 
@@ -302,7 +292,7 @@ func (l *List) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 
 				wasFocused := guigui.IsFocused(l)
 				guigui.Focus(l)
-				if l.selectedItemIndex != index || !wasFocused {
+				if l.SelectedItemIndex() != index || !wasFocused {
 					l.SetSelectedItemIndex(index)
 					l.lastSelectingItemTime = time.Now()
 				}
@@ -314,29 +304,29 @@ func (l *List) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 						l.callback.OnContextMenu(index, x, y)
 					}*/
 				}
-				l.startPressingIndex = index
+				l.startPressingIndexPlus1 = index + 1
 				l.startPressingLeft = left
 
 			case ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft):
-				if l.items[index].Draggable && l.selectedItemIndex == index && l.startPressingIndex == index && (l.pressStartX != x || l.pressStartY != y) {
+				if l.items[index].Draggable && l.SelectedItemIndex() == index && l.startPressingIndexPlus1-1 == index && (l.pressStartX != x || l.pressStartY != y) {
 					l.dragDropOverlay.Start(index)
 				}
 
 			case inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft):
-				if l.selectedItemIndex == index && l.startPressingLeft && time.Since(l.lastSelectingItemTime) > 400*time.Millisecond {
+				if l.SelectedItemIndex() == index && l.startPressingLeft && time.Since(l.lastSelectingItemTime) > 400*time.Millisecond {
 					/*if l.callback != nil && l.callback.OnItemEditStarted != nil {
 						l.callback.OnItemEditStarted(index)
 					}*/
 				}
 				l.pressStartX = 0
 				l.pressStartY = 0
-				l.startPressingIndex = -1
+				l.startPressingIndexPlus1 = 0
 				l.startPressingLeft = false
 			}
 
 			return guigui.HandleInputByWidget(l)
 		}
-		l.dropSrcIndex = -1
+		l.dropSrcIndexPlus1 = 0
 		l.pressStartX = 0
 		l.pressStartY = 0
 	} else {
@@ -350,10 +340,11 @@ func (l *List) Update(context *guigui.Context) error {
 	w, _ := l.Size(context)
 	l.scrollOverlay.SetContentSize(w, l.defaultHeight(context))
 
-	if l.indexToJump >= 0 {
-		y := l.itemYFromIndex(context, l.indexToJump) - RoundedCornerRadius(context)
+	idx := l.indexToJumpPlus1 - 1
+	if idx >= 0 {
+		y := l.itemYFromIndex(context, idx) - RoundedCornerRadius(context)
 		l.scrollOverlay.SetOffset(0, float64(-y))
-		l.indexToJump = -1
+		l.indexToJumpPlus1 = 0
 	}
 
 	return nil
@@ -390,7 +381,7 @@ func (l *List) itemRect(context *guigui.Context, index int) image.Rectangle {
 }
 
 func (l *List) selectedItemColor(context *guigui.Context) color.Color {
-	if l.selectedItemIndex < 0 || l.selectedItemIndex >= len(l.items) {
+	if l.SelectedItemIndex() < 0 || l.SelectedItemIndex() >= len(l.items) {
 		return nil
 	}
 	if guigui.IsFocused(l) || l.style == ListStyleSidebar {
@@ -426,7 +417,7 @@ func (l *List) Draw(context *guigui.Context, dst *ebiten.Image) {
 		for i, item := range l.items {
 			_, ih := item.Content.Size(context)
 			y += float32(ih)
-			if i == l.selectedItemIndex || i+1 == l.selectedItemIndex {
+			if i == l.SelectedItemIndex() || i+1 == l.SelectedItemIndex() {
 				continue
 			}
 			if i == len(l.items)-1 {
@@ -440,8 +431,8 @@ func (l *List) Draw(context *guigui.Context, dst *ebiten.Image) {
 		}
 	}
 
-	if clr := l.selectedItemColor(context); clr != nil && l.selectedItemIndex >= 0 && l.selectedItemIndex < len(l.items) {
-		r := l.itemRect(context, l.selectedItemIndex)
+	if clr := l.selectedItemColor(context); clr != nil && l.SelectedItemIndex() >= 0 && l.SelectedItemIndex() < len(l.items) {
+		r := l.itemRect(context, l.SelectedItemIndex())
 		r.Min.X -= RoundedCornerRadius(context)
 		r.Max.X += RoundedCornerRadius(context)
 		if r.Overlaps(guigui.VisibleBounds(l)) {
@@ -449,8 +440,8 @@ func (l *List) Draw(context *guigui.Context, dst *ebiten.Image) {
 		}
 	}
 
-	if l.isHoveringVisible() && l.hoveredItemIndex >= 0 && l.hoveredItemIndex < len(l.items) && l.items[l.hoveredItemIndex].Selectable {
-		r := l.itemRect(context, l.hoveredItemIndex)
+	if l.isHoveringVisible() && l.HoveredItemIndex() >= 0 && l.HoveredItemIndex() < len(l.items) && l.items[l.HoveredItemIndex()].Selectable {
+		r := l.itemRect(context, l.HoveredItemIndex())
 		r.Min.X -= RoundedCornerRadius(context)
 		r.Max.X += RoundedCornerRadius(context)
 		if r.Overlaps(guigui.VisibleBounds(l)) {
@@ -474,13 +465,13 @@ func (l *List) Draw(context *guigui.Context, dst *ebiten.Image) {
 	}*/
 
 	// Draw a dragging guideline.
-	if l.dropDstIndex >= 0 {
+	if l.dropDstIndexPlus1 > 0 {
 		p := guigui.Position(l)
 		w, _ := l.Size(context)
 		x0 := float32(p.X) + float32(RoundedCornerRadius(context))
 		x1 := float32(p.X+w) - float32(RoundedCornerRadius(context))
 		y := float32(p.Y)
-		y += float32(l.itemYFromIndex(context, l.dropDstIndex))
+		y += float32(l.itemYFromIndex(context, l.dropDstIndexPlus1-1))
 		_, offsetY := l.scrollOverlay.Offset()
 		y += float32(offsetY)
 		vector.StrokeLine(dst, x0, y, x1, y, 2*float32(context.Scale()), Color(context.ColorMode(), ColorTypeBase, 0.1), false)

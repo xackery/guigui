@@ -5,6 +5,7 @@ package main
 
 import (
 	"image"
+	"sync"
 
 	"github.com/hajimehoshi/guigui"
 	"github.com/hajimehoshi/guigui/basicwidget"
@@ -16,6 +17,8 @@ type Sidebar struct {
 	sidebar         basicwidget.Sidebar
 	list            basicwidget.List
 	listItemWidgets []basicwidget.ListItem
+
+	initOnce sync.Once
 }
 
 func sidebarWidth(context *guigui.Context) int {
@@ -93,6 +96,10 @@ func (s *Sidebar) Layout(context *guigui.Context, appender *guigui.ChildWidgetAp
 		}
 	}
 	s.list.SetItems(s.listItemWidgets)
+
+	s.initOnce.Do(func() {
+		s.list.SetSelectedItemIndex(0)
+	})
 }
 
 func (s *Sidebar) Update(context *guigui.Context) error {
@@ -118,4 +125,8 @@ func (s *Sidebar) SelectedItemTag() string {
 		return ""
 	}
 	return item.Tag.(string)
+}
+
+func (s *Sidebar) SetSelectedItemIndex(index int) {
+	s.list.SetSelectedItemIndex(index)
 }
