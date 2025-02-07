@@ -212,6 +212,7 @@ func (a *app) Update() error {
 
 func (a *app) Draw(screen *ebiten.Image) {
 	a.drawWidget(screen)
+	a.drawDebugIfNeeded(screen)
 	a.invalidatedRegions = image.Rectangle{}
 	a.invalidatedWidgets = slices.Delete(a.invalidatedWidgets, 0, len(a.invalidatedWidgets))
 }
@@ -366,7 +367,6 @@ func (a *app) resetPrevWidgets(widget Widget) {
 }
 
 func (a *app) drawWidget(screen *ebiten.Image) {
-	origScreen := screen
 	if theDebugMode.showRenderingRegions {
 		if a.offscreen != nil {
 			if a.offscreen.Bounds().Dx() != screen.Bounds().Dx() || a.offscreen.Bounds().Dy() != screen.Bounds().Dy() {
@@ -383,32 +383,6 @@ func (a *app) drawWidget(screen *ebiten.Image) {
 	if !a.invalidatedRegions.Empty() {
 		dst := screen.SubImage(a.invalidatedRegions).(*ebiten.Image)
 		a.doDrawWidget(dst, a.root)
-	}
-
-	if theDebugMode.showRenderingRegions {
-		if a.debugScreen != nil {
-			if a.debugScreen.Bounds().Dx() != screen.Bounds().Dx() || a.debugScreen.Bounds().Dy() != screen.Bounds().Dy() {
-				a.debugScreen.Deallocate()
-				a.debugScreen = nil
-			}
-		}
-		if a.debugScreen == nil {
-			a.debugScreen = ebiten.NewImage(screen.Bounds().Dx(), screen.Bounds().Dy())
-		}
-
-		a.debugScreen.Clear()
-		for _, item := range a.invalidatedRegionsForDebug {
-			clr := oklab.OklchModel.Convert(color.RGBA{R: 0xff, G: 0x4b, B: 0x00, A: 0xff}).(oklab.Oklch)
-			clr.Alpha = float64(item.time) / float64(invalidatedRegionForDebugMaxTime())
-			if clr.Alpha > 0 {
-				w := float32(4 * a.context.Scale())
-				vector.StrokeRect(a.debugScreen, float32(item.region.Min.X)+w/2, float32(item.region.Min.Y)+w/2, float32(item.region.Dx())-w, float32(item.region.Dy())-w, w, clr, false)
-			}
-		}
-		op := &ebiten.DrawImageOptions{}
-		op.Blend = ebiten.BlendCopy
-		origScreen.DrawImage(a.offscreen, op)
-		origScreen.DrawImage(a.debugScreen, nil)
 	}
 }
 
@@ -444,4 +418,34 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget) {
 		op.ColorScale.ScaleAlpha(float32(widgetState.opacity()))
 		origDst.DrawImage(dst, op)
 	}
+}
+
+func (a *app) drawDebugIfNeeded(screen *ebiten.Image) {
+	if !theDebugMode.showRenderingRegions {
+		return
+	}
+
+	if a.debugScreen != nil {
+		if a.debugScreen.Bounds().Dx() != screen.Bounds().Dx() || a.debugScreen.Bounds().Dy() != screen.Bounds().Dy() {
+			a.debugScreen.Deallocate()
+			a.debugScreen = nil
+		}
+	}
+	if a.debugScreen == nil {
+		a.debugScreen = ebiten.NewImage(screen.Bounds().Dx(), screen.Bounds().Dy())
+	}
+
+	a.debugScreen.Clear()
+	for _, item := range a.invalidatedRegionsForDebug {
+		clr := oklab.OklchModel.Convert(color.RGBA{R: 0xff, G: 0x4b, B: 0x00, A: 0xff}).(oklab.Oklch)
+		clr.Alpha = float64(item.time) / float64(invalidatedRegionForDebugMaxTime())
+		if clr.Alpha > 0 {
+			w := float32(4 * a.context.Scale())
+			vector.StrokeRect(a.debugScreen, float32(item.region.Min.X)+w/2, float32(item.region.Min.Y)+w/2, float32(item.region.Dx())-w, float32(item.region.Dy())-w, w, clr, false)
+		}
+	}
+	op := &ebiten.DrawImageOptions{}
+	op.Blend = ebiten.BlendCopy
+	screen.DrawImage(a.offscreen, op)
+	screen.DrawImage(a.debugScreen, nil)
 }
