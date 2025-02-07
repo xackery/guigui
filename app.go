@@ -211,7 +211,8 @@ func (a *app) Update() error {
 }
 
 func (a *app) Draw(screen *ebiten.Image) {
-	a.drawWidget(screen)
+	a.drawWidget(screen, false)
+	a.drawWidget(screen, true)
 	a.drawDebugIfNeeded(screen)
 	a.invalidatedRegions = image.Rectangle{}
 	a.invalidatedWidgets = slices.Delete(a.invalidatedWidgets, 0, len(a.invalidatedWidgets))
@@ -366,7 +367,7 @@ func (a *app) resetPrevWidgets(widget Widget) {
 	}
 }
 
-func (a *app) drawWidget(screen *ebiten.Image) {
+func (a *app) drawWidget(screen *ebiten.Image, popup bool) {
 	if theDebugMode.showRenderingRegions {
 		if a.offscreen != nil {
 			if a.offscreen.Bounds().Dx() != screen.Bounds().Dx() || a.offscreen.Bounds().Dy() != screen.Bounds().Dy() {
@@ -382,11 +383,15 @@ func (a *app) drawWidget(screen *ebiten.Image) {
 
 	if !a.invalidatedRegions.Empty() {
 		dst := screen.SubImage(a.invalidatedRegions).(*ebiten.Image)
-		a.doDrawWidget(dst, a.root)
+		a.doDrawWidget(dst, a.root, popup, a.root.IsPopup())
 	}
 }
 
-func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget) {
+func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, popup bool, underPopup bool) {
+	if !popup && underPopup {
+		return
+	}
+
 	vb := VisibleBounds(widget)
 	if vb.Empty() {
 		return
@@ -401,22 +406,27 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget) {
 	}
 
 	var origDst *ebiten.Image
-	if widgetState.opacity() < 1 {
-		origDst = dst
-		dst = widgetState.ensureOffscreen(dst.Bounds())
-		dst.Clear()
+	renderCurrent := !popup || underPopup
+	if renderCurrent {
+		if widgetState.opacity() < 1 {
+			origDst = dst
+			dst = widgetState.ensureOffscreen(dst.Bounds())
+			dst.Clear()
+		}
+		widget.Draw(&a.context, dst.SubImage(vb).(*ebiten.Image))
 	}
-	widget.Draw(&a.context, dst.SubImage(vb).(*ebiten.Image))
 
 	for _, child := range widgetState.children {
-		a.doDrawWidget(dst, child)
+		a.doDrawWidget(dst, child, popup, underPopup || child.IsPopup())
 	}
 
-	if widgetState.opacity() < 1 {
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64(dst.Bounds().Min.X), float64(dst.Bounds().Min.Y))
-		op.ColorScale.ScaleAlpha(float32(widgetState.opacity()))
-		origDst.DrawImage(dst, op)
+	if renderCurrent {
+		if widgetState.opacity() < 1 {
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(dst.Bounds().Min.X), float64(dst.Bounds().Min.Y))
+			op.ColorScale.ScaleAlpha(float32(widgetState.opacity()))
+			origDst.DrawImage(dst, op)
+		}
 	}
 }
 
