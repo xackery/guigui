@@ -211,9 +211,22 @@ func (a *app) Update() error {
 }
 
 func (a *app) Draw(screen *ebiten.Image) {
+	origScreen := screen
+	if theDebugMode.showRenderingRegions {
+		if a.offscreen != nil {
+			if a.offscreen.Bounds().Dx() != screen.Bounds().Dx() || a.offscreen.Bounds().Dy() != screen.Bounds().Dy() {
+				a.offscreen.Deallocate()
+				a.offscreen = nil
+			}
+		}
+		if a.offscreen == nil {
+			a.offscreen = ebiten.NewImage(screen.Bounds().Dx(), screen.Bounds().Dy())
+		}
+		screen = a.offscreen
+	}
 	a.drawWidget(screen, false)
 	a.drawWidget(screen, true)
-	a.drawDebugIfNeeded(screen)
+	a.drawDebugIfNeeded(origScreen)
 	a.invalidatedRegions = image.Rectangle{}
 	a.invalidatedWidgets = slices.Delete(a.invalidatedWidgets, 0, len(a.invalidatedWidgets))
 }
@@ -368,23 +381,11 @@ func (a *app) resetPrevWidgets(widget Widget) {
 }
 
 func (a *app) drawWidget(screen *ebiten.Image, popup bool) {
-	if theDebugMode.showRenderingRegions {
-		if a.offscreen != nil {
-			if a.offscreen.Bounds().Dx() != screen.Bounds().Dx() || a.offscreen.Bounds().Dy() != screen.Bounds().Dy() {
-				a.offscreen.Deallocate()
-				a.offscreen = nil
-			}
-		}
-		if a.offscreen == nil {
-			a.offscreen = ebiten.NewImage(screen.Bounds().Dx(), screen.Bounds().Dy())
-		}
-		screen = a.offscreen
+	if a.invalidatedRegions.Empty() {
+		return
 	}
-
-	if !a.invalidatedRegions.Empty() {
-		dst := screen.SubImage(a.invalidatedRegions).(*ebiten.Image)
-		a.doDrawWidget(dst, a.root, popup, a.root.IsPopup())
-	}
+	dst := screen.SubImage(a.invalidatedRegions).(*ebiten.Image)
+	a.doDrawWidget(dst, a.root, popup, a.root.IsPopup())
 }
 
 func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, popup bool, underPopup bool) {
