@@ -224,8 +224,8 @@ func (a *app) Draw(screen *ebiten.Image) {
 		}
 		screen = a.offscreen
 	}
-	a.drawWidget(screen, false)
-	a.drawWidget(screen, true)
+	for level := 0; a.drawWidget(screen, level); level++ {
+	}
 	a.drawDebugIfNeeded(origScreen)
 	a.invalidatedRegions = image.Rectangle{}
 	a.invalidatedWidgets = slices.Delete(a.invalidatedWidgets, 0, len(a.invalidatedWidgets))
@@ -380,34 +380,38 @@ func (a *app) resetPrevWidgets(widget Widget) {
 	}
 }
 
-func (a *app) drawWidget(screen *ebiten.Image, popup bool) {
+func (a *app) drawWidget(screen *ebiten.Image, popupLevelToRender int) (needToRenderMore bool) {
 	if a.invalidatedRegions.Empty() {
-		return
+		return false
 	}
 	dst := screen.SubImage(a.invalidatedRegions).(*ebiten.Image)
-	a.doDrawWidget(dst, a.root, popup, a.root.IsPopup())
+	var level int
+	if a.root.IsPopup() {
+		level = 1
+	}
+	return a.doDrawWidget(dst, a.root, popupLevelToRender, level)
 }
 
-func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, popup bool, underPopup bool) {
-	if !popup && underPopup {
-		return
+func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, popupLevelToRender int, currentPopupLevel int) (needToRenderMore bool) {
+	if popupLevelToRender < currentPopupLevel {
+		return true
 	}
 
 	vb := VisibleBounds(widget)
 	if vb.Empty() {
-		return
+		return false
 	}
 
 	widgetState := widget.widgetState()
 	if widgetState.hidden {
-		return
+		return false
 	}
 	if widgetState.opacity() == 0 {
-		return
+		return false
 	}
 
 	var origDst *ebiten.Image
-	renderCurrent := !popup || underPopup
+	renderCurrent := popupLevelToRender == currentPopupLevel
 	if renderCurrent {
 		if widgetState.opacity() < 1 {
 			origDst = dst
@@ -418,7 +422,13 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, popup bool, underPo
 	}
 
 	for _, child := range widgetState.children {
-		a.doDrawWidget(dst, child, popup, underPopup || child.IsPopup())
+		l := currentPopupLevel
+		if child.IsPopup() {
+			l++
+		}
+		if a.doDrawWidget(dst, child, popupLevelToRender, l) {
+			needToRenderMore = true
+		}
 	}
 
 	if renderCurrent {
@@ -429,6 +439,8 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, popup bool, underPo
 			origDst.DrawImage(dst, op)
 		}
 	}
+
+	return needToRenderMore
 }
 
 func (a *app) drawDebugIfNeeded(screen *ebiten.Image) {
