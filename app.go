@@ -131,7 +131,7 @@ func (a *app) Update() error {
 
 	// HandleInput
 	// TODO: Handle this in Ebitengine's HandleInput in the future (hajimehoshi/ebiten#1704)
-	a.handleInputWidget(a.root)
+	a.handleInputWidget()
 
 	if !a.cursorShape(a.root) {
 		ebiten.SetCursorShape(ebiten.CursorShapeDefault)
@@ -285,7 +285,24 @@ func (a *app) doLayout(widget Widget) {
 	}
 }
 
-func (a *app) handleInputWidget(widget Widget) HandleInputResult {
+func (a *app) handleInputWidget() HandleInputResult {
+	var startPopupLevel int
+	if a.root.IsPopup() {
+		startPopupLevel = 1
+	}
+	for i := a.maxPopupLevel(); i >= 0; i-- {
+		if r := a.doHandleInputWidget(a.root, i, startPopupLevel); r.ShouldRaise() {
+			return r
+		}
+	}
+	return HandleInputResult{}
+}
+
+func (a *app) doHandleInputWidget(widget Widget, popupLevelToHandle int, currentPopupLevel int) HandleInputResult {
+	if popupLevelToHandle < currentPopupLevel {
+		return HandleInputResult{}
+	}
+
 	widgetState := widget.widgetState()
 	if widgetState.hidden {
 		return HandleInputResult{}
@@ -294,11 +311,18 @@ func (a *app) handleInputWidget(widget Widget) HandleInputResult {
 	// Iterate the children in the reverse order of rendering.
 	for i := len(widgetState.children) - 1; i >= 0; i-- {
 		child := widgetState.children[i]
-		if r := a.handleInputWidget(child); r.ShouldRaise() {
+		l := currentPopupLevel
+		if child.IsPopup() {
+			l++
+		}
+		if r := a.doHandleInputWidget(child, popupLevelToHandle, l); r.ShouldRaise() {
 			return r
 		}
 	}
 
+	if popupLevelToHandle != currentPopupLevel {
+		return HandleInputResult{}
+	}
 	return widget.HandleInput(&a.context)
 }
 
