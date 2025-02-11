@@ -205,6 +205,10 @@ func (l *List) isHoveringVisible() bool {
 	return l.style == ListStyleMenu
 }
 
+func (l *List) Style() ListStyle {
+	return l.style
+}
+
 func (l *List) SetStyle(style ListStyle) {
 	if l.style == style {
 		return
@@ -384,11 +388,11 @@ func (l *List) selectedItemColor(context *guigui.Context) color.Color {
 	if l.SelectedItemIndex() < 0 || l.SelectedItemIndex() >= len(l.items) {
 		return nil
 	}
-	if guigui.IsFocused(l) || l.style == ListStyleSidebar {
-		return Color(context.ColorMode(), ColorTypeAccent, 0.5)
-	}
 	if l.style == ListStyleMenu {
 		return nil
+	}
+	if guigui.IsFocused(l) || l.style == ListStyleSidebar {
+		return Color(context.ColorMode(), ColorTypeAccent, 0.5)
 	}
 	return Color(context.ColorMode(), ColorTypeBase, 0.8)
 }

@@ -76,7 +76,6 @@ func (p *PopupMenu) updateContentBounds(context *guigui.Context) {
 
 func (p *PopupMenu) Open(context *guigui.Context) {
 	p.updateContentBounds(context)
-	p.textList.SetSelectedItemIndex(-1)
 	p.popup.Open()
 }
 

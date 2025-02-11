@@ -186,7 +186,7 @@ func (t *TextList) MoveItem(from, to int) {
 func (t *TextList) Update(context *guigui.Context) error {
 	for i, item := range t.textListItemWidgets {
 		item.text.SetBold(item.textListItem.Header)
-		if guigui.HasFocusedChildWidget(t) && t.list.SelectedItemIndex() == i ||
+		if t.list.style != ListStyleMenu && guigui.HasFocusedChildWidget(t) && t.list.SelectedItemIndex() == i ||
 			(t.list.isHoveringVisible() && t.list.HoveredItemIndex() == i) && item.selectable() {
 			item.text.SetColor(DefaultActiveListItemTextColor(context))
 		} else if !item.selectable() && !item.textListItem.Header {
