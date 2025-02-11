@@ -127,7 +127,7 @@ func (a *app) Update() error {
 	a.context.setDeviceScale(ebiten.Monitor().DeviceScaleFactor())
 
 	// AppendChildWidgets
-	a.appendChildWidgets()
+	a.layout()
 
 	// HandleInput
 	// TODO: Handle this in Ebitengine's HandleInput in the future (hajimehoshi/ebiten#1704)
@@ -270,11 +270,11 @@ const (
 	WidgetTypePopup
 )
 
-func (a *app) appendChildWidgets() {
-	a.doAppendChildWidgets(a.root)
+func (a *app) layout() {
+	a.doLayout(a.root)
 }
 
-func (a *app) doAppendChildWidgets(widget Widget) {
+func (a *app) doLayout(widget Widget) {
 	widgetState := widget.widgetState()
 	widgetState.children = slices.Delete(widgetState.children, 0, len(widgetState.children))
 	widget.Layout(&a.context, &ChildWidgetAppender{
@@ -282,7 +282,7 @@ func (a *app) doAppendChildWidgets(widget Widget) {
 		widget: widget,
 	})
 	for _, child := range widgetState.children {
-		a.doAppendChildWidgets(child)
+		a.doLayout(child)
 	}
 }
 
