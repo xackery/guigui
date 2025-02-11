@@ -133,7 +133,7 @@ func (a *app) Update() error {
 	// TODO: Handle this in Ebitengine's HandleInput in the future (hajimehoshi/ebiten#1704)
 	a.handleInputWidget()
 
-	if !a.cursorShape(a.root) {
+	if !a.cursorShape() {
 		ebiten.SetCursorShape(ebiten.CursorShapeDefault)
 	}
 
@@ -326,7 +326,24 @@ func (a *app) doHandleInputWidget(widget Widget, popupLevelToHandle int, current
 	return widget.HandleInput(&a.context)
 }
 
-func (a *app) cursorShape(widget Widget) bool {
+func (a *app) cursorShape() bool {
+	var startPopupLevel int
+	if a.root.IsPopup() {
+		startPopupLevel = 1
+	}
+	for i := a.maxPopupLevel(); i >= 0; i-- {
+		if a.doCursorShape(a.root, i, startPopupLevel) {
+			return true
+		}
+	}
+	return false
+}
+
+func (a *app) doCursorShape(widget Widget, popupLevelToHandle int, currentPopupLevel int) bool {
+	if popupLevelToHandle < currentPopupLevel {
+		return false
+	}
+
 	widgetState := widget.widgetState()
 	if widgetState.hidden {
 		return false
@@ -335,14 +352,23 @@ func (a *app) cursorShape(widget Widget) bool {
 	// Iterate the children in the reverse order of rendering.
 	for i := len(widgetState.children) - 1; i >= 0; i-- {
 		child := widgetState.children[i]
-		if a.cursorShape(child) {
+		l := currentPopupLevel
+		if child.IsPopup() {
+			l++
+		}
+		if a.doCursorShape(child, popupLevelToHandle, l) {
 			return true
 		}
+	}
+
+	if popupLevelToHandle != currentPopupLevel {
+		return false
 	}
 
 	if !image.Pt(ebiten.CursorPosition()).In(VisibleBounds(widget)) {
 		return false
 	}
+
 	shape, ok := widget.CursorShape(&a.context)
 	if !ok {
 		return false
