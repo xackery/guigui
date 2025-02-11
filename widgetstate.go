@@ -257,3 +257,11 @@ func (w *widgetState) ensureOffscreen(bounds image.Rectangle) *ebiten.Image {
 	}
 	return w.offscreen.SubImage(bounds).(*ebiten.Image)
 }
+
+func traverseWidget(widget Widget, f func(widget Widget, push bool)) {
+	f(widget, true)
+	for _, child := range widget.widgetState().children {
+		traverseWidget(child, f)
+	}
+	f(widget, false)
+}
