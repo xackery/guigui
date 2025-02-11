@@ -126,6 +126,10 @@ func (p *Popup) Update(context *guigui.Context) error {
 	return nil
 }
 
+func (p *Popup) CursorShape(context *guigui.Context) (ebiten.CursorShapeType, bool) {
+	return ebiten.CursorShapeDefault, true
+}
+
 func (p *Popup) Size(context *guigui.Context) (int, int) {
 	return context.AppSize()
 }
