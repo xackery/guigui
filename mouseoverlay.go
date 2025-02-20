@@ -128,17 +128,15 @@ func (m *MouseOverlay) setPressing(pressing bool, mouseButton ebiten.MouseButton
 	}
 
 	if IsEnabled(m) {
-		p := image.Pt(ebiten.CursorPosition())
-		if !p.In(VisibleBounds(Parent(m))) {
-			return
-		}
-		if pressing {
-			if m.onDown != nil {
-				m.onDown(mouseButton, p)
-			}
-		} else {
-			if m.onUp != nil {
-				m.onUp(mouseButton, p)
+		if p := image.Pt(ebiten.CursorPosition()); p.In(VisibleBounds(Parent(m))) {
+			if pressing {
+				if m.onDown != nil {
+					m.onDown(mouseButton, p)
+				}
+			} else {
+				if m.onUp != nil {
+					m.onUp(mouseButton, p)
+				}
 			}
 		}
 	}
@@ -158,17 +156,15 @@ func (m *MouseOverlay) setHovering(hovering bool) {
 	}
 
 	if IsEnabled(m) {
-		p := image.Pt(ebiten.CursorPosition())
-		if !p.In(VisibleBounds(Parent(m))) {
-			return
-		}
-		if hovering {
-			if m.onEnter != nil {
-				m.onEnter(p)
-			}
-		} else {
-			if m.onLeave != nil {
-				m.onLeave(p)
+		if p := image.Pt(ebiten.CursorPosition()); p.In(VisibleBounds(Parent(m))) {
+			if hovering {
+				if m.onEnter != nil {
+					m.onEnter(p)
+				}
+			} else {
+				if m.onLeave != nil {
+					m.onLeave(p)
+				}
 			}
 		}
 	}
