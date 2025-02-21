@@ -7,6 +7,8 @@ import (
 	"image"
 	"sync"
 
+	"golang.org/x/text/language"
+
 	"github.com/hajimehoshi/guigui"
 	"github.com/hajimehoshi/guigui/basicwidget"
 )
@@ -18,7 +20,7 @@ type Settings struct {
 	colorModeText         basicwidget.Text
 	colorModeDropdownList basicwidget.DropdownList
 	localeText            basicwidget.Text
-	localeSelector        basicwidget.Text
+	localeDropdownList    basicwidget.DropdownList
 
 	initOnce sync.Once
 }
@@ -34,6 +36,15 @@ func (s *Settings) Layout(context *guigui.Context, appender *guigui.ChildWidgetA
 			context.SetColorMode(guigui.ColorModeDark)
 		}
 	})
+
+	s.localeText.SetText("Locale")
+	langs := []string{"en", "ja", "ko", "zh-Hans", "zh-Hant"}
+	s.localeDropdownList.SetItemsByStrings(langs)
+	s.localeDropdownList.SetOnValueChanged(func(index int) {
+		lang := language.MustParse(langs[index])
+		context.SetAppLocales([]language.Tag{lang})
+	})
+
 	s.initOnce.Do(func() {
 		switch context.ColorMode() {
 		case guigui.ColorModeLight:
@@ -41,11 +52,9 @@ func (s *Settings) Layout(context *guigui.Context, appender *guigui.ChildWidgetA
 		case guigui.ColorModeDark:
 			s.colorModeDropdownList.SetSelectedItemIndex(1)
 		}
-	})
 
-	s.localeText.SetText("Locale")
-	// TODO: Make this a selector
-	s.localeSelector.SetText("(TODO)")
+		s.localeDropdownList.SetSelectedItemIndex(0)
+	})
 
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := s.Size(context)
@@ -57,7 +66,7 @@ func (s *Settings) Layout(context *guigui.Context, appender *guigui.ChildWidgetA
 		},
 		{
 			PrimaryWidget:   &s.localeText,
-			SecondaryWidget: &s.localeSelector,
+			SecondaryWidget: &s.localeDropdownList,
 		},
 	})
 	{
