@@ -20,9 +20,11 @@ type GroupItem struct {
 type Group struct {
 	guigui.DefaultWidget
 
-	items []*GroupItem
-
+	items             []*GroupItem
 	widthMinusDefault int
+
+	primaryBounds   []image.Rectangle
+	secondaryBounds []image.Rectangle
 }
 
 func groupItemPadding(context *guigui.Context) (int, int) {
@@ -35,60 +37,75 @@ func (g *Group) SetItems(items []*GroupItem) {
 }
 
 func (g *Group) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	g.calcItemBounds(context)
+
 	for i, item := range g.items {
+		g.primaryBounds = append(g.primaryBounds, image.Rectangle{})
+		g.secondaryBounds = append(g.secondaryBounds, image.Rectangle{})
+
 		if item.PrimaryWidget == nil && item.SecondaryWidget == nil {
 			continue
 		}
+
 		if item.PrimaryWidget != nil {
-			bounds := g.itemBounds(context, i)
-			guigui.SetPosition(item.PrimaryWidget, bounds.Min)
+			guigui.SetPosition(item.PrimaryWidget, g.primaryBounds[i].Min)
 			appender.AppendChildWidget(item.PrimaryWidget)
 		}
 		if item.SecondaryWidget != nil {
-			bounds := g.itemBounds(context, i)
-			w, _ := item.SecondaryWidget.Size(context)
-			bounds.Min.X = bounds.Max.X - w
-			guigui.SetPosition(item.SecondaryWidget, bounds.Min)
+			guigui.SetPosition(item.SecondaryWidget, g.secondaryBounds[i].Min)
 			appender.AppendChildWidget(item.SecondaryWidget)
 		}
 	}
 }
 
-func (g *Group) itemBounds(context *guigui.Context, childIndex int) image.Rectangle {
+func (g *Group) calcItemBounds(context *guigui.Context) {
+	g.primaryBounds = slices.Delete(g.primaryBounds, 0, len(g.primaryBounds))
+	g.secondaryBounds = slices.Delete(g.secondaryBounds, 0, len(g.secondaryBounds))
+
 	paddingX, paddingY := groupItemPadding(context)
 
 	var y int
 	for i, item := range g.items {
-		if i > childIndex {
-			return image.Rectangle{}
-		}
+		g.primaryBounds = append(g.primaryBounds, image.Rectangle{})
+		g.secondaryBounds = append(g.secondaryBounds, image.Rectangle{})
+
 		if item.PrimaryWidget == nil && item.SecondaryWidget == nil {
 			continue
 		}
 		if !guigui.IsVisible(item.SecondaryWidget) {
 			continue
 		}
-		var kh int
-		var vh int
+
+		var primaryH int
+		var secondaryH int
 		if item.PrimaryWidget != nil {
-			_, kh = item.PrimaryWidget.Size(context)
+			_, primaryH = item.PrimaryWidget.Size(context)
 		}
 		if item.SecondaryWidget != nil {
-			_, vh = item.SecondaryWidget.Size(context)
+			_, secondaryH = item.SecondaryWidget.Size(context)
 		}
-		h := max(kh, vh, g.minItemHeight(context))
-		if i == childIndex {
-			bounds := guigui.Bounds(g)
-			bounds.Min.X += paddingX
-			bounds.Max.X -= paddingX
-			bounds.Min.Y += y + paddingY
-			bounds.Max.Y = bounds.Min.Y + h
-			return bounds
+		h := max(primaryH, secondaryH, g.minItemHeight(context))
+		baseBounds := guigui.Bounds(g)
+		baseBounds.Min.X += paddingX
+		baseBounds.Max.X -= paddingX
+		baseBounds.Min.Y += y + paddingY
+		baseBounds.Max.Y = baseBounds.Min.Y + h
+
+		if item.PrimaryWidget != nil {
+			bounds := baseBounds
+			w, _ := item.PrimaryWidget.Size(context)
+			bounds.Max.X = bounds.Min.X + w
+			g.primaryBounds[i] = bounds
 		}
+		if item.SecondaryWidget != nil {
+			bounds := baseBounds
+			w, _ := item.SecondaryWidget.Size(context)
+			bounds.Min.X = bounds.Max.X - w
+			g.secondaryBounds[i] = bounds
+		}
+
 		y += h + 2*paddingY
 	}
-
-	return image.Rectangle{}
 }
 
 func (g *Group) Draw(context *guigui.Context, dst *ebiten.Image) {
@@ -98,11 +115,22 @@ func (g *Group) Draw(context *guigui.Context, dst *ebiten.Image) {
 
 	if len(g.items) > 0 {
 		paddingX, paddingY := groupItemPadding(context)
-		for i := range g.items[:len(g.items)-1] {
-			b := g.itemBounds(context, i)
+		y := paddingY
+		for _, item := range g.items[:len(g.items)-1] {
+			var primaryH int
+			var secondaryH int
+			if item.PrimaryWidget != nil {
+				_, primaryH = item.PrimaryWidget.Size(context)
+			}
+			if item.SecondaryWidget != nil {
+				_, secondaryH = item.SecondaryWidget.Size(context)
+			}
+			h := max(primaryH, secondaryH, g.minItemHeight(context))
+			y += h + 2*paddingY
+
 			x0 := float32(bounds.Min.X + paddingX)
 			x1 := float32(bounds.Max.X - paddingX)
-			y := float32(b.Max.Y) + float32(paddingY)
+			y := float32(y) + float32(paddingY)
 			width := 1 * float32(context.Scale())
 			clr := Color(context.ColorMode(), ColorTypeBase, 0.875)
 			vector.StrokeLine(dst, x0, y, x1, y, width, clr, false)
@@ -133,15 +161,15 @@ func (g *Group) height(context *guigui.Context) int {
 			(item.SecondaryWidget == nil || !guigui.IsVisible(item.SecondaryWidget)) {
 			continue
 		}
-		var kh int
-		var vh int
+		var primaryH int
+		var secondaryH int
 		if item.PrimaryWidget != nil {
-			_, kh = item.PrimaryWidget.Size(context)
+			_, primaryH = item.PrimaryWidget.Size(context)
 		}
 		if item.SecondaryWidget != nil {
-			_, vh = item.SecondaryWidget.Size(context)
+			_, secondaryH = item.SecondaryWidget.Size(context)
 		}
-		h := max(kh, vh, g.minItemHeight(context))
+		h := max(primaryH, secondaryH, g.minItemHeight(context))
 		y += h + 2*paddingY
 	}
 	return y
