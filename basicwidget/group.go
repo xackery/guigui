@@ -88,19 +88,31 @@ func (g *Group) calcItemBounds(context *guigui.Context) {
 		baseBounds := guigui.Bounds(g)
 		baseBounds.Min.X += paddingX
 		baseBounds.Max.X -= paddingX
-		baseBounds.Min.Y += y + paddingY
+		baseBounds.Min.Y += y
 		baseBounds.Max.Y = baseBounds.Min.Y + h
 
 		if item.PrimaryWidget != nil {
 			bounds := baseBounds
-			w, _ := item.PrimaryWidget.Size(context)
-			bounds.Max.X = bounds.Min.X + w
+			ww, wh := item.PrimaryWidget.Size(context)
+			bounds.Max.X = bounds.Min.X + ww
+			pY := (h + 2*paddingY - wh) / 2
+			if wh < UnitSize(context)+2*paddingY {
+				pY = min(pY, max(0, (UnitSize(context)+2*paddingY-wh)/2))
+			}
+			bounds.Min.Y += pY
+			bounds.Max.Y += pY
 			g.primaryBounds[i] = bounds
 		}
 		if item.SecondaryWidget != nil {
 			bounds := baseBounds
-			w, _ := item.SecondaryWidget.Size(context)
-			bounds.Min.X = bounds.Max.X - w
+			ww, wh := item.SecondaryWidget.Size(context)
+			bounds.Min.X = bounds.Max.X - ww
+			pY := (h + 2*paddingY - wh) / 2
+			if wh < UnitSize(context)+2*paddingY {
+				pY = min(pY, (UnitSize(context)+2*paddingY-wh)/2)
+			}
+			bounds.Min.Y += pY
+			bounds.Max.Y += pY
 			g.secondaryBounds[i] = bounds
 		}
 
