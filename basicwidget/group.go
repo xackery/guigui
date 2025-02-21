@@ -76,7 +76,7 @@ func (g *Group) itemBounds(context *guigui.Context, childIndex int) image.Rectan
 		if item.SecondaryWidget != nil {
 			_, vh = item.SecondaryWidget.Size(context)
 		}
-		h := max(kh, vh, int(LineHeight(context)))
+		h := max(kh, vh, g.minItemHeight(context))
 		if i == childIndex {
 			bounds := guigui.Bounds(g)
 			bounds.Min.X += paddingX
@@ -141,8 +141,12 @@ func (g *Group) height(context *guigui.Context) int {
 		if item.SecondaryWidget != nil {
 			_, vh = item.SecondaryWidget.Size(context)
 		}
-		h := max(kh, vh, int(LineHeight(context)))
+		h := max(kh, vh, g.minItemHeight(context))
 		y += h + 2*paddingY
 	}
 	return y
+}
+
+func (g *Group) minItemHeight(context *guigui.Context) int {
+	return UnitSize(context)
 }
