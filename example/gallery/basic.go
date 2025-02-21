@@ -13,7 +13,7 @@ import (
 type Basic struct {
 	guigui.DefaultWidget
 
-	group            basicwidget.Group
+	form             basicwidget.Form
 	textButtonText   basicwidget.Text
 	textButton       basicwidget.TextButton
 	toggleButtonText basicwidget.Text
@@ -31,8 +31,8 @@ func (b *Basic) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppe
 
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := b.Size(context)
-	b.group.SetWidth(context, w-int(1*u))
-	b.group.SetItems([]*basicwidget.GroupItem{
+	b.form.SetWidth(context, w-int(1*u))
+	b.form.SetItems([]*basicwidget.FormItem{
 		{
 			PrimaryWidget:   &b.textButtonText,
 			SecondaryWidget: &b.textButton,
@@ -48,8 +48,8 @@ func (b *Basic) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppe
 	})
 	{
 		p := guigui.Position(b).Add(image.Pt(int(0.5*u), int(0.5*u)))
-		guigui.SetPosition(&b.group, p)
-		appender.AppendChildWidget(&b.group)
+		guigui.SetPosition(&b.form, p)
+		appender.AppendChildWidget(&b.form)
 	}
 }
 

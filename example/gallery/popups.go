@@ -16,7 +16,7 @@ import (
 type Popups struct {
 	guigui.DefaultWidget
 
-	groups                             [2]basicwidget.Group
+	forms                              [2]basicwidget.Form
 	blurBackgroundText                 basicwidget.Text
 	blurBackgroundToggleButton         basicwidget.ToggleButton
 	closeByClickingOutsideText         basicwidget.Text
@@ -44,8 +44,8 @@ func (p *Popups) Layout(context *guigui.Context, appender *guigui.ChildWidgetApp
 	u := float64(basicwidget.UnitSize(context))
 
 	w, _ := p.Size(context)
-	p.groups[0].SetWidth(context, w-int(1*u))
-	p.groups[0].SetItems([]*basicwidget.GroupItem{
+	p.forms[0].SetWidth(context, w-int(1*u))
+	p.forms[0].SetItems([]*basicwidget.FormItem{
 		{
 			PrimaryWidget:   &p.blurBackgroundText,
 			SecondaryWidget: &p.blurBackgroundToggleButton,
@@ -59,23 +59,23 @@ func (p *Popups) Layout(context *guigui.Context, appender *guigui.ChildWidgetApp
 		},
 	})
 	pt := guigui.Position(p).Add(image.Pt(int(0.5*u), int(0.5*u)))
-	guigui.SetPosition(&p.groups[0], pt)
-	appender.AppendChildWidget(&p.groups[0])
+	guigui.SetPosition(&p.forms[0], pt)
+	appender.AppendChildWidget(&p.forms[0])
 
 	p.contextMenuPopupText.SetText("Context Menu")
 	p.contextMenuPopupClickHereText.SetText("Click Here by the Right Button")
 
-	p.groups[1].SetWidth(context, w-int(1*u))
-	p.groups[1].SetItems([]*basicwidget.GroupItem{
+	p.forms[1].SetWidth(context, w-int(1*u))
+	p.forms[1].SetItems([]*basicwidget.FormItem{
 		{
 			PrimaryWidget:   &p.contextMenuPopupText,
 			SecondaryWidget: &p.contextMenuPopupClickHereText,
 		},
 	})
-	_, h := p.groups[0].Size(context)
+	_, h := p.forms[0].Size(context)
 	pt.Y += h + int(0.5*u)
-	guigui.SetPosition(&p.groups[1], pt)
-	appender.AppendChildWidget(&p.groups[1])
+	guigui.SetPosition(&p.forms[1], pt)
+	appender.AppendChildWidget(&p.forms[1])
 
 	contentWidth := int(12 * u)
 	contentHeight := int(6 * u)

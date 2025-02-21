@@ -16,7 +16,7 @@ import (
 type Settings struct {
 	guigui.DefaultWidget
 
-	group                 basicwidget.Group
+	form                  basicwidget.Form
 	colorModeText         basicwidget.Text
 	colorModeDropdownList basicwidget.DropdownList
 	localeText            basicwidget.Text
@@ -62,8 +62,8 @@ func (s *Settings) Layout(context *guigui.Context, appender *guigui.ChildWidgetA
 
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := s.Size(context)
-	s.group.SetWidth(context, w-int(1*u))
-	s.group.SetItems([]*basicwidget.GroupItem{
+	s.form.SetWidth(context, w-int(1*u))
+	s.form.SetItems([]*basicwidget.FormItem{
 		{
 			PrimaryWidget:   &s.colorModeText,
 			SecondaryWidget: &s.colorModeDropdownList,
@@ -75,8 +75,8 @@ func (s *Settings) Layout(context *guigui.Context, appender *guigui.ChildWidgetA
 	})
 	{
 		p := guigui.Position(s).Add(image.Pt(int(0.5*u), int(0.5*u)))
-		guigui.SetPosition(&s.group, p)
-		appender.AppendChildWidget(&s.group)
+		guigui.SetPosition(&s.form, p)
+		appender.AppendChildWidget(&s.form)
 	}
 }
 

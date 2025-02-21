@@ -12,62 +12,62 @@ import (
 	"github.com/hajimehoshi/guigui"
 )
 
-type GroupItem struct {
+type FormItem struct {
 	PrimaryWidget   guigui.Widget
 	SecondaryWidget guigui.Widget
 }
 
-type Group struct {
+type Form struct {
 	guigui.DefaultWidget
 
-	items             []*GroupItem
+	items             []*FormItem
 	widthMinusDefault int
 
 	primaryBounds   []image.Rectangle
 	secondaryBounds []image.Rectangle
 }
 
-func groupItemPadding(context *guigui.Context) (int, int) {
+func formItemPadding(context *guigui.Context) (int, int) {
 	return UnitSize(context) / 2, UnitSize(context) / 4
 }
 
-func (g *Group) SetItems(items []*GroupItem) {
-	g.items = slices.Delete(g.items, 0, len(g.items))
-	g.items = append(g.items, items...)
+func (f *Form) SetItems(items []*FormItem) {
+	f.items = slices.Delete(f.items, 0, len(f.items))
+	f.items = append(f.items, items...)
 }
 
-func (g *Group) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
-	g.calcItemBounds(context)
+func (f *Form) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
+	f.calcItemBounds(context)
 
-	for i, item := range g.items {
-		g.primaryBounds = append(g.primaryBounds, image.Rectangle{})
-		g.secondaryBounds = append(g.secondaryBounds, image.Rectangle{})
+	for i, item := range f.items {
+		f.primaryBounds = append(f.primaryBounds, image.Rectangle{})
+		f.secondaryBounds = append(f.secondaryBounds, image.Rectangle{})
 
 		if item.PrimaryWidget == nil && item.SecondaryWidget == nil {
 			continue
 		}
 
 		if item.PrimaryWidget != nil {
-			guigui.SetPosition(item.PrimaryWidget, g.primaryBounds[i].Min)
+			guigui.SetPosition(item.PrimaryWidget, f.primaryBounds[i].Min)
 			appender.AppendChildWidget(item.PrimaryWidget)
 		}
 		if item.SecondaryWidget != nil {
-			guigui.SetPosition(item.SecondaryWidget, g.secondaryBounds[i].Min)
+			guigui.SetPosition(item.SecondaryWidget, f.secondaryBounds[i].Min)
 			appender.AppendChildWidget(item.SecondaryWidget)
 		}
 	}
 }
 
-func (g *Group) calcItemBounds(context *guigui.Context) {
-	g.primaryBounds = slices.Delete(g.primaryBounds, 0, len(g.primaryBounds))
-	g.secondaryBounds = slices.Delete(g.secondaryBounds, 0, len(g.secondaryBounds))
+func (f *Form) calcItemBounds(context *guigui.Context) {
+	f.primaryBounds = slices.Delete(f.primaryBounds, 0, len(f.primaryBounds))
+	f.secondaryBounds = slices.Delete(f.secondaryBounds, 0, len(f.secondaryBounds))
 
-	paddingX, paddingY := groupItemPadding(context)
+	paddingX, paddingY := formItemPadding(context)
 
 	var y int
-	for i, item := range g.items {
-		g.primaryBounds = append(g.primaryBounds, image.Rectangle{})
-		g.secondaryBounds = append(g.secondaryBounds, image.Rectangle{})
+	for i, item := range f.items {
+		f.primaryBounds = append(f.primaryBounds, image.Rectangle{})
+		f.secondaryBounds = append(f.secondaryBounds, image.Rectangle{})
 
 		if item.PrimaryWidget == nil && item.SecondaryWidget == nil {
 			continue
@@ -84,8 +84,8 @@ func (g *Group) calcItemBounds(context *guigui.Context) {
 		if item.SecondaryWidget != nil {
 			_, secondaryH = item.SecondaryWidget.Size(context)
 		}
-		h := max(primaryH, secondaryH, g.minItemHeight(context))
-		baseBounds := guigui.Bounds(g)
+		h := max(primaryH, secondaryH, minFormItemHeight(context))
+		baseBounds := guigui.Bounds(f)
 		baseBounds.Min.X += paddingX
 		baseBounds.Max.X -= paddingX
 		baseBounds.Min.Y += y
@@ -101,7 +101,7 @@ func (g *Group) calcItemBounds(context *guigui.Context) {
 			}
 			bounds.Min.Y += pY
 			bounds.Max.Y += pY
-			g.primaryBounds[i] = bounds
+			f.primaryBounds[i] = bounds
 		}
 		if item.SecondaryWidget != nil {
 			bounds := baseBounds
@@ -113,22 +113,22 @@ func (g *Group) calcItemBounds(context *guigui.Context) {
 			}
 			bounds.Min.Y += pY
 			bounds.Max.Y += pY
-			g.secondaryBounds[i] = bounds
+			f.secondaryBounds[i] = bounds
 		}
 
 		y += h + 2*paddingY
 	}
 }
 
-func (g *Group) Draw(context *guigui.Context, dst *ebiten.Image) {
-	bounds := guigui.Bounds(g)
-	bounds.Max.Y = bounds.Min.Y + g.height(context)
+func (f *Form) Draw(context *guigui.Context, dst *ebiten.Image) {
+	bounds := guigui.Bounds(f)
+	bounds.Max.Y = bounds.Min.Y + f.height(context)
 	DrawRoundedRect(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.925), RoundedCornerRadius(context))
 
-	if len(g.items) > 0 {
-		paddingX, paddingY := groupItemPadding(context)
+	if len(f.items) > 0 {
+		paddingX, paddingY := formItemPadding(context)
 		y := paddingY
-		for _, item := range g.items[:len(g.items)-1] {
+		for _, item := range f.items[:len(f.items)-1] {
 			var primaryH int
 			var secondaryH int
 			if item.PrimaryWidget != nil {
@@ -137,7 +137,7 @@ func (g *Group) Draw(context *guigui.Context, dst *ebiten.Image) {
 			if item.SecondaryWidget != nil {
 				_, secondaryH = item.SecondaryWidget.Size(context)
 			}
-			h := max(primaryH, secondaryH, g.minItemHeight(context))
+			h := max(primaryH, secondaryH, minFormItemHeight(context))
 			y += h + 2*paddingY
 
 			x0 := float32(bounds.Min.X + paddingX)
@@ -152,23 +152,23 @@ func (g *Group) Draw(context *guigui.Context, dst *ebiten.Image) {
 	DrawRoundedRectBorder(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.875), RoundedCornerRadius(context), 1*float32(context.Scale()), RoundedRectBorderTypeRegular)
 }
 
-func (g *Group) SetWidth(context *guigui.Context, width int) {
-	g.widthMinusDefault = width - defaultGroupWidth(context)
+func (f *Form) SetWidth(context *guigui.Context, width int) {
+	f.widthMinusDefault = width - defaultFormWidth(context)
 }
 
-func (g *Group) Size(context *guigui.Context) (int, int) {
-	return g.widthMinusDefault + defaultGroupWidth(context), g.height(context)
+func (f *Form) Size(context *guigui.Context) (int, int) {
+	return f.widthMinusDefault + defaultFormWidth(context), f.height(context)
 }
 
-func defaultGroupWidth(context *guigui.Context) int {
+func defaultFormWidth(context *guigui.Context) int {
 	return 6 * UnitSize(context)
 }
 
-func (g *Group) height(context *guigui.Context) int {
-	_, paddingY := groupItemPadding(context)
+func (f *Form) height(context *guigui.Context) int {
+	_, paddingY := formItemPadding(context)
 
 	var y int
-	for _, item := range g.items {
+	for _, item := range f.items {
 		if (item.PrimaryWidget == nil || !guigui.IsVisible(item.PrimaryWidget)) &&
 			(item.SecondaryWidget == nil || !guigui.IsVisible(item.SecondaryWidget)) {
 			continue
@@ -181,12 +181,12 @@ func (g *Group) height(context *guigui.Context) int {
 		if item.SecondaryWidget != nil {
 			_, secondaryH = item.SecondaryWidget.Size(context)
 		}
-		h := max(primaryH, secondaryH, g.minItemHeight(context))
+		h := max(primaryH, secondaryH, minFormItemHeight(context))
 		y += h + 2*paddingY
 	}
 	return y
 }
 
-func (g *Group) minItemHeight(context *guigui.Context) int {
+func minFormItemHeight(context *guigui.Context) int {
 	return UnitSize(context)
 }

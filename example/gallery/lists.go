@@ -14,7 +14,7 @@ import (
 type Lists struct {
 	guigui.DefaultWidget
 
-	group        basicwidget.Group
+	form         basicwidget.Form
 	textListText basicwidget.Text
 	textList     basicwidget.TextList
 }
@@ -32,8 +32,8 @@ func (l *Lists) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppe
 
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := l.Size(context)
-	l.group.SetWidth(context, w-int(1*u))
-	l.group.SetItems([]*basicwidget.GroupItem{
+	l.form.SetWidth(context, w-int(1*u))
+	l.form.SetItems([]*basicwidget.FormItem{
 		{
 			PrimaryWidget:   &l.textListText,
 			SecondaryWidget: &l.textList,
@@ -41,8 +41,8 @@ func (l *Lists) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppe
 	})
 	{
 		p := guigui.Position(l).Add(image.Pt(int(0.5*u), int(0.5*u)))
-		guigui.SetPosition(&l.group, p)
-		appender.AppendChildWidget(&l.group)
+		guigui.SetPosition(&l.form, p)
+		appender.AppendChildWidget(&l.form)
 	}
 }
 
