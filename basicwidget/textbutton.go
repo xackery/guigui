@@ -102,8 +102,8 @@ func (t *TextButton) Size(context *guigui.Context) (int, int) {
 	}
 	w, _ := t.text.TextSize(context)
 	if t.image.HasImage() {
-		iw, _ := t.image.Size(context)
-		return w + t.textImagePadding(context) + iw + UnitSize(context)*3/4, dh
+		imgSize := int(LineHeight(context))
+		return w + t.textImagePadding(context) + imgSize + UnitSize(context)*3/4, dh
 	}
 	return w + UnitSize(context), dh
 }
