@@ -103,8 +103,8 @@ func (r *Root) Draw(context *guigui.Context, dst *ebiten.Image) {
 func main() {
 	op := &guigui.RunOptions{
 		Title:           "Counter",
-		WindowMinWidth:  640,
-		WindowMinHeight: 480,
+		WindowMinWidth:  600,
+		WindowMinHeight: 300,
 	}
 	if err := guigui.Run(&Root{}, op); err != nil {
 		fmt.Fprintln(os.Stderr, err)
