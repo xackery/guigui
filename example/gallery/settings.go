@@ -38,9 +38,13 @@ func (s *Settings) Layout(context *guigui.Context, appender *guigui.ChildWidgetA
 	})
 
 	s.localeText.SetText("Locale")
-	langs := []string{"en", "ja", "ko", "zh-Hans", "zh-Hant"}
+	langs := []string{"(Default)", "en", "ja", "ko", "zh-Hans", "zh-Hant"}
 	s.localeDropdownList.SetItemsByStrings(langs)
 	s.localeDropdownList.SetOnValueChanged(func(index int) {
+		if index == 0 {
+			context.SetAppLocales(nil)
+			return
+		}
 		lang := language.MustParse(langs[index])
 		context.SetAppLocales([]language.Tag{lang})
 	})
