@@ -1,4 +1,4 @@
-# GuiGui (ぐいぐい)
+# Guigui (ぐいぐい)
 
 **This project is an alpha version, and everything may change in the future.**
 
