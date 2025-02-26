@@ -33,13 +33,15 @@ func init() {
 var envLocales []language.Tag
 
 func init() {
-	for _, tag := range strings.Split(os.Getenv("GUIGUI_LOCALES"), ",") {
-		l, err := language.Parse(tag)
-		if err != nil {
-			slog.Warn(fmt.Sprintf("invalid GUIGUI_LOCALES: %s", tag))
-			continue
+	if locales := os.Getenv("GUIGUI_LOCALES"); locales != "" {
+		for _, tag := range strings.Split(os.Getenv("GUIGUI_LOCALES"), ",") {
+			l, err := language.Parse(strings.TrimSpace(tag))
+			if err != nil {
+				slog.Warn(fmt.Sprintf("invalid GUIGUI_LOCALES: %s", tag))
+				continue
+			}
+			envLocales = append(envLocales, l)
 		}
-		envLocales = append(envLocales, l)
 	}
 }
 
