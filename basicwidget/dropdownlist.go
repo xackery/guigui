@@ -34,7 +34,7 @@ func (d *DropdownList) Layout(context *guigui.Context, appender *guigui.ChildWid
 
 	d.textButton.SetOnDown(func() {
 		pt := guigui.Position(d)
-		pt.Y -= int(d.popupMenu.SelectedItemIndex() * UnitSize(context))
+		pt.Y -= int(float64(d.popupMenu.SelectedItemIndex()) * LineHeight(context))
 		pt.Y = max(pt.Y, 0)
 		// TODO: Chaning the position here might be too late here.
 		// A glitch is visible when the dropdown list is reopened.
