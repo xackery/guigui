@@ -20,6 +20,8 @@ type Basic struct {
 	toggleButton     basicwidget.ToggleButton
 	textFieldText    basicwidget.Text
 	textField        basicwidget.TextField
+	textListText     basicwidget.Text
+	textList         basicwidget.TextList
 }
 
 func (b *Basic) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppender) {
@@ -28,6 +30,8 @@ func (b *Basic) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppe
 	b.toggleButtonText.SetText("Toggle Button")
 	b.textFieldText.SetText("Text Field")
 	b.textField.SetHorizontalAlign(basicwidget.HorizontalAlignEnd)
+	b.textListText.SetText("Text List")
+	b.textList.SetItemsByStrings([]string{"Item 1", "Item 2", "Item 3"})
 
 	u := float64(basicwidget.UnitSize(context))
 	w, _ := b.Size(context)
@@ -44,6 +48,10 @@ func (b *Basic) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppe
 		{
 			PrimaryWidget:   &b.textFieldText,
 			SecondaryWidget: &b.textField,
+		},
+		{
+			PrimaryWidget:   &b.textListText,
+			SecondaryWidget: &b.textList,
 		},
 	})
 	{
