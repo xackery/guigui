@@ -8,6 +8,7 @@ import (
 	"image"
 	"image/color"
 	"log/slog"
+	"maps"
 	"math"
 	"os"
 	"slices"
@@ -45,8 +46,10 @@ func invalidatedRegionForDebugMaxTime() int {
 var theApp *app
 
 type app struct {
-	root    Widget
-	context Context
+	root      Widget
+	context   Context
+	visitedZs map[int]struct{}
+	zs        []int
 
 	invalidatedRegions image.Rectangle
 	invalidatedWidgets []Widget
@@ -271,6 +274,27 @@ const (
 
 func (a *app) layout() {
 	a.doLayout(a.root)
+
+	// Calculate z values.
+	clear(a.visitedZs)
+	var z int
+	traverseWidget(a.root, func(widget Widget, push bool) {
+		if widget.IsPopup() {
+			if push {
+				z++
+			} else {
+				z--
+			}
+		}
+		if a.visitedZs == nil {
+			a.visitedZs = map[int]struct{}{}
+		}
+		a.visitedZs[z] = struct{}{}
+	})
+
+	a.zs = slices.Delete(a.zs, 0, len(a.zs))
+	a.zs = slices.AppendSeq(a.zs, maps.Keys(a.visitedZs))
+	slices.Sort(a.zs)
 }
 
 func (a *app) doLayout(widget Widget) {
@@ -290,8 +314,9 @@ func (a *app) handleInputWidget() HandleInputResult {
 	if a.root.IsPopup() {
 		startZ = 1
 	}
-	for i := a.maxZ(); i >= 0; i-- {
-		if r := a.doHandleInputWidget(a.root, i, startZ); r.ShouldRaise() {
+	for i := len(a.zs) - 1; i >= 0; i-- {
+		z := a.zs[i]
+		if r := a.doHandleInputWidget(a.root, z, startZ); r.ShouldRaise() {
 			return r
 		}
 	}
@@ -331,8 +356,9 @@ func (a *app) cursorShape() bool {
 	if a.root.IsPopup() {
 		startZ = 1
 	}
-	for i := a.maxZ(); i >= 0; i-- {
-		if a.doCursorShape(a.root, i, startZ) {
+	for i := len(a.zs) - 1; i >= 0; i-- {
+		z := a.zs[i]
+		if a.doCursorShape(a.root, z, startZ) {
 			return true
 		}
 	}
@@ -429,21 +455,6 @@ func (a *app) resetPrevWidgets(widget Widget) {
 	}
 }
 
-func (a *app) maxZ() int {
-	var curL, maxL int
-	traverseWidget(a.root, func(widget Widget, push bool) {
-		if widget.IsPopup() {
-			if push {
-				curL++
-			} else {
-				curL--
-			}
-		}
-		maxL = max(maxL, curL)
-	})
-	return maxL
-}
-
 func (a *app) drawWidget(screen *ebiten.Image) {
 	if a.invalidatedRegions.Empty() {
 		return
@@ -453,8 +464,8 @@ func (a *app) drawWidget(screen *ebiten.Image) {
 	if a.root.IsPopup() {
 		startZ = 1
 	}
-	for i := range a.maxZ() + 1 {
-		a.doDrawWidget(dst, a.root, i, startZ)
+	for _, z := range a.zs {
+		a.doDrawWidget(dst, a.root, z, startZ)
 	}
 }
 
