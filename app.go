@@ -286,20 +286,20 @@ func (a *app) doLayout(widget Widget) {
 }
 
 func (a *app) handleInputWidget() HandleInputResult {
-	var startPopupLevel int
+	var startZ int
 	if a.root.IsPopup() {
-		startPopupLevel = 1
+		startZ = 1
 	}
-	for i := a.maxPopupLevel(); i >= 0; i-- {
-		if r := a.doHandleInputWidget(a.root, i, startPopupLevel); r.ShouldRaise() {
+	for i := a.maxZ(); i >= 0; i-- {
+		if r := a.doHandleInputWidget(a.root, i, startZ); r.ShouldRaise() {
 			return r
 		}
 	}
 	return HandleInputResult{}
 }
 
-func (a *app) doHandleInputWidget(widget Widget, popupLevelToHandle int, currentPopupLevel int) HandleInputResult {
-	if popupLevelToHandle < currentPopupLevel {
+func (a *app) doHandleInputWidget(widget Widget, zToHandle int, currentZ int) HandleInputResult {
+	if zToHandle < currentZ {
 		return HandleInputResult{}
 	}
 
@@ -311,36 +311,36 @@ func (a *app) doHandleInputWidget(widget Widget, popupLevelToHandle int, current
 	// Iterate the children in the reverse order of rendering.
 	for i := len(widgetState.children) - 1; i >= 0; i-- {
 		child := widgetState.children[i]
-		l := currentPopupLevel
+		l := currentZ
 		if child.IsPopup() {
 			l++
 		}
-		if r := a.doHandleInputWidget(child, popupLevelToHandle, l); r.ShouldRaise() {
+		if r := a.doHandleInputWidget(child, zToHandle, l); r.ShouldRaise() {
 			return r
 		}
 	}
 
-	if popupLevelToHandle != currentPopupLevel {
+	if zToHandle != currentZ {
 		return HandleInputResult{}
 	}
 	return widget.HandleInput(&a.context)
 }
 
 func (a *app) cursorShape() bool {
-	var startPopupLevel int
+	var startZ int
 	if a.root.IsPopup() {
-		startPopupLevel = 1
+		startZ = 1
 	}
-	for i := a.maxPopupLevel(); i >= 0; i-- {
-		if a.doCursorShape(a.root, i, startPopupLevel) {
+	for i := a.maxZ(); i >= 0; i-- {
+		if a.doCursorShape(a.root, i, startZ) {
 			return true
 		}
 	}
 	return false
 }
 
-func (a *app) doCursorShape(widget Widget, popupLevelToHandle int, currentPopupLevel int) bool {
-	if popupLevelToHandle < currentPopupLevel {
+func (a *app) doCursorShape(widget Widget, zToHandle int, currentZ int) bool {
+	if zToHandle < currentZ {
 		return false
 	}
 
@@ -352,16 +352,16 @@ func (a *app) doCursorShape(widget Widget, popupLevelToHandle int, currentPopupL
 	// Iterate the children in the reverse order of rendering.
 	for i := len(widgetState.children) - 1; i >= 0; i-- {
 		child := widgetState.children[i]
-		l := currentPopupLevel
+		l := currentZ
 		if child.IsPopup() {
 			l++
 		}
-		if a.doCursorShape(child, popupLevelToHandle, l) {
+		if a.doCursorShape(child, zToHandle, l) {
 			return true
 		}
 	}
 
-	if popupLevelToHandle != currentPopupLevel {
+	if zToHandle != currentZ {
 		return false
 	}
 
@@ -429,7 +429,7 @@ func (a *app) resetPrevWidgets(widget Widget) {
 	}
 }
 
-func (a *app) maxPopupLevel() int {
+func (a *app) maxZ() int {
 	var curL, maxL int
 	traverseWidget(a.root, func(widget Widget, push bool) {
 		if widget.IsPopup() {
@@ -449,17 +449,17 @@ func (a *app) drawWidget(screen *ebiten.Image) {
 		return
 	}
 	dst := screen.SubImage(a.invalidatedRegions).(*ebiten.Image)
-	var startPopupLevel int
+	var startZ int
 	if a.root.IsPopup() {
-		startPopupLevel = 1
+		startZ = 1
 	}
-	for i := range a.maxPopupLevel() + 1 {
-		a.doDrawWidget(dst, a.root, i, startPopupLevel)
+	for i := range a.maxZ() + 1 {
+		a.doDrawWidget(dst, a.root, i, startZ)
 	}
 }
 
-func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, popupLevelToRender int, currentPopupLevel int) {
-	if popupLevelToRender < currentPopupLevel {
+func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, zToRender int, currentZ int) {
+	if zToRender < currentZ {
 		return
 	}
 
@@ -477,7 +477,7 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, popupLevelToRender 
 	}
 
 	var origDst *ebiten.Image
-	renderCurrent := popupLevelToRender == currentPopupLevel
+	renderCurrent := zToRender == currentZ
 	if renderCurrent {
 		if widgetState.opacity() < 1 {
 			origDst = dst
@@ -488,11 +488,11 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, popupLevelToRender 
 	}
 
 	for _, child := range widgetState.children {
-		l := currentPopupLevel
+		l := currentZ
 		if child.IsPopup() {
 			l++
 		}
-		a.doDrawWidget(dst, child, popupLevelToRender, l)
+		a.doDrawWidget(dst, child, zToRender, l)
 	}
 
 	if renderCurrent {
