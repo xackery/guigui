@@ -251,17 +251,17 @@ func (a *app) requestRedraw(region image.Rectangle) {
 func (a *app) requestRedrawWidget(widget Widget) {
 	a.invalidatedWidgets = append(a.invalidatedWidgets, widget)
 	for _, child := range widget.widgetState().children {
-		theApp.requestRedrawIfPopup(child)
+		theApp.requestRedrawIfAboveParentZ(child)
 	}
 }
 
-func (a *app) requestRedrawIfPopup(widget Widget) {
-	if widget.IsPopup() {
+func (a *app) requestRedrawIfAboveParentZ(widget Widget) {
+	if isAboveParentZ(widget) {
 		a.requestRedrawWidget(widget)
 		return
 	}
 	for _, child := range widget.widgetState().children {
-		a.requestRedrawIfPopup(child)
+		a.requestRedrawIfAboveParentZ(child)
 	}
 }
 
@@ -270,19 +270,11 @@ func (a *app) layout() {
 
 	// Calculate z values.
 	clear(a.visitedZs)
-	var z int
-	traverseWidget(a.root, func(widget Widget, push bool) {
-		if widget.IsPopup() {
-			if push {
-				z++
-			} else {
-				z--
-			}
-		}
+	traverseWidget(a.root, func(widget Widget) {
 		if a.visitedZs == nil {
 			a.visitedZs = map[int]struct{}{}
 		}
-		a.visitedZs[z] = struct{}{}
+		a.visitedZs[z(widget)] = struct{}{}
 	})
 
 	a.zs = slices.Delete(a.zs, 0, len(a.zs))
@@ -303,21 +295,17 @@ func (a *app) doLayout(widget Widget) {
 }
 
 func (a *app) handleInputWidget() HandleInputResult {
-	var startZ int
-	if a.root.IsPopup() {
-		startZ = 1
-	}
 	for i := len(a.zs) - 1; i >= 0; i-- {
 		z := a.zs[i]
-		if r := a.doHandleInputWidget(a.root, z, startZ); r.ShouldRaise() {
+		if r := a.doHandleInputWidget(a.root, z); r.ShouldRaise() {
 			return r
 		}
 	}
 	return HandleInputResult{}
 }
 
-func (a *app) doHandleInputWidget(widget Widget, zToHandle int, currentZ int) HandleInputResult {
-	if zToHandle < currentZ {
+func (a *app) doHandleInputWidget(widget Widget, zToHandle int) HandleInputResult {
+	if zToHandle < z(widget) {
 		return HandleInputResult{}
 	}
 
@@ -329,37 +317,29 @@ func (a *app) doHandleInputWidget(widget Widget, zToHandle int, currentZ int) Ha
 	// Iterate the children in the reverse order of rendering.
 	for i := len(widgetState.children) - 1; i >= 0; i-- {
 		child := widgetState.children[i]
-		l := currentZ
-		if child.IsPopup() {
-			l++
-		}
-		if r := a.doHandleInputWidget(child, zToHandle, l); r.ShouldRaise() {
+		if r := a.doHandleInputWidget(child, zToHandle); r.ShouldRaise() {
 			return r
 		}
 	}
 
-	if zToHandle != currentZ {
+	if zToHandle != z(widget) {
 		return HandleInputResult{}
 	}
 	return widget.HandleInput(&a.context)
 }
 
 func (a *app) cursorShape() bool {
-	var startZ int
-	if a.root.IsPopup() {
-		startZ = 1
-	}
 	for i := len(a.zs) - 1; i >= 0; i-- {
 		z := a.zs[i]
-		if a.doCursorShape(a.root, z, startZ) {
+		if a.doCursorShape(a.root, z) {
 			return true
 		}
 	}
 	return false
 }
 
-func (a *app) doCursorShape(widget Widget, zToHandle int, currentZ int) bool {
-	if zToHandle < currentZ {
+func (a *app) doCursorShape(widget Widget, zToHandle int) bool {
+	if zToHandle < z(widget) {
 		return false
 	}
 
@@ -371,16 +351,12 @@ func (a *app) doCursorShape(widget Widget, zToHandle int, currentZ int) bool {
 	// Iterate the children in the reverse order of rendering.
 	for i := len(widgetState.children) - 1; i >= 0; i-- {
 		child := widgetState.children[i]
-		l := currentZ
-		if child.IsPopup() {
-			l++
-		}
-		if a.doCursorShape(child, zToHandle, l) {
+		if a.doCursorShape(child, zToHandle) {
 			return true
 		}
 	}
 
-	if zToHandle != currentZ {
+	if zToHandle != z(widget) {
 		return false
 	}
 
@@ -422,11 +398,11 @@ func (a *app) requestRedrawIfTreeChanged(widget Widget) {
 	widgetState := widget.widgetState()
 	// If the children and/or children's bounds are changed, request redraw.
 	if !widgetState.prev.equals(widgetState.children) {
-		// Popups are outside of widget, so redraw the regions explicitly.
-		widgetState.prev.redrawPopupRegions()
+		// Widgets above their parents' Z (e.g. popups) are outside of widget, so redraw the regions explicitly.
+		widgetState.prev.redrawIfAboveParentZ()
 		a.requestRedraw(VisibleBounds(widget))
 		for _, child := range widgetState.children {
-			if child.IsPopup() {
+			if isAboveParentZ(child) {
 				a.requestRedraw(VisibleBounds(child))
 			}
 		}
@@ -453,17 +429,13 @@ func (a *app) drawWidget(screen *ebiten.Image) {
 		return
 	}
 	dst := screen.SubImage(a.invalidatedRegions).(*ebiten.Image)
-	var startZ int
-	if a.root.IsPopup() {
-		startZ = 1
-	}
 	for _, z := range a.zs {
-		a.doDrawWidget(dst, a.root, z, startZ)
+		a.doDrawWidget(dst, a.root, z)
 	}
 }
 
-func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, zToRender int, currentZ int) {
-	if zToRender < currentZ {
+func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, zToRender int) {
+	if zToRender < z(widget) {
 		return
 	}
 
@@ -481,7 +453,7 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, zToRender int, curr
 	}
 
 	var origDst *ebiten.Image
-	renderCurrent := zToRender == currentZ
+	renderCurrent := zToRender == z(widget)
 	if renderCurrent {
 		if widgetState.opacity() < 1 {
 			origDst = dst
@@ -492,11 +464,7 @@ func (a *app) doDrawWidget(dst *ebiten.Image, widget Widget, zToRender int, curr
 	}
 
 	for _, child := range widgetState.children {
-		l := currentZ
-		if child.IsPopup() {
-			l++
-		}
-		a.doDrawWidget(dst, child, zToRender, l)
+		a.doDrawWidget(dst, child, zToRender)
 	}
 
 	if renderCurrent {

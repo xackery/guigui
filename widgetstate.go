@@ -40,9 +40,9 @@ func (w *widgetsAndBounds) equals(currentWidgets []Widget) bool {
 	return true
 }
 
-func (w *widgetsAndBounds) redrawPopupRegions() {
+func (w *widgetsAndBounds) redrawIfAboveParentZ() {
 	for widget := range w.bounds {
-		if widget.IsPopup() {
+		if isAboveParentZ(widget) {
 			RequestRedraw(widget)
 		}
 	}
@@ -83,12 +83,12 @@ func Bounds(widget Widget) image.Rectangle {
 }
 
 func VisibleBounds(widget Widget) image.Rectangle {
-	if widget.IsPopup() {
-		return Bounds(widget)
-	}
 	parent := widget.widgetState().parent
 	if parent == nil {
 		return theApp.bounds()
+	}
+	if isAboveParentZ(widget) {
+		return Bounds(widget)
 	}
 	return VisibleBounds(parent).Intersect(Bounds(widget))
 }
@@ -258,10 +258,32 @@ func (w *widgetState) ensureOffscreen(bounds image.Rectangle) *ebiten.Image {
 	return w.offscreen.SubImage(bounds).(*ebiten.Image)
 }
 
-func traverseWidget(widget Widget, f func(widget Widget, push bool)) {
-	f(widget, true)
+func traverseWidget(widget Widget, f func(widget Widget)) {
+	f(widget)
 	for _, child := range widget.widgetState().children {
 		traverseWidget(child, f)
 	}
-	f(widget, false)
+}
+
+func z(widget Widget) int {
+	parent := widget.widgetState().parent
+	if parent == nil {
+		if widget.IsPopup() {
+			return 1
+		}
+		return 0
+	}
+	z := z(parent)
+	if widget.IsPopup() {
+		z++
+	}
+	return z
+}
+
+func isAboveParentZ(widget Widget) bool {
+	parent := widget.widgetState().parent
+	if parent == nil {
+		return false
+	}
+	return z(widget) > z(parent)
 }
