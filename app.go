@@ -265,13 +265,6 @@ func (a *app) requestRedrawIfPopup(widget Widget) {
 	}
 }
 
-type WidgetType int
-
-const (
-	WidgetTypeRegular WidgetType = iota
-	WidgetTypePopup
-)
-
 func (a *app) layout() {
 	a.doLayout(a.root)
 
