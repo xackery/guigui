@@ -8,7 +8,7 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.9.0-alpha.3.0.20250303171205-5bf7124cdd94
 	github.com/hajimehoshi/oklab v0.0.0-20231202174141-83d68450b640
 	github.com/jeandeaual/go-locale v0.0.0-20241217141322-fcc2cadd6f08
-	golang.org/x/text v0.22.0
+	golang.org/x/text v0.23.0
 	howett.net/plist v1.0.1
 )
 
@@ -19,6 +19,6 @@ require (
 	github.com/go-text/typesetting v0.3.0 // indirect
 	github.com/jezek/xgb v1.1.1 // indirect
 	golang.org/x/image v0.24.0 // indirect
-	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 )
