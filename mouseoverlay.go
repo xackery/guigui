@@ -21,10 +21,8 @@ type MouseOverlay struct {
 	width   int
 	height  int
 
-	onDown  func(mouseButton ebiten.MouseButton, cursorPosition image.Point)
-	onUp    func(mouseButton ebiten.MouseButton, cursorPosition image.Point)
-	onEnter func(cursorPosition image.Point)
-	onLeave func(cursorPosition image.Point)
+	onDown func(mouseButton ebiten.MouseButton, cursorPosition image.Point)
+	onUp   func(mouseButton ebiten.MouseButton, cursorPosition image.Point)
 }
 
 func (m *MouseOverlay) SetOnDown(f func(mouseButton ebiten.MouseButton, cursorPosition image.Point)) {
@@ -33,14 +31,6 @@ func (m *MouseOverlay) SetOnDown(f func(mouseButton ebiten.MouseButton, cursorPo
 
 func (m *MouseOverlay) SetOnUp(f func(mouseButton ebiten.MouseButton, cursorPosition image.Point)) {
 	m.onUp = f
-}
-
-func (m *MouseOverlay) SetOnEnter(f func(cursorPosition image.Point)) {
-	m.onEnter = f
-}
-
-func (m *MouseOverlay) SetOnLeave(f func(cursorPosition image.Point)) {
-	m.onLeave = f
 }
 
 func (m *MouseOverlay) HandleInput(context *Context) HandleInputResult {
@@ -154,21 +144,6 @@ func (m *MouseOverlay) setHovering(hovering bool) {
 	if m.hovering == hovering {
 		return
 	}
-
-	if IsEnabled(m) {
-		if p := image.Pt(ebiten.CursorPosition()); p.In(VisibleBounds(Parent(m))) {
-			if hovering {
-				if m.onEnter != nil {
-					m.onEnter(p)
-				}
-			} else {
-				if m.onLeave != nil {
-					m.onLeave(p)
-				}
-			}
-		}
-	}
-
 	m.hovering = hovering
 	RequestRedraw(m)
 }
