@@ -17,10 +17,6 @@ type MouseOverlay struct {
 	pressingLeft  bool
 	pressingRight bool
 
-	sizeSet bool
-	width   int
-	height  int
-
 	onDown func(mouseButton ebiten.MouseButton, cursorPosition image.Point)
 	onUp   func(mouseButton ebiten.MouseButton, cursorPosition image.Point)
 }
@@ -84,25 +80,6 @@ func (m *MouseOverlay) Update(context *Context) error {
 		m.setHovering(false)
 	}
 	return nil
-}
-
-func (m *MouseOverlay) Size(context *Context) (int, int) {
-	if m.sizeSet {
-		return m.width, m.height
-	}
-	return Parent(m).Size(context)
-}
-
-func (m *MouseOverlay) SetSize(width, height int) {
-	m.sizeSet = true
-	m.width = width
-	m.height = height
-}
-
-func (m *MouseOverlay) ResetSize() {
-	m.sizeSet = false
-	m.width = 0
-	m.height = 0
 }
 
 func (m *MouseOverlay) setPressing(pressing bool, mouseButton ebiten.MouseButton) {
