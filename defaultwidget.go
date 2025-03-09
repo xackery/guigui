@@ -31,8 +31,11 @@ func (*DefaultWidget) IsPopup() bool {
 	return false
 }
 
-func (*DefaultWidget) Size(context *Context) (int, int) {
-	return int(16 * context.Scale()), int(16 * context.Scale())
+func (d *DefaultWidget) Size(context *Context) (int, int) {
+	if d.widgetState_.parent == nil {
+		return context.app.bounds().Dx(), context.app.bounds().Dy()
+	}
+	return d.widgetState_.parent.Size(context)
 }
 
 func (d *DefaultWidget) widgetState() *widgetState {

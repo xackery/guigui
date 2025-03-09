@@ -577,10 +577,6 @@ func (l *listFrame) Draw(context *guigui.Context, dst *ebiten.Image) {
 	DrawRoundedRectBorder(context, dst, bounds, clr, RoundedCornerRadius(context), borderWidth, border)
 }
 
-func (l *listFrame) Size(context *guigui.Context) (int, int) {
-	return guigui.Parent(l).Size(context)
-}
-
 func moveItemInSlice[T any](slice []T, from int, count int, to int) {
 	if count == 0 {
 		return

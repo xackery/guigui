@@ -334,10 +334,6 @@ func (s *ScrollOverlay) Draw(context *guigui.Context, dst *ebiten.Image) {
 	s.onceRendered = true
 }
 
-func (s *ScrollOverlay) Size(context *guigui.Context) (int, int) {
-	return guigui.Parent(s).Size(context)
-}
-
 func (s *ScrollOverlay) barWidth(scale float64) float64 {
 	const scrollBarStrokeWidthInDIP = 8
 	return scrollBarStrokeWidthInDIP * scale

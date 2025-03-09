@@ -82,10 +82,6 @@ func (m *MouseOverlay) Update(context *Context) error {
 	return nil
 }
 
-func (m *MouseOverlay) Size(context *Context) (int, int) {
-	return Parent(m).Size(context)
-}
-
 func (m *MouseOverlay) setPressing(pressing bool, mouseButton ebiten.MouseButton) {
 	switch mouseButton {
 	case ebiten.MouseButtonLeft:
