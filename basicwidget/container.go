@@ -7,7 +7,7 @@ import (
 	"iter"
 	"slices"
 
-	"github.com/hajimehoshi/guigui"
+	"github.com/xackery/guigui"
 )
 
 type ContainerChildWidgetAppender struct {

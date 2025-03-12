@@ -13,7 +13,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 
-	"github.com/hajimehoshi/guigui"
+	"github.com/xackery/guigui"
 )
 
 type ListStyle int

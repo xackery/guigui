@@ -10,7 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 
-	"github.com/hajimehoshi/guigui"
+	"github.com/xackery/guigui"
 )
 
 func equalColor(c0, c1 color.Color) bool {

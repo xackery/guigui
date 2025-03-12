@@ -4,7 +4,7 @@
 package cjkfont
 
 import (
-	"github.com/hajimehoshi/guigui/basicwidget"
+	"github.com/xackery/guigui/basicwidget"
 )
 
 func FaceSCPriority(hint basicwidget.FaceSourceHint) float64 {

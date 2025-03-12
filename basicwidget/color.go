@@ -10,7 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/oklab"
 
-	"github.com/hajimehoshi/guigui"
+	"github.com/xackery/guigui"
 )
 
 var (

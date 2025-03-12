@@ -4,7 +4,7 @@
 package basicwidget
 
 import (
-	"github.com/hajimehoshi/guigui"
+	"github.com/xackery/guigui"
 )
 
 type DropdownList struct {

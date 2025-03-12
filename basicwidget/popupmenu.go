@@ -6,7 +6,7 @@ package basicwidget
 import (
 	"image"
 
-	"github.com/hajimehoshi/guigui"
+	"github.com/xackery/guigui"
 )
 
 type PopupMenu struct {
