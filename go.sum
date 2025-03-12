@@ -18,6 +18,8 @@ github.com/hajimehoshi/bitmapfont/v3 v3.3.0-alpha.4 h1:cL/A9hLQ2aYpXhOeWBrTcrj6n
 github.com/hajimehoshi/bitmapfont/v3 v3.3.0-alpha.4/go.mod h1:GsEgTraq3r5Z8JuWS3gjeCnC81cVeJd4Cojw3OSJkrg=
 github.com/hajimehoshi/ebiten/v2 v2.9.0-alpha.4 h1:5ft5W95yK2KbxlK5gfvHfs+4gqwMxyj2uQrGJgwN714=
 github.com/hajimehoshi/ebiten/v2 v2.9.0-alpha.4/go.mod h1:9icewX5g2QfAJnuMswhlZUeF45HnQpeasx3kGXi3Xv8=
+github.com/hajimehoshi/guigui v0.0.0-20250309144559-401b6e0bfcf9 h1:8fmXp9yau0IUCAGc+QbYpovvfX1MrETfbe8Mx0bbUT4=
+github.com/hajimehoshi/guigui v0.0.0-20250309144559-401b6e0bfcf9/go.mod h1:IKSlY2N4+FSb0TPfUomc02BLcM1Gu4ZZq+z6xXIlMYk=
 github.com/hajimehoshi/oklab v0.0.0-20231202174141-83d68450b640 h1:XH+3N6OOGcqegLNj3l550IbN/2+Mu35fBKHYNWAQjJk=
 github.com/hajimehoshi/oklab v0.0.0-20231202174141-83d68450b640/go.mod h1:PQQ2H7nXuDlAr4pkdDRTfXp5tXdfIUKQpZbpZE7ugT4=
 github.com/jeandeaual/go-locale v0.0.0-20241217141322-fcc2cadd6f08 h1:wMeVzrPO3mfHIWLZtDcSaGAe2I4PW9B/P5nMkRSwCAc=

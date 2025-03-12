@@ -7,8 +7,8 @@ import (
 	"image"
 	"sync"
 
-	"github.com/hajimehoshi/guigui"
-	"github.com/hajimehoshi/guigui/basicwidget"
+	"github.com/xackery/guigui"
+	"github.com/xackery/guigui/basicwidget"
 )
 
 type Sidebar struct {

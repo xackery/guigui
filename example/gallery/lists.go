@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"image"
 
-	"github.com/hajimehoshi/guigui"
-	"github.com/hajimehoshi/guigui/basicwidget"
+	"github.com/xackery/guigui"
+	"github.com/xackery/guigui/basicwidget"
 )
 
 type Lists struct {

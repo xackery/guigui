@@ -6,6 +6,7 @@ require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/google/uuid v1.6.0
 	github.com/hajimehoshi/ebiten/v2 v2.9.0-alpha.4
+	github.com/hajimehoshi/guigui v0.0.0-20250309144559-401b6e0bfcf9
 	github.com/hajimehoshi/oklab v0.0.0-20231202174141-83d68450b640
 	github.com/jeandeaual/go-locale v0.0.0-20241217141322-fcc2cadd6f08
 	golang.org/x/text v0.23.0

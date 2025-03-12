@@ -8,8 +8,8 @@ import (
 
 	"golang.org/x/text/language"
 
-	"github.com/hajimehoshi/guigui/basicwidget"
-	"github.com/hajimehoshi/guigui/basicwidget/cjkfont"
+	"github.com/xackery/guigui/basicwidget"
+	"github.com/xackery/guigui/basicwidget/cjkfont"
 )
 
 func TestPriorities(t *testing.T) {

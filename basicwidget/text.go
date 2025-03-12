@@ -19,8 +19,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"golang.org/x/text/language"
 
-	"github.com/hajimehoshi/guigui"
-	"github.com/hajimehoshi/guigui/internal/clipboard"
+	"github.com/xackery/guigui"
+	"github.com/xackery/guigui/internal/clipboard"
 )
 
 func isKeyRepeating(key ebiten.Key) bool {

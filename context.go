@@ -10,7 +10,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/hajimehoshi/guigui/internal/locale"
+	"github.com/xackery/guigui/internal/locale"
 	"golang.org/x/text/language"
 )
 
