@@ -14,9 +14,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/hajimehoshi/ebiten/v2"
 
-	"github.com/hajimehoshi/guigui"
-	"github.com/hajimehoshi/guigui/basicwidget"
-	_ "github.com/hajimehoshi/guigui/basicwidget/cjkfont"
+	"github.com/xackery/guigui"
+	"github.com/xackery/guigui/basicwidget"
+	_ "github.com/xackery/guigui/basicwidget/cjkfont"
 )
 
 type Task struct {

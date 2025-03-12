@@ -9,8 +9,8 @@ import (
 
 	"golang.org/x/text/language"
 
-	"github.com/hajimehoshi/guigui"
-	"github.com/hajimehoshi/guigui/basicwidget"
+	"github.com/xackery/guigui"
+	"github.com/xackery/guigui/basicwidget"
 )
 
 type Settings struct {

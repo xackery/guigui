@@ -9,8 +9,8 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 
-	"github.com/hajimehoshi/guigui"
-	_ "github.com/hajimehoshi/guigui/basicwidget/cjkfont"
+	"github.com/xackery/guigui"
+	_ "github.com/xackery/guigui/basicwidget/cjkfont"
 )
 
 type Root struct {
