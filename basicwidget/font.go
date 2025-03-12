@@ -96,7 +96,7 @@ func textUpperLeft(bounds image.Rectangle, str string, face text.Face, lineHeigh
 	return x, y
 }
 
-func textIndexFromPosition(textBounds image.Rectangle, x, y int, str string, face text.Face, lineHeight float64, hAlign HorizontalAlign, vAlign VerticalAlign) int {
+func textIndexFromPosition(textBounds image.Rectangle, position image.Point, str string, face text.Face, lineHeight float64, hAlign HorizontalAlign, vAlign VerticalAlign) int {
 	lines := strings.Split(str, "\n")
 	if len(lines) == 0 {
 		return 0
@@ -106,7 +106,7 @@ func textIndexFromPosition(textBounds image.Rectangle, x, y int, str string, fac
 	m := face.Metrics()
 	gap := lineHeight - m.HAscent - m.HDescent
 	top := float64(textBounds.Min.Y)
-	n := int((float64(y) - top + gap/2) / lineHeight)
+	n := int((float64(position.Y) - top + gap/2) / lineHeight)
 	if n < 0 {
 		n = 0
 	}
@@ -126,7 +126,7 @@ func textIndexFromPosition(textBounds image.Rectangle, x, y int, str string, fac
 	var found bool
 	for _, c := range visibleCulsters(line, face) {
 		a := text.Advance(line[:c.EndIndexInBytes], face)
-		if (float64(x) - left) < (prevA + (a-prevA)/2) {
+		if (float64(position.X) - left) < (prevA + (a-prevA)/2) {
 			idx += c.StartIndexInBytes
 			found = true
 			break

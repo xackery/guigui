@@ -310,10 +310,10 @@ func (t *Text) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 	textBounds := t.textBounds(context)
 
 	face := t.face(context)
-	x, y := ebiten.CursorPosition()
+	cursorPosition := image.Pt(ebiten.CursorPosition())
 	if t.dragging {
 		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-			idx := textIndexFromPosition(textBounds, x, y, t.field.Text(), face, t.lineHeight(context), t.hAlign, t.vAlign)
+			idx := textIndexFromPosition(textBounds, cursorPosition, t.field.Text(), face, t.lineHeight(context), t.hAlign, t.vAlign)
 			if idx < t.selectionDragStart {
 				t.setTextAndSelection(t.field.Text(), idx, t.selectionDragStart, -1)
 			} else {
@@ -328,9 +328,9 @@ func (t *Text) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 	}
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		if image.Pt(x, y).In(guigui.VisibleBounds(t)) {
+		if cursorPosition.In(guigui.VisibleBounds(t)) {
 			t.dragging = true
-			idx := textIndexFromPosition(textBounds, x, y, t.field.Text(), face, t.lineHeight(context), t.hAlign, t.vAlign)
+			idx := textIndexFromPosition(textBounds, cursorPosition, t.field.Text(), face, t.lineHeight(context), t.hAlign, t.vAlign)
 			t.selectionDragStart = idx
 			guigui.Focus(t)
 			if start, end := t.field.Selection(); start != idx || end != idx {
@@ -492,7 +492,7 @@ func (t *Text) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 		}
 		if x, y0, y1, ok := textPosition(textBounds, t.field.Text(), idx, face, lh, t.hAlign, t.vAlign); ok {
 			y := (y0+y1)/2 - lh
-			idx := textIndexFromPosition(textBounds, int(x), int(y), t.field.Text(), face, lh, t.hAlign, t.vAlign)
+			idx := textIndexFromPosition(textBounds, image.Pt(int(x), int(y)), t.field.Text(), face, lh, t.hAlign, t.vAlign)
 			if shift {
 				if moveEnd {
 					t.setTextAndSelection(t.field.Text(), start, idx, idx)
@@ -516,7 +516,7 @@ func (t *Text) HandleInput(context *guigui.Context) guigui.HandleInputResult {
 		}
 		if x, y0, y1, ok := textPosition(textBounds, t.field.Text(), idx, face, lh, t.hAlign, t.vAlign); ok {
 			y := (y0+y1)/2 + lh
-			idx := textIndexFromPosition(textBounds, int(x), int(y), t.field.Text(), face, lh, t.hAlign, t.vAlign)
+			idx := textIndexFromPosition(textBounds, image.Pt(int(x), int(y)), t.field.Text(), face, lh, t.hAlign, t.vAlign)
 			if shift {
 				if moveStart {
 					t.setTextAndSelection(t.field.Text(), idx, end, idx)

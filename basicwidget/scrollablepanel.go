@@ -103,7 +103,3 @@ func (s *scrollablePanelBorder) Draw(context *guigui.Context, dst *ebiten.Image)
 		vector.StrokeLine(dst, x0, y0+strokeWidth/2, x1, y0+strokeWidth/2, strokeWidth, Color(context.ColorMode(), ColorTypeBase, 0.85), false)
 	}
 }
-
-func (s *scrollablePanelBorder) Size(context *guigui.Context) (int, int) {
-	return guigui.Parent(s).Size(context)
-}

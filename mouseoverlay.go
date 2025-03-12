@@ -17,14 +17,8 @@ type MouseOverlay struct {
 	pressingLeft  bool
 	pressingRight bool
 
-	sizeSet bool
-	width   int
-	height  int
-
-	onDown  func(mouseButton ebiten.MouseButton, cursorPosition image.Point)
-	onUp    func(mouseButton ebiten.MouseButton, cursorPosition image.Point)
-	onEnter func(cursorPosition image.Point)
-	onLeave func(cursorPosition image.Point)
+	onDown func(mouseButton ebiten.MouseButton, cursorPosition image.Point)
+	onUp   func(mouseButton ebiten.MouseButton, cursorPosition image.Point)
 }
 
 func (m *MouseOverlay) SetOnDown(f func(mouseButton ebiten.MouseButton, cursorPosition image.Point)) {
@@ -33,14 +27,6 @@ func (m *MouseOverlay) SetOnDown(f func(mouseButton ebiten.MouseButton, cursorPo
 
 func (m *MouseOverlay) SetOnUp(f func(mouseButton ebiten.MouseButton, cursorPosition image.Point)) {
 	m.onUp = f
-}
-
-func (m *MouseOverlay) SetOnEnter(f func(cursorPosition image.Point)) {
-	m.onEnter = f
-}
-
-func (m *MouseOverlay) SetOnLeave(f func(cursorPosition image.Point)) {
-	m.onLeave = f
 }
 
 func (m *MouseOverlay) HandleInput(context *Context) HandleInputResult {
@@ -96,25 +82,6 @@ func (m *MouseOverlay) Update(context *Context) error {
 	return nil
 }
 
-func (m *MouseOverlay) Size(context *Context) (int, int) {
-	if m.sizeSet {
-		return m.width, m.height
-	}
-	return Parent(m).Size(context)
-}
-
-func (m *MouseOverlay) SetSize(width, height int) {
-	m.sizeSet = true
-	m.width = width
-	m.height = height
-}
-
-func (m *MouseOverlay) ResetSize() {
-	m.sizeSet = false
-	m.width = 0
-	m.height = 0
-}
-
 func (m *MouseOverlay) setPressing(pressing bool, mouseButton ebiten.MouseButton) {
 	switch mouseButton {
 	case ebiten.MouseButtonLeft:
@@ -154,21 +121,6 @@ func (m *MouseOverlay) setHovering(hovering bool) {
 	if m.hovering == hovering {
 		return
 	}
-
-	if IsEnabled(m) {
-		if p := image.Pt(ebiten.CursorPosition()); p.In(VisibleBounds(Parent(m))) {
-			if hovering {
-				if m.onEnter != nil {
-					m.onEnter(p)
-				}
-			} else {
-				if m.onLeave != nil {
-					m.onLeave(p)
-				}
-			}
-		}
-	}
-
 	m.hovering = hovering
 	RequestRedraw(m)
 }

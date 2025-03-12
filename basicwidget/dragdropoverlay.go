@@ -51,7 +51,3 @@ func (d *DragDropOverlay) HandleInput(context *guigui.Context) guigui.HandleInpu
 
 	return guigui.HandleInputResult{}
 }
-
-func (d *DragDropOverlay) Size(context *guigui.Context) (int, int) {
-	return guigui.Parent(d).Size(context)
-}

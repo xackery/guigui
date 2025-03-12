@@ -194,10 +194,6 @@ func (p *popupFrame) Draw(context *guigui.Context, dst *ebiten.Image) {
 	DrawRoundedRectBorder(context, dst, bounds, Color(context.ColorMode(), ColorTypeBase, 0.7), RoundedCornerRadius(context), float32(1*context.Scale()), RoundedRectBorderTypeOutset)
 }
 
-func (p *popupFrame) Size(context *guigui.Context) (int, int) {
-	return guigui.Parent(p).Size(context)
-}
-
 type popupBackground struct {
 	guigui.DefaultWidget
 
@@ -222,8 +218,4 @@ func (p *popupBackground) Draw(context *guigui.Context, dst *ebiten.Image) {
 	p.backgroundCache.DrawImage(dst, op)
 
 	DrawBlurredImage(dst, p.backgroundCache, rate)
-}
-
-func (p *popupBackground) Size(context *guigui.Context) (int, int) {
-	return guigui.Parent(p).Size(context)
 }
