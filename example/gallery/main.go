@@ -10,7 +10,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"github.com/hajimehoshi/guigui"
-	"github.com/hajimehoshi/guigui/basicwidget"
 	_ "github.com/hajimehoshi/guigui/basicwidget/cjkfont"
 )
 
@@ -53,12 +52,13 @@ func (r *Root) Layout(context *guigui.Context, appender *guigui.ChildWidgetAppen
 }
 
 func (r *Root) Draw(context *guigui.Context, dst *ebiten.Image) {
-	basicwidget.FillBackground(dst, context)
+	//basicwidget.FillBackground(dst, context)
 }
 
 func main() {
 	op := &guigui.RunOptions{
-		Title: "Component Gallery",
+		Title:             "Component Gallery",
+		ScreenTransparent: true,
 	}
 	if err := guigui.Run(&Root{}, op); err != nil {
 		fmt.Fprintln(os.Stderr, err)

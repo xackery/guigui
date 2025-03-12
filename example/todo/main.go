@@ -152,14 +152,15 @@ func (r *Root) tryCreateTask() {
 }
 
 func (r *Root) Draw(context *guigui.Context, dst *ebiten.Image) {
-	basicwidget.FillBackground(dst, context)
+	//basicwidget.FillBackground(dst, context)
 }
 
 func main() {
 	op := &guigui.RunOptions{
-		Title:           "TODO",
-		WindowMinWidth:  320,
-		WindowMinHeight: 240,
+		Title:             "TODO",
+		WindowMinWidth:    320,
+		WindowMinHeight:   240,
+		ScreenTransparent: true,
 	}
 	if err := guigui.Run(&Root{}, op); err != nil {
 		fmt.Fprintln(os.Stderr, err)

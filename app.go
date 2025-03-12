@@ -70,12 +70,13 @@ type app struct {
 }
 
 type RunOptions struct {
-	Title           string
-	WindowMinWidth  int
-	WindowMinHeight int
-	WindowMaxWidth  int
-	WindowMaxHeight int
-	AppScale        float64
+	Title             string
+	WindowMinWidth    int
+	WindowMinHeight   int
+	WindowMaxWidth    int
+	WindowMaxHeight   int
+	AppScale          float64
+	ScreenTransparent bool
 }
 
 func Run(root Widget, options *RunOptions) error {
@@ -115,6 +116,9 @@ func Run(root Widget, options *RunOptions) error {
 	}
 	eop := &ebiten.RunGameOptions{
 		ColorSpace: ebiten.ColorSpaceSRGB,
+	}
+	if options.ScreenTransparent {
+		eop.ScreenTransparent = true
 	}
 	return ebiten.RunGameWithOptions(a, eop)
 }
